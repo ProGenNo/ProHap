@@ -18,7 +18,6 @@ class KeyWrapper:
     def insert(self, index, item):
         self.it.insert(index, item)
 
-
 parser = argparse.ArgumentParser(
         description='Read a VCF file (sorted by position!) and creates a VCF file for each of the transcripts. Works only per chromosome.')
 
@@ -46,6 +45,7 @@ parser.add_argument("-foo", dest="min_foo", required=False, type=float,
 
 args = parser.parse_args()
 
+
 # Load the annotations database
 annotations_db = gffutils.FeatureDB(args.annotation_db)
 
@@ -66,7 +66,7 @@ while (line != "" and line.startswith('#')):
 transcript_queue = []               # queue of transcript objects inc. the exons, sorted by end position, each element aggregates the VCF file contents
 file_handles = {}                   # file handles accessed by transcript ID
 current_pos = int(line.split()[1])  # position of the current VCF entry 
-transcript_count = 0
+
 last_transcript = None
 
 # iterate through all the transcripts - add the first one to the queue (and all others starting at the same location), and of each other, check if there is a gap that can be filled in by VCF entries
@@ -75,19 +75,26 @@ for current_transcript in annotations_db.features_of_type('transcript', order_by
 
     if (last_transcript is not None) and (last_transcript.start < current_transcript.start):
 
-        # TODO: process VCF lines
+        # Process VCF lines
         while (current_pos < current_transcript.start and line != ""):
-            # check all transcripts in the queue
-            for transcript_entry in transcript_queue:
+            # check the allele frequency
+            AF_pass = False
+            if ';AF=' in line:
+                AF = float(line.split('AF=')[1].split(';')[0])
+                AF_pass = AF >= args.min_foo
 
-                # check if the snp belongs to any of the exons
-                for exon in transcript_entry['exons']:
-                    if (exon.start < current_pos):
-                        if (exon.end > current_pos):
-                            transcript_entry['file_content'] += line
-                            break
-                    else:
-                        break   # exon starts after the mutation -> continue to another transcript
+            # check all transcripts in the queue
+            if AF_pass:
+                for transcript_entry in transcript_queue:
+
+                    # check if the snp belongs to any of the exons
+                    for exon in transcript_entry['exons']:
+                        if (exon.start < current_pos):
+                            if (exon.end > current_pos):
+                                transcript_entry['file_content'] += line
+                                break
+                        else:
+                            break   # exon starts after the mutation -> continue to another transcript
 
             line = args.input_file.readline()
             if line == "":
@@ -108,7 +115,7 @@ for current_transcript in annotations_db.features_of_type('transcript', order_by
     nearest_idx = bisect.bisect_left(KeyWrapper(transcript_queue, key=lambda x: x['end']), queue_entry['end'])
     transcript_queue.insert(nearest_idx, queue_entry)
 
-    transcript_count += 1
+    last_transcript = current_transcript
 
 file = open(args.output_dir + '/' + "ready", 'w')
 file.write("Ready")
