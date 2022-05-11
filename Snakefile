@@ -4,8 +4,8 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 
 rule all:
         input:
-                in1="data/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf",
-                in2=expand("data/chr{chr}/ready", chr=CHROMOSOMES)
+                in1=expand("data/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.gtf", chr=CHROMOSOMES),
+                #in2=expand("data/chr{chr}/ready", chr=CHROMOSOMES)
 
 rule download_vcf:
         output:
@@ -15,9 +15,19 @@ rule download_vcf:
 
 rule download_gtf:
         output:
-                "data/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf"
+                "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf"
         shell:
                 "wget ftp.ensembl.org/pub/release-104/gtf/homo_sapiens/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf.gz -O {output}.gz && gunzip {output}.gz; "
+
+# filter the GTF so that only features on one chromosome are present:
+rule split_gtf:
+        input:
+            "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf"
+        output:
+            "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.gtf"
+        shell:
+            "grep \"^#\" {input} > {output}; "
+            "grep \"^{wildcards.chr} \" >> {output}"
 
 rule fragment_vcf:
         input:
