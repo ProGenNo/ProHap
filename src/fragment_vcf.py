@@ -114,6 +114,14 @@ for current_transcript in annotations_db.features_of_type('transcript', order_by
 
     last_transcript = current_transcript
 
+# write the output for the remaining transcripts
+while (len(transcript_queue) > 0):
+    file = open(args.output_dir + '/' + transcript_queue[0]['ID'] + '.vcf', 'w')
+    file.write(VCF_header)
+    file.write(transcript_queue[0]['file_content'])
+    file.close()
+    transcript_queue.pop(0)
+
 # write the dummy file for Snakemake
 file = open(args.output_dir + '/' + "ready", 'w')
 file.write("Ready")
