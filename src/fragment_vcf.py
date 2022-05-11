@@ -37,9 +37,6 @@ parser.add_argument("-db", dest="annotation_db", required=True,
 parser.add_argument("-d", dest="output_dir", required=True,
                     help="output directory")
 
-parser.add_argument("-ch", dest="chrom", required=True,
-                    help="chromosome number")
-
 parser.add_argument("-foo", dest="min_foo", required=False, type=float,
                     help="Frequency of Occurance (FoO) lower threshold - default 0", default=0)
 
@@ -117,6 +114,7 @@ for current_transcript in annotations_db.features_of_type('transcript', order_by
 
     last_transcript = current_transcript
 
+# write the dummy file for Snakemake
 file = open(args.output_dir + '/' + "ready", 'w')
 file.write("Ready")
 file.close()

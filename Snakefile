@@ -5,7 +5,7 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 rule all:
         input:
                 in1=expand("data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.gtf", chr=CHROMOSOMES),
-                #in2=expand("data/chr{chr}/ready", chr=CHROMOSOMES)
+                in2=expand("data/chr{chr}/ready", chr=CHROMOSOMES)
 
 rule download_vcf:
         output:
@@ -22,7 +22,7 @@ rule download_gtf:
 # filter the GTF so that only features on one chromosome are present:
 rule split_gtf:
         input:
-            in1="data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff.gtf"
+            "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff.gtf"
         output:
             "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.gtf"
         shell:
@@ -38,12 +38,13 @@ rule parse_gtf:
         shell:
             "python3 src/parse_gtf.py -i {input} -o {output}"
 
+# make a separate VCF for each transcript - only coding variants with AF passing threshold
 rule fragment_vcf:
         input:
                 vcf = "data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf",
-                gene_list = "data/gene_list/chr{chr}.csv"
+                db = "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.db"
         output:
                 out_dummy=temp("data/chr{chr}/ready")
         shell:
-                "python3 src/fragment_vcf.py -i {input.vcf} -g {input.gene_list} -d data/chr{wildcards.chr}"
+                "python3 src/fragment_vcf.py -i {input.vcf} -db {input.db} -d data/chr{wildcards.chr} -foo 0.1"
 
