@@ -4,7 +4,7 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 
 rule all:
         input:
-                in1="data/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf"
+                in1="data/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf",
                 in2=expand("data/chr{chr}/ready", chr=CHROMOSOMES)
 
 rule download_vcf:
@@ -25,8 +25,6 @@ rule fragment_vcf:
                 gene_list = "data/gene_list/chr{chr}.csv"
         output:
                 out_dummy=temp("data/chr{chr}/ready")
-        params:
-                chromosome=CHR
         shell:
                 "python3 src/fragment_vcf.py -i {input.vcf} -g {input.gene_list} -d data/chr{wildcards.chr}"
 
