@@ -22,13 +22,21 @@ rule download_gtf:
 # filter the GTF so that only features on one chromosome are present:
 rule split_gtf:
         input:
-            in1="data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf",
-            in_dummy="data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
+            in1="data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf"
         output:
             "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.gtf"
         shell:
-            "grep \"^#\" {input.in1} > {output}; "
-            "grep \"^{wildcards.chr} \" >> {output}"
+            "grep \"^#\" {input} > {output}; "
+            "grep \"^{wildcards.chr} \" {input} >> {output}"
+
+# create the DB files from GTF for each chromosome
+rule parse_gtf:
+        input:
+            "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.gtf"
+        output:
+            "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.db"
+        shell:
+            "python3 src/parse_gtf.py -i {input} -o {output}"
 
 rule fragment_vcf:
         input:
