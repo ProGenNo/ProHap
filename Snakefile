@@ -27,7 +27,7 @@ rule split_gtf:
             "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.gtf"
         shell:
             "grep \"^#\" {input} > {output}; "
-            "grep \"^{wildcards.chr} \" {input} >> {output}"
+            "grep \"^{wildcards.chr}\s\" {input} >> {output}"
 
 # create the DB files from GTF for each chromosome
 rule parse_gtf:
