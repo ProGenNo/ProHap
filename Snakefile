@@ -4,7 +4,7 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 
 rule all:
         input:
-                in1=expand("data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.gtf", chr=CHROMOSOMES),
+                in1=expand("data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.gtf", chr=CHROMOSOMES),
                 #in2=expand("data/chr{chr}/ready", chr=CHROMOSOMES)
 
 rule download_vcf:
@@ -15,16 +15,16 @@ rule download_vcf:
 
 rule download_gtf:
         output:
-                "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf"
+                "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff.gtf"
         shell:
-                "wget ftp.ensembl.org/pub/release-104/gtf/homo_sapiens/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf.gz -O {output}.gz && gunzip {output}.gz; "
+                "wget ftp.ensembl.org/pub/release-106/gtf/homo_sapiens/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff.gtf.gz -O {output}.gz && gunzip {output}.gz; "
 
 # filter the GTF so that only features on one chromosome are present:
 rule split_gtf:
         input:
-            in1="data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf"
+            in1="data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff.gtf"
         output:
-            "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.gtf"
+            "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.gtf"
         shell:
             "grep \"^#\" {input} > {output}; "
             "grep \"^{wildcards.chr}\s\" {input} >> {output}"
@@ -32,9 +32,9 @@ rule split_gtf:
 # create the DB files from GTF for each chromosome
 rule parse_gtf:
         input:
-            "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.gtf"
+            "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.gtf"
         output:
-            "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.db"
+            "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.db"
         shell:
             "python3 src/parse_gtf.py -i {input} -o {output}"
 
