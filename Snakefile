@@ -22,11 +22,12 @@ rule download_gtf:
 # filter the GTF so that only features on one chromosome are present:
 rule split_gtf:
         input:
-            "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf"
+            in1="data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff.gtf",
+            in_dummy="data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
         output:
             "data/gtf/Homo_sapiens.GRCh38.104.chr_patch_hapl_scaff_chr{chr}.gtf"
         shell:
-            "grep \"^#\" {input} > {output}; "
+            "grep \"^#\" {input.in1} > {output}; "
             "grep \"^{wildcards.chr} \" >> {output}"
 
 rule fragment_vcf:
