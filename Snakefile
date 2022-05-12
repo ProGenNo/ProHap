@@ -5,7 +5,7 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 rule all:
         input:
                 in1=expand("data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.gtf", chr=CHROMOSOMES),
-                in2=expand("data/chr{chr}/ready", chr=CHROMOSOMES)
+                in2=expand("results/gene_haplotypes/gene_haplo_chr{chr}.tsv", chr=CHROMOSOMES)
 
 rule download_vcf:
         output:
