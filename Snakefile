@@ -56,4 +56,4 @@ rule gene_haplotypes:
         output:
                 "results/gene_haplotypes/gene_haplo_chr{chr}.tsv"
         shell:
-                "python3 src/get_haplotypes.py -d data/{wildcards.chr} -db {input.db} -o {output}"
+                "python3 src/get_haplotypes.py -d data/chr{wildcards.chr} -db {input.db} -o {output}"
