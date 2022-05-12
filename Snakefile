@@ -46,5 +46,5 @@ rule fragment_vcf:
         output:
                 out_dummy=temp("data/chr{chr}/ready")
         shell:
-                "python3 src/fragment_vcf.py -i {input.vcf} -db {input.db} -d data/chr{wildcards.chr} -foo 0.1"
+                "python3 src/fragment_vcf.py -i {input.vcf} -db {input.db} -d data/chr{wildcards.chr} -foo 0.01"
 
