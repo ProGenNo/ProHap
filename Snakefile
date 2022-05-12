@@ -51,7 +51,7 @@ rule fragment_vcf:
 # create the list of gene haplotypes for each chromosome
 rule gene_haplotypes:
         input:
-                in_dummy="data/chr{chr}/ready"
+                in_dummy="data/chr{chr}/ready",
                 db = "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.db"
         output:
                 "results/gene_haplotypes/gene_haplo_chr{chr}.tsv"
