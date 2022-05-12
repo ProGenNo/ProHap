@@ -44,7 +44,16 @@ rule fragment_vcf:
                 vcf = "data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf",
                 db = "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.db"
         output:
-                out_dummy=temp("data/chr{chr}/ready")
+                out_dummy="data/chr{chr}/ready"
         shell:
                 "python3 src/fragment_vcf.py -i {input.vcf} -db {input.db} -d data/chr{wildcards.chr} -foo 0.01"
 
+# create the list of gene haplotypes for each chromosome
+rule gene_haplotypes:
+        input:
+                in_dummy="data/chr{chr}/ready"
+                db = "data/gtf/Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff_chr{chr}.db"
+        output:
+                "results/gene_haplotypes/gene_haplo_chr{chr}.tsv"
+        shell:
+                "python3 src/get_haplotypes.py -d data/{wildcards.chr} -db {input.db} -o {output}"

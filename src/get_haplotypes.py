@@ -3,8 +3,6 @@ import argparse
 import gffutils
 import bisect
 
-input_file = "test/output/ENST00000331437.vcf"
-output_file = "test/haplo_test2.txt"
 samples_file = "igsr_samples.tsv"
 
 parser = argparse.ArgumentParser(
@@ -92,7 +90,7 @@ for transcript in annotations_db.features_of_type('transcript', order_by='start'
 
 result_df = pd.DataFrame(columns=result_columns, data=result_data)
 result_df.sort_values(by='Count', ascending=False, inplace=True)
-result_df.to_csv(output_file, sep='\t', header=True, index=False)
+result_df.to_csv(args.output_file, sep='\t', header=True, index=False)
     
 # checksum
 # print(sum(result_df['Frequency'].to_list()))
