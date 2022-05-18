@@ -27,8 +27,10 @@ result_data = []
 # Load the annotations database
 annotations_db = gffutils.FeatureDB(args.annotation_db)
 
+all_transcripts = [ transcript for transcript in annotations_db.features_of_type('transcript', order_by='start') ]
+
 # check haplotypes for every transcript in the DB
-for transcript in annotations_db.features_of_type('transcript', order_by='start'):
+for transcript_idx,transcript in enumerate(all_transcripts):
     transcriptID = transcript.id
     
     # load the according VCF file to Pandas (skip the comments at the beginning)
@@ -86,10 +88,12 @@ for transcript in annotations_db.features_of_type('transcript', order_by='start'
                 changes.append(str(row['POS']) + ':' + row['REF'] + '>' + row['ALT'])
             changes_str = ';'.join(changes)
 
-        result_data.append([transcriptID, changes_str, len(haplo_samples[i]), len(haplo_samples[i]) / (indiv_count * 2)])
+        result_data.append([transcriptID, changes_str, len(haplo_samples[i]), len(haplo_samples[i]) / (indiv_count * 2), ';'.join(haplo_samples[i])])
+
+    # print(transcriptID + ': ' + str(transcript_idx) + ' / ' + str(len(all_transcripts)), end='\r')
 
 result_df = pd.DataFrame(columns=result_columns, data=result_data)
-result_df.sort_values(by='Count', ascending=False, inplace=True)
+result_df.sort_values(by=['TranscriptID', 'Frequency'], ascending=[True, False], inplace=True)
 result_df.to_csv(args.output_file, sep='\t', header=True, index=False)
     
 # checksum
