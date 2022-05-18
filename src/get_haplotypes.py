@@ -21,7 +21,7 @@ args = parser.parse_args()
 
 #samples_df = pd.read_csv(samples_file, sep='\t', index_col=0)
 
-result_columns = ['TranscriptID', 'Changes', 'Count', 'Frequency', 'Samples']
+result_columns = ['TranscriptID', 'Changes', 'AlleleFrequencies', 'VCF_IDs', 'Count', 'Frequency', 'Samples']
 result_data = []
 
 # Load the annotations database
@@ -79,16 +79,25 @@ for transcript_idx,transcript in enumerate(all_transcripts):
     for i,combination in enumerate(haplo_combinations):
         if combination == 'REF':
             changes_str = 'REF'
+            AFs_str = ""
+            combination = ""
+
         else:
             indexes = [ int(idx) for idx in combination.split(',') ]
             changes = []
+            AFs = []   # allele frequencies
             for idx in indexes:
                 row = vcf_df.iloc[idx]
 
                 changes.append(str(row['POS']) + ':' + row['REF'] + '>' + row['ALT'])
+                if 'AF' in row['INFO']:
+                    AFs.append(row['INFO'].split('AF=')[1].split(';')[0])
+                else:
+                    AFs.append('-1')
             changes_str = ';'.join(changes)
+            AFs_str = ';'.join(AFs)
 
-        result_data.append([transcriptID, changes_str, len(haplo_samples[i]), len(haplo_samples[i]) / (indiv_count * 2), ';'.join(haplo_samples[i])])
+        result_data.append([transcriptID, changes_str, AFs_str, combination, len(haplo_samples[i]), len(haplo_samples[i]) / (indiv_count * 2), ';'.join(haplo_samples[i])])
 
     # print(transcriptID + ': ' + str(transcript_idx) + ' / ' + str(len(all_transcripts)), end='\r')
 
