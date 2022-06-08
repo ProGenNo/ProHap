@@ -1,3 +1,4 @@
+from sys import api_version
 import pandas as pd
 import argparse
 import gffutils
@@ -21,13 +22,50 @@ args = parser.parse_args()
 
 #samples_df = pd.read_csv(samples_file, sep='\t', index_col=0)
 
-result_columns = ['TranscriptID', 'Changes', 'AlleleFrequencies', 'VCF_IDs', 'Count', 'Frequency', 'Samples']
+result_columns = ['TranscriptID', 'Changes', 'AlleleFrequencies', 'RemovedChanges', 'VCF_IDs', 'Count', 'Frequency', 'Samples']
 result_data = []
 
 # Load the annotations database
 annotations_db = gffutils.FeatureDB(args.annotation_db)
 
 all_transcripts = [ transcript for transcript in annotations_db.features_of_type('transcript', order_by='start') ]
+
+# check the list of mutations for any potential conflicts (multiple mutations affecting the same locus)
+# of there are multiple mutations conflicting, keep the one with highest AF
+def remove_conflicting_mutations(changes, AFs):    
+    eventQ = [ { 'loc': ch[0], 'type': 's', 'id': i } for i,ch in enumerate(changes) ]
+    eventQ.extend([ { 'loc': ch[0] + len(ch[1]), 'type': 'e', 'id': i } for i,ch in enumerate(changes) ])
+
+    eventQ.sort(key=lambda x: x['loc'])
+
+    active_ids = []     # mutations overlapping current position
+    id_groups = []      # all the groups of mutations already passed
+    current_group = []  # list for aggregating currently overlapping mutations
+
+    result_kept = []
+    result_removed = []
+
+    for evt in eventQ:
+        if evt['type'] == 's':
+            active_ids.append(evt['id'])
+            current_group.append(evt['id'])
+
+        elif evt['type'] == 'e':
+            active_ids.remove(evt['id'])
+
+            if (len(active_ids) == 0):
+                id_groups.append(current_group)
+                current_group = []
+
+    for group in id_groups:
+        if (len(group) == 1):               # no conflifting mutations here
+            result_kept.append(group[0])
+        elif (len(group) > 1):              # conflicting mutations -> sort according to AF and pick the highest one, remove the rest
+            group_sorted = sorted(group, key=lambda i: -AFs[i])
+            result_kept.append(group_sorted[0])
+            result_removed.extend(group_sorted[1:])
+
+    return result_kept, result_removed
 
 # check haplotypes for every transcript in the DB
 for transcript_idx,transcript in enumerate(all_transcripts):
@@ -50,8 +88,14 @@ for transcript_idx,transcript in enumerate(all_transcripts):
 
         # store indices of rows for which the alternative allele has been found -> create a temporary string ID of the haplotype
         vals = vcf_df[indiv].to_list()
-        hap1 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.startswith('1') ])
-        hap2 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.endswith('1') ])
+
+        # sanity check - correct separator between paternal / maternal chromosome
+        err_rows = ','.join([ str(i) for i,elem in enumerate(vals) if '|' not in elem ])
+        if (len(err_rows) > 1):
+            print('Incorrect formatting!', 'indivudial:', indiv, 'rows:', err_rows, 'transcript:', transcriptID)
+
+        hap1 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.startswith('1|') ])
+        hap2 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.endswith('|1') ])
 
         # no alternative alleles -> reference haplotype
         if hap1 == '':
@@ -84,20 +128,30 @@ for transcript_idx,transcript in enumerate(all_transcripts):
 
         else:
             indexes = [ int(idx) for idx in combination.split(',') ]
-            changes = []
-            AFs = []   # allele frequencies
+            changes = []    # changes in the POS:REF>ALT format
+            changelist = [] # changes with the POS, REF and ALT fields sepatared
+            AFs = []        # allele frequencies
             for idx in indexes:
                 row = vcf_df.iloc[idx]
 
+                changelist.append([row['POS'], row['REF'], row['ALT']])
                 changes.append(str(row['POS']) + ':' + row['REF'] + '>' + row['ALT'])
                 if 'AF' in row['INFO']:
                     AFs.append(row['INFO'].split('AF=')[1].split(';')[0])
                 else:
                     AFs.append('-1')
+
+            # check for conflicting mutations!
+            kept, removed = remove_conflicting_mutations(changelist, AFs)
+            removedChanges = [ changes[i] for i in removed ]
+            changes = [ changes[i] for i in kept ]
+            AFs = [ AFs[i] for i in kept ]
+
+            removed_str = ';'.join(removedChanges)
             changes_str = ';'.join(changes)
             AFs_str = ';'.join(AFs)
 
-        result_data.append([transcriptID, changes_str, AFs_str, combination, len(haplo_samples[i]), len(haplo_samples[i]) / (indiv_count * 2), ';'.join(haplo_samples[i])])
+        result_data.append([transcriptID, changes_str, AFs_str, removed_str, haplo_combinations[i], len(haplo_samples[i]), len(haplo_samples[i]) / (indiv_count * 2), ';'.join(haplo_samples[i])])
 
     # print(transcriptID + ': ' + str(transcript_idx) + ' / ' + str(len(all_transcripts)), end='\r')
 
