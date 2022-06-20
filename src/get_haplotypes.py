@@ -1,4 +1,3 @@
-from sys import api_version
 import pandas as pd
 import argparse
 import gffutils
@@ -125,6 +124,7 @@ for transcript_idx,transcript in enumerate(all_transcripts):
             changes_str = 'REF'
             AFs_str = ""
             combination = ""
+            removed_str = ""
 
         else:
             indexes = [ int(idx) for idx in combination.split(',') ]
