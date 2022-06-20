@@ -287,9 +287,7 @@ for index, row in input_df.iterrows():
 
     protein_changes_str = ';'.join(protein_changes)
     #protein_changes_str = ""
-    if (reading_frame == -1):
-        protein_changes_str = 'UNKNOWN_REF'
-    elif (len(protein_changes_str) == 0):
+    if (len(protein_changes_str) == 0):
         protein_changes_str = 'REF'
     
     spl_junctions_affected_str = ';'.join(list(map(lambda x: str(x), spl_junctions_affected)))
@@ -324,7 +322,7 @@ for index, row in input_df.iterrows():
         output_fasta_file.write(str(protein_seq) + '\n')
 
     # unknown reading frame -> translate in all 3 reading frames
-    elif (reading_frame == -1):
+    elif (protein_changes_str != 'REF'):
         for rf in range(0,3):
             protein_seq = Seq(mutated_cdna[rf:]).transcribe().translate()
 
