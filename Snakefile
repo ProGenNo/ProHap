@@ -5,7 +5,8 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 rule all:
         input:
                 in1=expand("data/gtf/" + config['annotationFilename'] + "_chr{chr}.gtf", chr=CHROMOSOMES),
-                in2=expand("results/gene_haplotypes/gene_haplo_chr{chr}.tsv", chr=CHROMOSOMES)
+                in2=expand("results/gene_haplotypes2/gene_haplo_chr{chr}.tsv", chr=CHROMOSOMES),
+                in3="data/fasta/total_cdnas.fa"
 
 rule download_vcf:
         output:
@@ -20,11 +21,11 @@ rule download_gtf:
                 "wget " + config['EnsemblFTP'] + "gtf/homo_sapiens/" + config['annotationFilename'] + ".gtf.gz -O {output}.gz && gunzip {output}.gz; "
 
 rule download_cdnas_fasta:
-	output:
-		out1="data/fasta/Homo_sapiens.GRCh38.ncrna.fa",
-		out2="data/fasta/Homo_sapiens.GRCh38.cdna.all.fa"
+        output:
+                out1="data/fasta/Homo_sapiens.GRCh38.ncrna.fa",
+                out2="data/fasta/Homo_sapiens.GRCh38.cdna.all.fa"
         shell:
-		"wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/ncrna/Homo_sapiens.GRCh38.ncrna.fa.gz -O {output.out1}.gz && gunzip {output.out1}.gz; "
+                "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/ncrna/Homo_sapiens.GRCh38.ncrna.fa.gz -O {output.out1}.gz && gunzip {output.out1}.gz; "
                 "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz -O {output.out2}.gz && gunzip {output.out2}.gz; "
 
 rule merge_cdnas_fasta:
@@ -73,6 +74,6 @@ rule gene_haplotypes:
                 in_dummy="data/chr{chr}/ready",
                 db = "data/gtf/" + config['annotationFilename'] + "_chr{chr}.db"
         output:
-                "results/gene_haplotypes/gene_haplo_chr{chr}.tsv"
+                "results/gene_haplotypes2/gene_haplo_chr{chr}.tsv"
         shell:
                 "python3 src/get_haplotypes.py -d data/chr{wildcards.chr} -db {input.db} -o {output}"
