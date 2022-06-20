@@ -60,7 +60,7 @@ def remove_conflicting_mutations(changes, AFs):
         if (len(group) == 1):               # no conflifting mutations here
             result_kept.append(group[0])
         elif (len(group) > 1):              # conflicting mutations -> sort according to AF and pick the highest one, remove the rest
-            group_sorted = sorted(group, key=lambda i: -AFs[i])
+            group_sorted = sorted(group, key=lambda i: -float(AFs[i]))
             result_kept.append(group_sorted[0])
             result_removed.extend(group_sorted[1:])
 

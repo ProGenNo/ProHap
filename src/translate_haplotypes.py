@@ -202,8 +202,7 @@ for index, row in input_df.iterrows():
     start_loc = 0               # location of the first nucleotide of the start codon with respect to the transcript start (0 if unknown)
     protein_start = 0           # length of the prefix in protein
     spl_junctions_affected = [] # list of splicing junctions where a mutation takes place (identified by order, where 1 is the junction between the 1. and 2. exon), empty if none affected
-    frameshifts = []            # boolean for every change whether it does or does not introduce a frameshift
-    len_diffs = []
+    #frameshifts = []            # boolean for every change whether it does or does not introduce a frameshift
 
     if (current_transcript['start_codon'] is not None):
         start_loc = get_rna_position_simple(current_transcript['start_codon'].start, current_transcript['exons'])
@@ -237,12 +236,12 @@ for index, row in input_df.iterrows():
         # remember reference allele in protein
         ref_allele_protein = ""     # reference residues directly affected (ignoring prossible frameshift)
         protein_location = 0        # location of these residues in the canonical protein (can be negative if in 5' UTR)
-        if reading_frame > -1:
-            protein_location = int(floor((rna_location - reading_frame) / 3) - protein_start)
-            bpFrom = int(floor((rna_location - reading_frame) / 3) * 3 + reading_frame)
-            bpTo = int(ceil((rna_location + len(ref_allele) - reading_frame) / 3) * 3 + reading_frame)
-            affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
-            ref_allele_protein = str(affected_codons.transcribe().translate())
+        
+        protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3) - max(reading_frame, 0))           # if reading frame is unknown, assume 0
+        bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+        bpTo = int(ceil((rna_location + len(ref_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+        affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
+        ref_allele_protein = str(affected_codons.transcribe().translate())
 
         # store change in cDNA
         cDNA_changes.append(str(rna_location) + ':' + str(ref_allele) + '>' + str(alt_allele))
@@ -270,25 +269,27 @@ for index, row in input_df.iterrows():
         # remember alternative allele in protein after the new location is computed
         # at this stage, it can only be done for the forward strand
         alt_allele_protein = ""
-        if reading_frame > -1:
-            bpFrom = int(floor((rna_location - reading_frame) / 3) * 3 + reading_frame)
-            bpTo = int(ceil((rna_location + len(alt_allele) - reading_frame) / 3) * 3 + reading_frame)
-            affected_codons = Seq(mutated_cdna[bpFrom:bpTo])
-            alt_allele_protein = str(affected_codons.transcribe().translate())
+        
+        bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+        bpTo = int(ceil((rna_location + len(alt_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+        affected_codons = Seq(mutated_cdna[bpFrom:bpTo])
+        alt_allele_protein = str(affected_codons.transcribe().translate())
 
-            protein_change = str(protein_location) + ':' + ref_allele_protein + '>' + alt_allele_protein
-            if ((sequence_length_diff % 3) > 0):
-                protein_change += "(fs)"
-                protein_changes.append(protein_change)
-            elif (ref_allele_protein != alt_allele_protein):
-                protein_changes.append(protein_change)
+        protein_change = str(protein_location) + ':' + ref_allele_protein + '>' + alt_allele_protein
+        if ((sequence_length_diff % 3) > 0):
+            protein_change += "(fs)"
+            protein_changes.append(protein_change)
+        elif (ref_allele_protein != alt_allele_protein):
+            protein_changes.append(protein_change)
 
 
     cDNA_changes_str = ';'.join(cDNA_changes)
 
     protein_changes_str = ';'.join(protein_changes)
     #protein_changes_str = ""
-    if (len(protein_changes_str) == 0):
+    if (reading_frame == -1):
+        protein_changes_str = 'UNKNOWN_REF'
+    elif (len(protein_changes_str) == 0):
         protein_changes_str = 'REF'
     
     spl_junctions_affected_str = ';'.join(list(map(lambda x: str(x), spl_junctions_affected)))

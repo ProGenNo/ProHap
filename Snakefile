@@ -32,10 +32,8 @@ rule merge_cdnas_fasta:
 	input:
 		in1="data/fasta/Homo_sapiens.GRCh38.ncrna.fa",
 		in2="data/fasta/Homo_sapiens.GRCh38.cdna.all.fa"
-		
 	output:
 		"data/fasta/total_cdnas.fa"
-	
 	shell:
 		"cat {input.in1} > {output}; cat {input.in2} >> {output}"
 
@@ -61,8 +59,8 @@ rule parse_gtf:
 # make a separate VCF for each transcript - only coding variants with AF passing threshold
 rule fragment_vcf:
         input:
-                vcf = "data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf",
-                db = "data/gtf/" + config['annotationFilename'] + "_chr{chr}.db"
+                vcf="data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf",
+                db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db"
         output:
                 out_dummy="data/chr{chr}/ready"
         shell:
@@ -72,8 +70,21 @@ rule fragment_vcf:
 rule gene_haplotypes:
         input:
                 in_dummy="data/chr{chr}/ready",
-                db = "data/gtf/" + config['annotationFilename'] + "_chr{chr}.db"
+                db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db"
         output:
                 "results/gene_haplotypes2/gene_haplo_chr{chr}.tsv"
         shell:
                 "python3 src/get_haplotypes.py -d data/chr{wildcards.chr} -db {input.db} -o {output}"
+
+# process the gene haplotypes into cDNA and protein haplotypes
+rule protein_haplotypes:
+        input:
+                gene_csv="results/gene_haplotypes2/gene_haplo_chr{chr}.tsv",
+                db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
+                cdna="data/fasta/total_cdnas.fa"
+        output:
+                csv="results/protein_haplotypes2/haplo_chr{chr}.tsv",
+                fasta="results/protein_haplotypes2/haplo_chr{chr}.fa
+        shell:
+                "python3 src/translate_haplotypes.py -i {input.gene_csv} -db {input.db} -cdna {input.cdna} -acc_prefix enshap_{wildcards.chr}_ -output_csv {output.csv} -output_fasta {output.fasta}"
+
