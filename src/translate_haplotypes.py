@@ -134,8 +134,8 @@ print ("Reading", args.cdnas_fasta)
 all_cdnas = read_fasta(args.cdnas_fasta)
 
 # Load the annotations database
-print ("Reading", args.annotations_db)
-annotations_db = gffutils.FeatureDB(args.annotations_db)
+print ("Reading", args.annotation_db)
+annotations_db = gffutils.FeatureDB(args.annotation_db)
 
 print ('Processing haplotypes')
 current_transcript = None
@@ -294,7 +294,7 @@ for index, row in input_df.iterrows():
     if (len(spl_junctions_affected_str) == 0):
         spl_junctions_affected_str = '-'
 
-    haplotypeID = args.acc_prefix + hex(index)[2:]
+    haplotypeID = args.accession_prefix + hex(index)[2:]
 
     # store result
     result_data.append([
