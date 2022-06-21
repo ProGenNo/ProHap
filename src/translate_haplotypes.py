@@ -237,11 +237,19 @@ for index, row in input_df.iterrows():
         ref_allele_protein = ""     # reference residues directly affected (ignoring prossible frameshift)
         protein_location = 0        # location of these residues in the canonical protein (can be negative if in 5' UTR)
         
-        protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3) - max(reading_frame, 0))           # if reading frame is unknown, assume 0
-        bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+        if (reading_frame == -1):
+            protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3))               # if reading frame is unknown, assume 0
+        else:
+            protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3) -  protein_start)
+
+        bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0
+        bpFrom = max(bpFrom, 0)                                                                     # in case the beginning of the change is before the reading frame start
+
         bpTo = int(ceil((rna_location + len(ref_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
-        affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
-        ref_allele_protein = str(affected_codons.transcribe().translate())
+
+        if (bpTo >= 2): # make sure we have at least 1 codon covered
+            affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
+            ref_allele_protein = str(affected_codons.transcribe().translate())
 
         # store change in cDNA
         cDNA_changes.append(str(rna_location) + ':' + str(ref_allele) + '>' + str(alt_allele))
@@ -258,10 +266,6 @@ for index, row in input_df.iterrows():
             cDNA_changes = cDNA_changes[:-1]    # remove the element that has already been added
             continue
 
-        # is a splice junction affected? -> remember if so 
-        if (mutation_intersects_intron is not None) and (mutation_intersects_intron not in spl_junctions_affected):
-            spl_junctions_affected.append(mutation_intersects_intron)
-
         # apply the change to the cDNA
         mutated_cdna = mutated_cdna[:rna_location] + alt_allele + mutated_cdna[rna_location+ref_len:]
         sequence_length_diff += alt_len - ref_len
@@ -270,17 +274,25 @@ for index, row in input_df.iterrows():
         # at this stage, it can only be done for the forward strand
         alt_allele_protein = ""
         
-        bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+        bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0
+        bpFrom = max(bpFrom, 0)                                                                     # in case the beginning of the change is before the reading frame start
         bpTo = int(ceil((rna_location + len(alt_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
-        affected_codons = Seq(mutated_cdna[bpFrom:bpTo])
-        alt_allele_protein = str(affected_codons.transcribe().translate())
 
+        if (bpTo >= 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
+            affected_codons = Seq(mutated_cdna[bpFrom:bpTo])
+            alt_allele_protein = str(affected_codons.transcribe().translate())
+
+        # store the change in protein as a string - only if there is a change (i.e. ignore synonymous variants) or a frameshift
         protein_change = str(protein_location) + ':' + ref_allele_protein + '>' + alt_allele_protein
         if ((sequence_length_diff % 3) > 0):
             protein_change += "(fs)"
             protein_changes.append(protein_change)
         elif (ref_allele_protein != alt_allele_protein):
             protein_changes.append(protein_change)
+
+        # is a splice junction affected? -> remember if so 
+        if (mutation_intersects_intron is not None) and (mutation_intersects_intron not in spl_junctions_affected):
+            spl_junctions_affected.append(mutation_intersects_intron)
 
 
     cDNA_changes_str = ';'.join(cDNA_changes)
