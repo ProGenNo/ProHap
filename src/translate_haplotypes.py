@@ -190,7 +190,7 @@ for index, row in input_df.iterrows():
         current_transcript = { 'ID': transcript_id, 'feature': transcript_feature, 'exons': exons, 'start_codon': start_codon, 'stop_codon': stop_codon, 'fasta_element': all_cdnas[transcript_id.split('.')[0]] }
     
     cdna_sequence = current_transcript['fasta_element']['sequence'] # reference cDNA
-    mutated_cdna = cdna_sequence                                    # cDNA to aggregate mutations
+    mutated_cdna = Seq(cdna_sequence)                               # cDNA to aggregate mutations
     sequence_length_diff = 0                                        # cummulative difference between the length of reference and haplotype -> to place mutations correctly in case of preceding indels
 
     # boolean - are we on a reverse strand?
@@ -279,7 +279,7 @@ for index, row in input_df.iterrows():
         bpTo = int(ceil((rna_location + len(alt_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
         if (bpTo >= 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
-            affected_codons = Seq(mutated_cdna[bpFrom:bpTo])
+            affected_codons = mutated_cdna[bpFrom:bpTo]
             alt_allele_protein = str(affected_codons.transcribe().translate())
 
         # store the change in protein as a string - only if there is a change (i.e. ignore synonymous variants) or a frameshift
@@ -328,7 +328,7 @@ for index, row in input_df.iterrows():
 
     # check the reading frame, if possible, and translate
     if (reading_frame > -1 and protein_changes_str != 'REF'):
-        protein_seq = Seq(mutated_cdna[reading_frame:]).transcribe().translate()
+        protein_seq = mutated_cdna[reading_frame:].transcribe().translate()
 
         output_fasta_file.write('>' + args.fasta_tag + '|' + haplotypeID + '|' + current_transcript['fasta_element']['description'] + ' start:' + str(protein_start) + '\n')
         output_fasta_file.write(str(protein_seq) + '\n')
@@ -336,7 +336,7 @@ for index, row in input_df.iterrows():
     # unknown reading frame -> translate in all 3 reading frames
     elif (protein_changes_str != 'REF'):
         for rf in range(0,3):
-            protein_seq = Seq(mutated_cdna[rf:]).transcribe().translate()
+            protein_seq = mutated_cdna[rf:].transcribe().translate()
 
             output_fasta_file.write('>' + args.fasta_tag + '|' + haplotypeID + '|' + current_transcript['fasta_element']['description'] + ' reading_frame:' + str(rf) + '\n')
             output_fasta_file.write(str(protein_seq) + '\n')
