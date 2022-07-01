@@ -68,7 +68,7 @@ rule compute_haplotypes:
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
         "-af 0.01 -acc_prefix enshap_chr{wildcards.chr} "
-        "-output_csv {output/csv} -output_fasta {output.fasta} "
+        "-output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_fasta:
     input:

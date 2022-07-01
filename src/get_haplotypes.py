@@ -151,8 +151,14 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs):
                 # check for conflicting mutations!
                 kept, removed = remove_conflicting_mutations(changelist, AFs)
                 removedChanges = [ changes[i] for i in removed ]
+                changelist = [ changelist[i] for i in kept ]
                 changes = [ changes[i] for i in kept ]
                 AFs = [ AFs[i] for i in kept ]
+
+                # sort the changes according to the position
+                zipped = list(zip(changelist, changes, AFs))
+                zipped.sort(key=lambda x: int(x[0][0]))
+                changelist, changes, AFs = zip(*zipped)
 
                 removed_str = ';'.join(removedChanges)
                 changes_str = ';'.join(changes)
