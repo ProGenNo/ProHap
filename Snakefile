@@ -4,8 +4,7 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 
 rule all:
     input:
-        in1=expand("data/gtf/" + config['annotationFilename'] + "_chr{chr}.gtf", chr=CHROMOSOMES),
-        in2=expand("results/gene_haplotypes2/gene_haplo_chr{chr}.tsv", chr=CHROMOSOMES),
+        final_fasta="results/haplotypes/haplo_all.fa"
 
 rule download_vcf:
     output:
@@ -76,5 +75,7 @@ rule merge_fasta:
         expand("results/haplotypes/haplo_chr{chr}.fa", chr=CHROMOSOMES)
     output:
         "results/haplotypes/haplo_all.fa"
+    params:
+        input_file_list = ' '.join(expand("results/haplotypes/haplo_chr{chr}.fa", chr=CHROMOSOMES))
     shell:
-        "cat {input} > output"
+        "cat {params.input_file_list} > {output}"

@@ -7,8 +7,8 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-i", dest="input_file", required=True,
                     help="input GTF")
 
-parser.add_argument("-noncoding", dest="include_noncoding", required=False, type=bool,
-                    help="flag: include non-coding transcripts?", default=False)
+parser.add_argument("-noncoding", dest="include_noncoding", required=False, type=int,
+                    help="flag: include non-coding transcripts; default: 0", default=0)
 
 parser.add_argument("-o", dest="output_file", required=True,
                     help="output DB")
