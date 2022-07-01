@@ -3,6 +3,7 @@
 # accessed by the stable element ID or accession in case of artificial identifier
 # all_elements[elementID] = {'tag': tag, 'accession': accession, 'description': description, 'sequence': sequence}
 def read_fasta(filename):
+
     fasta_file = open(filename, 'r')
 
     metadata = fasta_file.readline()    # line starting with '>'
@@ -54,3 +55,18 @@ def read_fasta(filename):
     fasta_file.close()
 
     return all_elements
+
+# hepler class for bisect to sort objects
+class KeyWrapper:
+    def __init__(self, iterable, key):
+        self.it = iterable
+        self.key = key
+
+    def __getitem__(self, i):
+        return self.key(self.it[i])
+
+    def __len__(self):
+        return len(self.it)
+
+    def insert(self, index, item):
+        self.it.insert(index, item)

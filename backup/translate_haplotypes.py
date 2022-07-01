@@ -1,4 +1,3 @@
-from matplotlib.cbook import ls_mapper
 from numpy import ceil, floor
 import pandas as pd
 import re

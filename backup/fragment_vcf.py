@@ -2,21 +2,7 @@ import gffutils
 import argparse
 import os.path
 import bisect
-
-# hepler class for bisect to sort objects
-class KeyWrapper:
-    def __init__(self, iterable, key):
-        self.it = iterable
-        self.key = key
-
-    def __getitem__(self, i):
-        return self.key(self.it[i])
-
-    def __len__(self):
-        return len(self.it)
-
-    def insert(self, index, item):
-        self.it.insert(index, item)
+from common import KeyWrapper
 
 parser = argparse.ArgumentParser(
         description='Read a VCF file (sorted by position!) and creates a VCF file for each of the transcripts. Works only per chromosome.')
@@ -59,6 +45,8 @@ while (line != "" and line.startswith('#')):
 
 # browse the chromosome in a sweep-line approach - assumes that the VCF file is sorted!
 # keep a list of transcripts that intersect the current position of the sweep line -> assign the VCF line to all of these transcripts
+
+# TODO: get the coordinates within the transcript already here?
 
 transcript_queue = []               # queue of transcript objects inc. the exons, sorted by end position, each element aggregates the VCF file contents
 file_handles = {}                   # file handles accessed by transcript ID
