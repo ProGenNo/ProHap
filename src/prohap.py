@@ -52,12 +52,17 @@ parser.add_argument("-output_fasta", dest="output_fasta", required=True,
 
 args = parser.parse_args()
 
+print('HaploThon: computing protein haplotypes from', args.input_vcf)
+
+print ('Reading', args.annotation_db)
 # Load the annotations database
 annotations_db = gffutils.FeatureDB(args.annotation_db)
 
+print ('Reading', args.transcript_list)
 # read the list of transcript IDs
 transcript_list = [ line[:-1].split('.', 1)[0] for line in args.transcript_list.readlines() ]
 
+print ('Assigning annotations to transcripts.')
 # create a list of transcript features from the annotation db
 all_transcripts = []
 for transcript_id in transcript_list:
@@ -65,9 +70,11 @@ for transcript_id in transcript_list:
 
 all_transcripts.sort(key=lambda x: x.start)
 
+print ('Assigning variants to transcripts.')
 # parse the VCF file, get a dataframe of variants for each transcript
 vcf_dfs = parse_vcf(all_transcripts, args.input_vcf, annotations_db, args.min_af)
 
+print ('Computing co-occurence of alleles.')
 # check co-occurence of alleles -> get the haplotypes for all transcripts
 gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_dfs)
 
@@ -75,5 +82,6 @@ gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_dfs)
 print ("Reading", args.cdnas_fasta)
 all_cds = read_fasta(args.cdnas_fasta)
 
+print ('Creating haplotype database.')
 # align the variant coordinates to transcript, translate into the protein database
 process_store_haplotypes(gene_haplo_df, all_cds, annotations_db, args.fasta_tag, args.accession_prefix, args.output_file, args.output_fasta)
