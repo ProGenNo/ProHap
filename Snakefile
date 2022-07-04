@@ -64,11 +64,13 @@ rule compute_haplotypes:
     output:
         csv="results/haplotypes/haplo_chr{chr}.tsv",
         fasta="results/haplotypes/haplo_chr{chr}.fa"
+    params:
+        log_file="log/chr{chr}.log"
     shell:
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
-        "-af 0.01 -acc_prefix enshap_chr{wildcards.chr} "
-        "-output_csv {output.csv} -output_fasta {output.fasta} "
+        "-af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} "
+        "-log {params.log_file} -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_fasta:
     input:
