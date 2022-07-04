@@ -14,13 +14,13 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af):
     # read the header of the VCF - keep only the last line of the header
     VCF_header = ""
 
+    vcf_linecount = 1
     line = vcf_file.readline()
-    vcf_linecount = 0
 
     while (line != "" and line.startswith('#')):
         VCF_header = line[1:]
-        line = vcf_file.readline()
         vcf_linecount += 1
+        line = vcf_file.readline()
 
     # browse the chromosome in a sweep-line approach - assumes that the VCF file is sorted!
     # keep a list of transcripts that intersect the current position of the sweep line -> assign the VCF line to all of these transcripts
@@ -60,15 +60,20 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af):
                             else:
                                 break   # exon starts after the mutation -> continue to another transcript
 
+                vcf_linecount += 1
                 line = vcf_file.readline()
                 if line == "":
                     break
-                current_pos = int(line.split()[1])
+
+                current_pos = int(line.split(maxsplit=2)[1])
+                vcf_id = line.split(maxsplit=3)[2]
+
+                if (vcf_id == '.'):
+                    # add an identifier = line cound
+                    line = '\t'.join(line.split(maxsplit=2)[:2]) + '\t' + hex(vcf_linecount)[2:] + '\t' + line.split(maxsplit=3)[3]
 
             # remove passed transcripts from queue
             while (len(transcript_queue) > 0 and transcript_queue[0]['end'] < current_pos):
-                # TODO
-
                 df = pd.read_csv(StringIO(VCF_header + transcript_queue[0]['file_content']), sep='\t')
                 result_dfs[transcript_queue[0]['ID']] = df
                 transcript_queue.pop(0)

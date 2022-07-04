@@ -1,8 +1,7 @@
 import pandas as pd
 import bisect
 
-result_columns = ['TranscriptID', 'Changes', 'AlleleFrequencies', 'RemovedChanges', 'VCF_IDs', 'Count', 'Frequency', 'Samples']
-result_data = []
+result_columns = ['TranscriptID', 'Changes', 'AlleleFrequencies', 'VCF_IDs', 'Count', 'Samples']
 
 # group mutations to see which ones conflict
 def cluster_conflicting_mutations(changes):
@@ -31,6 +30,7 @@ def cluster_conflicting_mutations(changes):
 
 # check the list of mutations for any potential conflicts (multiple mutations affecting the same locus)
 # if there are multiple mutations conflicting, gradually remove the one with lowest AF until no conflicts
+# CURRENTLY NOT USED
 def remove_conflicting_mutations(changes, AFs):    
     changes_enum = [{ 'change': ch, 'id': i} for i,ch in enumerate(changes)]
     id_groups = cluster_conflicting_mutations(changes_enum)
@@ -69,7 +69,13 @@ def remove_conflicting_mutations(changes, AFs):
 
 # Creates a list of observed haplotypes from VCF files (individual file for each transcript, with phased genotypes). 
 # Returns a dataframe, haplotypes described by DNA location, reference and alternative allele.
-def get_gene_haplotypes(all_transcripts, vcf_dfs):
+def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file):
+
+    result_data = []
+    removed_samples = {}    # Dict giving the list of removed samples by transcript (samples are removed if there are conflicting mutations found)
+    indiv_count = 0         # number of individuals in the dataset
+
+
     # check haplotypes for every transcript in the DB
     for transcript_idx,transcript in enumerate(all_transcripts):
         transcriptID = transcript.id
@@ -78,12 +84,12 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs):
         vcf_df = vcf_dfs[transcriptID]
 
         # IDs of phased genotype columns
-        indiv_ids = vcf_df.columns.values[9:]
+        indiv_ids = vcf_df.columns.values[9:]   # TODO: do not hardcode the number of columns in the VCF
         indiv_count = len(indiv_ids)
 
         # no variation in this transcript -> store reference haplotype only
         if (len(vcf_df) == 0):
-            result_data.append([transcriptID, 'REF', '', '', 'REF', indiv_count * 2, 1.0, 'all'])
+            result_data.append([transcriptID, 'REF', '', '', indiv_count * 2, 'all'])
             continue
 
         haplo_combinations = []
@@ -131,15 +137,19 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs):
                 changes_str = 'REF'
                 AFs_str = ""
                 combination = ""
-                removed_str = ""
+                #removed_str = ""
 
             else:
                 indexes = [ int(idx) for idx in combination.split(',') ]
                 changes = []    # changes in the POS:REF>ALT format
                 changelist = [] # changes with the POS, REF and ALT fields sepatared
                 AFs = []        # allele frequencies
+                vcf_IDs = []    # IDs in the VCF file
+
                 for idx in indexes:
                     row = vcf_df.iloc[idx]
+
+                    vcf_IDs.append(str(row['ID']))
 
                     changelist.append([row['POS'], row['REF'], row['ALT']])
                     changes.append(str(row['POS']) + ':' + row['REF'] + '>' + row['ALT'])
@@ -148,28 +158,62 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs):
                     else:
                         AFs.append('-1')
 
-                # check for conflicting mutations!
-                kept, removed = remove_conflicting_mutations(changelist, AFs)
-                removedChanges = [ changes[i] for i in removed ]
-                changelist = [ changelist[i] for i in kept ]
-                changes = [ changes[i] for i in kept ]
-                AFs = [ AFs[i] for i in kept ]
+                # check for conflicting mutations! -> remove these samples from analysis if conflicts found
+                changes_enum = [{ 'change': ch, 'id': i} for i,ch in enumerate(changelist)]
+                changes_clustered = cluster_conflicting_mutations(changes_enum)
+                conflict_found = False
+                for cluster in changes_clustered:
+                    if (len(cluster) > 1):
+                        if transcriptID in removed_samples:
+                            removed_samples[transcriptID].extend(haplo_samples[i])
+                        else:
+                            removed_samples[transcriptID] = haplo_samples[i]
+
+                        conflict_found = True
+                        break
+
+                if (conflict_found):
+                    continue
+
+                #kept, removed = remove_conflicting_mutations(changelist, AFs)
+                #removedChanges = [ changes[i] for i in removed ]
+                #changelist = [ changelist[i] for i in kept ]
+                #changes = [ changes[i] for i in kept ]
+                #AFs = [ AFs[i] for i in kept ]
 
                 # sort the changes according to the position
                 zipped = list(zip(changelist, changes, AFs))
                 zipped.sort(key=lambda x: int(x[0][0]))
                 changelist, changes, AFs = zip(*zipped)
 
-                removed_str = ';'.join(removedChanges)
+                #removed_str = ';'.join(removedChanges)
                 changes_str = ';'.join(changes)
                 AFs_str = ';'.join(AFs)
 
-            result_data.append([transcriptID, changes_str, AFs_str, removed_str, haplo_combinations[i], len(haplo_samples[i]), len(haplo_samples[i]) / (indiv_count * 2), ';'.join(haplo_samples[i])])
+            result_data.append([transcriptID, changes_str, AFs_str, ';'.join(vcf_IDs), len(haplo_samples[i]), ';'.join(haplo_samples[i])])
 
         # print(transcriptID + ': ' + str(transcript_idx) + ' / ' + str(len(all_transcripts)), end='\r')
 
     result_df = pd.DataFrame(columns=result_columns, data=result_data)
+
+    # count frequencies taking into account the number of removed samples in the transcript
+    def count_freq(row):
+        id = row['TranscriptID']
+        removed_count = 0
+        if id in removed_samples:
+            removed_count = len(removed_samples[id])
+        return min(1.0, (row['Count'] / ((indiv_count * 2) - removed_count)))
+
+    result_df['Frequency'] = result_df.apply(count_freq, axis=1)
     result_df.sort_values(by=['TranscriptID', 'Frequency'], ascending=[True, False], inplace=True)
+
+    # write info about the removed samples into the log file
+    log_file_handle = open(log_file, 'w')
+    log_file_handle.write('TranscriptID\t#Removed\tRemovedSamples\n')
+
+    for transcript in removed_samples:
+        log_file_handle.write(transcript + '\t' + str(len(removed_samples[transcript])) + '\t' + ';'.join(removed_samples[transcript]) + '\n')
+    log_file_handle.close()
 
     return result_df
 

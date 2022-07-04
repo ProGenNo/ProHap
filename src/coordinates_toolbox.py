@@ -4,7 +4,7 @@ Computes the position of the mutation in the RNA sequence.
 Checks whether the reference allele intersects a splice junction - truncates the sequences (both reference and alternative, if applicable) if so.
 Special case: Mutation reaches over an intron into another exon. Probably covered but not tested.
 '''
-def get_rna_position(dna_location, ref_allele, alt_allele, exons):
+def get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, exons):
     ref_len = len(ref_allele)
     alt_len = len(alt_allele)
     rna_location = 0
@@ -54,15 +54,19 @@ def get_rna_position(dna_location, ref_allele, alt_allele, exons):
                         alt_allele = alt_allele[:remaining_length]
                         alt_len = remaining_length
 
+            # remember if we change the last letter in the exon
+            elif (dna_location + ref_len == exon.end):
+                mutation_intersects_intron = exon_idx + 1
+
             break
 
     if not found:
-        raise Exception('DNA location ' + str(dna_location) + ' is not in an exon.')
+        raise Exception(transcript_id + ': DNA location ' + str(dna_location) + ' is not in an exon.')
     
     return rna_location, ref_allele, ref_len, alt_allele, alt_len, mutation_intersects_intron
 
 
-def get_rna_position_simple(dna_location, exons):
+def get_rna_position_simple(transcript_id,dna_location, exons):
     rna_location = 0
     found = False
 
@@ -77,6 +81,6 @@ def get_rna_position_simple(dna_location, exons):
             break
 
     if not found:
-        raise Exception('DNA location ' + str(dna_location) + ' is not in an exon.')
+        raise Exception(transcript_id + ': DNA location ' + str(dna_location) + ' is not in an exon.')
 
     return rna_location

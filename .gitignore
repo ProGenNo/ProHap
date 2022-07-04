@@ -1,4 +1,7 @@
 data/*
 results/*
-test/*
+test/
 .snakemake/*
+src/__pycache__
+.vscode
+*.log

@@ -1,11 +1,14 @@
 import re
 from numpy import ceil, floor
 import pandas as pd
+import bisect
 from Bio.Seq import Seq
 from coordinates_toolbox import get_rna_position, get_rna_position_simple
+from common import KeyWrapper
 
 result_columns = [  
     'TranscriptID', 
+    'transcript_biotype',
     'HaplotypeID',
     'VCF_IDs', 
     'DNA_changes', 
@@ -16,27 +19,27 @@ result_columns = [
     'reading_frame', 
     'protein_prefix_length', 
     'splice_sites_affected', 
-    'removed_DNA_changes', 
+#    'removed_DNA_changes', 
     'occurrence_count', 
     'frequency', 
     'samples'
 ]
 
-result_data = []
 
-def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_tag, accession_prefix, output_file, output_fasta):
+def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_tag, id_prefix, accession_prefix, output_file, output_fasta):
     current_transcript = None
-    output_fasta_file = open(output_fasta, 'w')
+    result_data = []
+    protein_sequence_list = []      # way to avoid duplicate sequences -> access sequences by hash, aggregate haplotype IDs that correspond
     
     for index, row in genes_haplo_df.iterrows():
-        transcript_id = row['TranscriptID']
+        transcript_id = row['TranscriptID'].split('.')[0]
 
         # Check if any mutations are present
         if row['Changes'] == 'REF':
             continue
 
         # Check if we have the cDNA sequence in the fasta
-        if transcript_id.split('.')[0] not in all_cdnas:
+        if transcript_id not in all_cdnas:
             continue
 
         # store the annotation features of this transcript
@@ -45,6 +48,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
             exons = [ exon for exon in annotations_db.children(transcript_feature, featuretype='exon', order_by='start') ]
             start_codons = [ sc for sc in annotations_db.children(transcript_feature, featuretype='start_codon', order_by='start') ]    # there should be only one, but just in case...
             stop_codons = [ sc for sc in annotations_db.children(transcript_feature, featuretype='stop_codon', order_by='start') ]      # not in use currently
+            biotype = transcript_feature['transcript_biotype'][0]
 
             # Some transcripts are classified as not coding -> start and stop codon positions are not given
             start_codon = None
@@ -55,7 +59,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
             if len(stop_codons) > 0:
                 stop_codon = stop_codons[0]
 
-            current_transcript = { 'ID': transcript_id, 'feature': transcript_feature, 'exons': exons, 'start_codon': start_codon, 'stop_codon': stop_codon, 'fasta_element': all_cdnas[transcript_id.split('.')[0]] }
+            current_transcript = { 'ID': transcript_id, 'feature': transcript_feature, 'exons': exons, 'start_codon': start_codon, 'stop_codon': stop_codon, 'fasta_element': all_cdnas[transcript_id.split('.')[0]], 'biotype': biotype }
         
         cdna_sequence = current_transcript['fasta_element']['sequence'] # reference cDNA
         mutated_cdna = Seq(cdna_sequence)                               # cDNA to aggregate mutations
@@ -74,7 +78,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
         #frameshifts = []            # boolean for every change whether it does or does not introduce a frameshift
 
         if (current_transcript['start_codon'] is not None):
-            start_loc = get_rna_position_simple(current_transcript['start_codon'].start, current_transcript['exons'])
+            start_loc = get_rna_position_simple(transcript_id, current_transcript['start_codon'].start, current_transcript['exons'])
             if (reverse_strand):
                 start_loc = len(cdna_sequence) - start_loc - 3  
 
@@ -82,8 +86,12 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
             protein_start = int((start_loc - reading_frame) / 3)
 
         all_changes = row['Changes'].split(';')
-        if (reverse_strand):
+        all_AFs = row['AlleleFrequencies'].split(';')
+        all_vcf_IDs = row['VCF_IDs'].split(';')
+        if (reverse_strand):                        # revert the order of mutations in the reverse strand, so that we add them from start to end and account for preceding indels
+            all_AFs.reverse()
             all_changes.reverse()
+            all_vcf_IDs.reverse()
 
         # iterate through mutations, construct mutated cdna
         for mutation in all_changes:
@@ -96,7 +104,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
             
             # compute the location in the RNA sequence
             # does any of the allele sequences intersect a splicing site? => truncate if so
-            rna_location, ref_allele, ref_len, alt_allele, alt_len, mutation_intersects_intron = get_rna_position(dna_location, ref_allele, alt_allele, current_transcript['exons'])
+            rna_location, ref_allele, ref_len, alt_allele, alt_len, mutation_intersects_intron = get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, current_transcript['exons'])
 
             # if we are on a reverse strand, we need to complement the reference and alternative sequence to match the cDNA
             # we also need to count the position from the end
@@ -126,9 +134,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
             # store change in cDNA
             cDNA_changes.append(str(rna_location) + ':' + str(ref_allele) + '>' + str(alt_allele))
 
-            #if not reverse_strand:
             # need to readjust the position in the mutated sequence in case there were indels before
-            # no need on the reverse strand since we're changing from the end
             rna_location += sequence_length_diff     
             
             # check if what we expected to find is in fact in the cDNA
@@ -156,7 +162,10 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
 
             # store the change in protein as a string - only if there is a change (i.e. ignore synonymous variants) or a frameshift
             protein_change = str(protein_location) + ':' + ref_allele_protein + '>' + alt_allele_protein
-            if ((sequence_length_diff % 3) > 0):
+            if (abs(len(ref_allele) - len(alt_allele)) % 3 > 0):
+                protein_change += "(+fs)"
+                protein_changes.append(protein_change)
+            elif ((sequence_length_diff % 3) > 0):
                 protein_change += "(fs)"
                 protein_changes.append(protein_change)
             elif (ref_allele_protein != alt_allele_protein):
@@ -180,22 +189,23 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
         if (len(spl_junctions_affected_str) == 0):
             spl_junctions_affected_str = '-'
 
-        haplotypeID = accession_prefix + hex(index)[2:]
+        haplotypeID = id_prefix + hex(index)[2:]
 
         # store result
         result_data.append([
             row['TranscriptID'],
+            current_transcript['biotype'],
             haplotypeID,
-            row['VCF_IDs'],
-            row['Changes'],
-            row['AlleleFrequencies'],
+            ';'.join(all_vcf_IDs),      # could be sorted in reverse order if on reverse strand
+            ";".join(all_changes),      
+            ";".join(all_AFs),
             cDNA_changes_str,
             all_protein_changes_str,
             protein_changes_str,
             reading_frame,
             protein_start,
             spl_junctions_affected_str,
-            row['RemovedChanges'],
+#            row['RemovedChanges'],
             row['Count'],
             row['Frequency'],
             row['Samples'],
@@ -205,20 +215,48 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
         if (reading_frame > -1 and protein_changes_str != 'REF'):
             protein_seq = mutated_cdna[reading_frame:].transcribe().translate()
 
-            output_fasta_file.write('>' + fasta_tag + '|' + haplotypeID + '|' + current_transcript['fasta_element']['description'] + ' start:' + str(protein_start) + '\n')
-            output_fasta_file.write(str(protein_seq) + '\n')
+            # compute the hash -> check if it already is in the list
+            seq_hash = hash(str(protein_seq))
+            nearest_idx = bisect.bisect_left(KeyWrapper(protein_sequence_list, key=lambda x: x['hash']), seq_hash)
+            if (len(protein_sequence_list) > nearest_idx and protein_sequence_list[nearest_idx]['hash'] == seq_hash):
+                protein_sequence_list[nearest_idx]['haplotypes'].append(haplotypeID)
+                protein_sequence_list[nearest_idx]['rfs'].append(str(reading_frame))
+            else:
+                protein_sequence_list.insert(nearest_idx, {'hash': seq_hash, 'haplotypes': [haplotypeID], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(reading_frame)]})
+
+            #output_fasta_file.write('>' + fasta_tag + '|' + haplotypeID + '|' + current_transcript['fasta_element']['description'] + ' start:' + str(protein_start) + '\n')
+            #output_fasta_file.write(str(protein_seq) + '\n')
 
         # unknown reading frame -> translate in all 3 reading frames
         elif (protein_changes_str != 'REF'):
             for rf in range(0,3):
                 protein_seq = mutated_cdna[rf:].transcribe().translate()
 
-                output_fasta_file.write('>' + fasta_tag + '|' + haplotypeID + '|' + current_transcript['fasta_element']['description'] + ' reading_frame:' + str(rf) + '\n')
-                output_fasta_file.write(str(protein_seq) + '\n')
+                # compute the hash -> check if it already is in the list
+                seq_hash = hash(str(protein_seq))
+                nearest_idx = bisect.bisect_left(KeyWrapper(protein_sequence_list, key=lambda x: x['hash']), seq_hash)
+                if (len(protein_sequence_list) > nearest_idx and protein_sequence_list[nearest_idx]['hash'] == seq_hash):
+                    protein_sequence_list[nearest_idx]['haplotypes'].append(haplotypeID)
+                    protein_sequence_list[nearest_idx]['rfs'].append(str(rf))
+                else:
+                    protein_sequence_list.insert(nearest_idx, {'hash': seq_hash, 'haplotypes': [haplotypeID], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(rf)]})
+
+                #output_fasta_file.write('>' + fasta_tag + '|' + haplotypeID + '|' + current_transcript['fasta_element']['description'] + ' reading_frame:' + str(rf) + '\n')
+                #output_fasta_file.write(str(protein_seq) + '\n')
 
 
     result_df = pd.DataFrame(columns=result_columns, data=result_data)
     result_df.to_csv(output_file, sep='\t', header=True, index=False)
+    
+    # write the unique protein sequences into the fasta file
+    output_fasta_file = open(output_fasta, 'w')
+
+    for i,seq in enumerate(protein_sequence_list):
+        accession = accession_prefix + hex(i)[2:]
+        description = 'haplotypes:' + ';'.join(seq['haplotypes']) + ' start:' + str(seq['start']) + ' reading_frame:' + ';'.join(seq['rfs'])
+
+        output_fasta_file.write('>' + fasta_tag + '|' + accession + '|' + description + '\n')
+        output_fasta_file.write(str(seq['sequence']) + '\n')
 
     output_fasta_file.close()
 
