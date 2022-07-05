@@ -61,6 +61,7 @@ rule compute_haplotypes:
         tr="data/chr{chr}_transcripts.txt",
         vcf="data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf",
         fasta="data/fasta/total_cdnas.fa"
+        samples="igsr_samples.tsv"
     output:
         csv="results/haplotypes/haplo_chr{chr}.tsv",
         fasta="results/haplotypes/haplo_chr{chr}.fa"

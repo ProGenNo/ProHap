@@ -1,5 +1,6 @@
 import pandas as pd
 import bisect
+from multiprocessing import Pool
 
 result_columns = ['TranscriptID', 'Changes', 'AlleleFrequencies', 'VCF_IDs', 'Count', 'Samples']
 
@@ -69,31 +70,34 @@ def remove_conflicting_mutations(changes, AFs):
 
 # Creates a list of observed haplotypes from VCF files (individual file for each transcript, with phased genotypes). 
 # Returns a dataframe, haplotypes described by DNA location, reference and alternative allele.
-def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file):
+def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file, threads, is_X_chrom, PAR1_to, PAR2_from, male_samples):
 
     result_data = []
-    removed_samples = {}    # Dict giving the list of removed samples by transcript (samples are removed if there are conflicting mutations found)
-    indiv_count = 0         # number of individuals in the dataset
+    removed_samples = {}        # Dict giving the list of removed samples by transcript (samples are removed if there are conflicting mutations found)
+    indiv_count = 0             # number of individuals in the dataset
+    autosomal_transcripts = []  # list of transcripts in the pseudo-autosomal region (PAR), only applicable for X chromosome
 
-
-    # check haplotypes for every transcript in the DB
-    for transcript_idx,transcript in enumerate(all_transcripts):
+    # check haplotypes for every transcript in the DB -> return the ID, payload of the dataframe, and list of samples removed because of conflicting mutations
+    def get_haplotypes(transcript):
         transcriptID = transcript.id
+
+        is_autosomal = (not is_X_chrom) or ((transcript.start < PAR1_to) and (transcript.end <= PAR1_to)) or ((transcript.start >= PAR2_from) and (transcript.end > PAR2_from))
         
         # load the according VCF file to Pandas (skip the comments at the beginning)
         vcf_df = vcf_dfs[transcriptID]
 
         # IDs of phased genotype columns
-        indiv_ids = vcf_df.columns.values[9:]   # TODO: do not hardcode the number of columns in the VCF
+        column_offset = vcf_df.columns.values.index('FORMAT') + 1
+        indiv_ids = vcf_df.columns.values[column_offset:]
         indiv_count = len(indiv_ids)
 
         # no variation in this transcript -> store reference haplotype only
         if (len(vcf_df) == 0):
-            result_data.append([transcriptID, 'REF', '', '', indiv_count * 2, 'all'])
-            continue
+            return { 'id': transcriptID, 'data': [transcriptID, 'REF', '', '', indiv_count * 2, 'all'], 'removed_samples' : [], 'autosomal': is_autosomal }            
 
         haplo_combinations = []
         haplo_samples = []
+        removed_haplo_samples = []
 
         # check the combination for every individual
         for indiv in indiv_ids:
@@ -107,7 +111,9 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file):
                 print('Incorrect formatting!', 'indivudial:', indiv, 'rows:', err_rows, 'transcript:', transcriptID)
 
             hap1 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.startswith('1|') ])
-            hap2 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.endswith('|1') ])
+            hap2 = None
+            if (is_autosomal or (indiv not in male_samples)):                                       # males have alleles for the X chromosome specified on the first copy, second copy is always 0
+                hap2 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.endswith('|1') ])
 
             # no alternative alleles -> reference haplotype
             if hap1 == '':
@@ -124,12 +130,13 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file):
                 haplo_combinations.insert(nearest_idx, hap1)
                 haplo_samples.insert(nearest_idx, [indiv + ':1'])
 
-            nearest_idx = bisect.bisect_left(haplo_combinations, hap2)
-            if (len(haplo_combinations) > nearest_idx and haplo_combinations[nearest_idx] == hap2):
-                haplo_samples[nearest_idx].append(indiv + ':2')
-            else:
-                haplo_combinations.insert(nearest_idx, hap2)
-                haplo_samples.insert(nearest_idx, [indiv + ':2'])    
+            if (hap2 is not None):
+                nearest_idx = bisect.bisect_left(haplo_combinations, hap2)
+                if (len(haplo_combinations) > nearest_idx and haplo_combinations[nearest_idx] == hap2):
+                    haplo_samples[nearest_idx].append(indiv + ':2')
+                else:
+                    haplo_combinations.insert(nearest_idx, hap2)
+                    haplo_samples.insert(nearest_idx, [indiv + ':2'])    
 
         # once all individuals in this VCF have been processed -> summarize observed haplotypes, compute worldwide frequencies
         for i,combination in enumerate(haplo_combinations):
@@ -164,10 +171,7 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file):
                 conflict_found = False
                 for cluster in changes_clustered:
                     if (len(cluster) > 1):
-                        if transcriptID in removed_samples:
-                            removed_samples[transcriptID].extend(haplo_samples[i])
-                        else:
-                            removed_samples[transcriptID] = haplo_samples[i]
+                        removed_haplo_samples.extend(haplo_samples[i])
 
                         conflict_found = True
                         break
@@ -190,19 +194,34 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file):
                 changes_str = ';'.join(changes)
                 AFs_str = ';'.join(AFs)
 
-            result_data.append([transcriptID, changes_str, AFs_str, ';'.join(vcf_IDs), len(haplo_samples[i]), ';'.join(haplo_samples[i])])
+            return { 'id': transcriptID, 'data': [transcriptID, changes_str, AFs_str, ';'.join(vcf_IDs), len(haplo_samples[i]), ';'.join(haplo_samples[i])], 'removed_samples': removed_haplo_samples, 'autosomal': is_autosomal }
 
-        # print(transcriptID + ': ' + str(transcript_idx) + ' / ' + str(len(all_transcripts)), end='\r')
+    with Pool(threads) as p:
+        aggregated_results = p.map(get_haplotypes, all_transcripts)
+
+        for elem in aggregated_results:
+            result_data.append(elem['data'])
+
+            removed_samples[elem['id']] = elem['removed_samples']
+
+            if (is_X_chrom and elem['autosomal']):
+                autosomal_transcripts.append(elem['id'])
 
     result_df = pd.DataFrame(columns=result_columns, data=result_data)
 
-    # count frequencies taking into account the number of removed samples in the transcript
+    # count frequencies taking into account the number of removed samples in the transcript, and sex in case of X chromosome
     def count_freq(row):
         id = row['TranscriptID']
-        removed_count = 0
-        if id in removed_samples:
-            removed_count = len(removed_samples[id])
-        return min(1.0, (row['Count'] / ((indiv_count * 2) - removed_count)))
+        removed_count = len(removed_samples[id])
+        total_count = 0
+
+        if (is_X_chrom and (id not in autosomal_transcripts)):
+            male_count = len(male_samples)
+            total_count = male_count + ((indiv_count - male_count) * 2) - removed_count
+        else:
+            total_count = (indiv_count * 2) - removed_count
+
+        return (row['Count'] / total_count)
 
     result_df['Frequency'] = result_df.apply(count_freq, axis=1)
     result_df.sort_values(by=['TranscriptID', 'Frequency'], ascending=[True, False], inplace=True)
