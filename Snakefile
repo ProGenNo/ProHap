@@ -4,7 +4,7 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 
 rule all:
     input:
-        final_fasta="results/haplotypes/haplo_all.fa"
+        final_fasta="results/haplotypes_nc/haplo_all.fa"
 
 rule download_vcf:
     output:
@@ -51,34 +51,35 @@ rule parse_gtf:
         "data/gtf/" + config['annotationFilename'] + "_chr{chr}.gtf"
     output:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts.txt"
+        tr="data/chr{chr}_transcripts_noncoding.txt"
     shell:
         "python3 src/parse_gtf.py -i {input} -o {output.db} -transcript_list {output.tr}"
 
 rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts.txt",
+        tr="data/chr{chr}_transcripts_noncoding.txt",
         vcf="data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf",
-        fasta="data/fasta/total_cdnas.fa"
+        fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
     output:
-        csv="results/haplotypes/haplo_chr{chr}.tsv",
-        fasta="results/haplotypes/haplo_chr{chr}.fa"
+        csv="results/haplotypes_nc/haplo_chr{chr}.tsv",
+        fasta="results/haplotypes_nc/haplo_chr{chr}.fa"
     params:
         log_file="log/chr{chr}.log"
+    threads: 8
     shell:
         "python3 src/prohap.py "
-        "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
-        "-af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} "
-        "-log {params.log_file} -output_csv {output.csv} -output_fasta {output.fasta} "
+        "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
+        "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} "
+        "-threads 8 -log {params.log_file} -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_fasta:
     input:
-        expand("results/haplotypes/haplo_chr{chr}.fa", chr=CHROMOSOMES)
+        expand("results/haplotypes_nc/haplo_chr{chr}.fa", chr=CHROMOSOMES)
     output:
-        "results/haplotypes/haplo_all.fa"
+        "results/haplotypes_nc/haplo_all.fa"
     params:
-        input_file_list = ' '.join(expand("results/haplotypes/haplo_chr{chr}.fa", chr=CHROMOSOMES))
+        input_file_list = ' '.join(expand("results/haplotypes_nc/haplo_chr{chr}.fa", chr=CHROMOSOMES))
     shell:
         "cat {params.input_file_list} > {output}"
