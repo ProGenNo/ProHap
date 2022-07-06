@@ -8,9 +8,9 @@ rule all:
 
 rule download_vcf:
     output:
-        "data/1000genomes_GRCh38_vcf/" + config['vcf_file_prefix'] + "{chr}" + config['vcf_file_postfix']
+        "data/1000genomes_GRCh38_vcf/" + config['vcf_file_name']
     shell:
-        "wget " + config['1000GsURL'] + "ALL.chr{wildcards.chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz -O {output}.gz  && gunzip {output}.gz"
+        "wget " + config['1000GsURL'] + config['vcf_file_name'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
 
 rule download_gtf:
     output:
@@ -25,6 +25,12 @@ rule download_cdnas_fasta:
     shell:
         "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/ncrna/Homo_sapiens.GRCh38.ncrna.fa.gz -O {output.out1}.gz && gunzip {output.out1}.gz; "
         "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz -O {output.out2}.gz && gunzip {output.out2}.gz; "
+
+rule download_reference_proteome:
+    output:
+        "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
+    shell:
+        "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz -O {output}.gz && gunzip {output}.gz; "
 
 rule merge_cdnas_fasta:
 	input:
@@ -59,7 +65,7 @@ rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr="data/chr{chr}_transcripts_noncoding.txt",
-        vcf="data/1000genomes_GRCh38_vcf/" + config['vcf_file_prefix'] + "{chr}" + config['vcf_file_postfix'],
+        vcf="data/1000genomes_GRCh38_vcf/" + config['vcf_file_name'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
     output:
