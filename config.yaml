@@ -1,8 +1,3 @@
 1000GsURL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/
-1000Gs30_URL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/
-vcf_file_prefix: "ALL.chr"
-vcf_file_postfix: ".shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
-vcf_file_prefix_30: "1kGP_high_coverage_Illumina.chr"
-vcf_file_postfix_30: ".filtered.SNV_INDEL_SV_phased_panel.vcf"
 EnsemblFTP: ftp.ensembl.org/pub/release-106/
 annotationFilename: Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff
