@@ -77,6 +77,14 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file, threads, is_X_chrom,
     indiv_count = 0             # number of individuals in the dataset
     autosomal_transcripts = []  # list of transcripts in the pseudo-autosomal region (PAR), only applicable for X chromosome
 
+    # the VCF dataframes all have the same columns -> store the IDs (colnames) of included infividuals:
+    first_df = vcf_dfs[all_transcripts[0].id]
+    column_offset = list(first_df.columns.values).index('FORMAT') + 1
+    indiv_ids = first_df.columns.values[column_offset:]
+    indiv_count = len(indiv_ids)
+
+    male_samples = [ sampleID for sampleID in male_samples if sampleID in indiv_ids ]
+
     # check haplotypes for every transcript in the DB -> return the ID, payload of the dataframe, and list of samples removed because of conflicting mutations
     def get_haplotypes(transcript):
         transcriptID = transcript.id
@@ -85,11 +93,6 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file, threads, is_X_chrom,
         
         # load the according VCF file to Pandas (skip the comments at the beginning)
         vcf_df = vcf_dfs[transcriptID]
-
-        # IDs of phased genotype columns
-        column_offset = vcf_df.columns.values.index('FORMAT') + 1
-        indiv_ids = vcf_df.columns.values[column_offset:]
-        indiv_count = len(indiv_ids)
 
         # no variation in this transcript -> store reference haplotype only
         if (len(vcf_df) == 0):
@@ -198,6 +201,7 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file, threads, is_X_chrom,
 
     with Pool(threads) as p:
         aggregated_results = p.map(get_haplotypes, all_transcripts)
+        #aggregated_results = list(map(get_haplotypes, all_transcripts))
 
         for elem in aggregated_results:
             result_data.append(elem['data'])
@@ -221,6 +225,9 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file, threads, is_X_chrom,
         else:
             total_count = (indiv_count * 2) - removed_count
 
+        if (total_count == 0):
+            return 0
+
         return (row['Count'] / total_count)
 
     result_df['Frequency'] = result_df.apply(count_freq, axis=1)
@@ -235,8 +242,3 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file, threads, is_X_chrom,
     log_file_handle.close()
 
     return result_df
-
-    #result_df.to_csv(args.output_file, sep='\t', header=True, index=False)
-    
-# checksum
-# print(sum(result_df['Frequency'].to_list()))
