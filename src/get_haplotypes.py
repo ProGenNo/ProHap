@@ -70,7 +70,7 @@ def remove_conflicting_mutations(changes, AFs):
 
 # Creates a list of observed haplotypes from VCF files (individual file for each transcript, with phased genotypes). 
 # Returns a dataframe, haplotypes described by DNA location, reference and alternative allele.
-def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file, threads, is_X_chrom, PAR1_to, PAR2_from, male_samples):
+def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, threads, is_X_chrom, PAR1_to, PAR2_from, male_samples):
 
     result_data = []
     removed_samples = {}        # Dict giving the list of removed samples by transcript (samples are removed if there are conflicting mutations found)
@@ -78,9 +78,8 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file, threads, is_X_chrom,
     autosomal_transcripts = []  # list of transcripts in the pseudo-autosomal region (PAR), only applicable for X chromosome
 
     # the VCF dataframes all have the same columns -> store the IDs (colnames) of included infividuals:
-    first_df = vcf_dfs[all_transcripts[0].id]
-    column_offset = list(first_df.columns.values).index('FORMAT') + 1
-    indiv_ids = first_df.columns.values[column_offset:]
+    column_offset = vcf_colnames.index('FORMAT') + 1
+    indiv_ids = vcf_colnames[column_offset:]
     indiv_count = len(indiv_ids)
 
     male_samples = [ sampleID for sampleID in male_samples if sampleID in indiv_ids ]
@@ -91,8 +90,8 @@ def get_gene_haplotypes(all_transcripts, vcf_dfs, log_file, threads, is_X_chrom,
 
         is_autosomal = (not is_X_chrom) or ((transcript.start < PAR1_to) and (transcript.end <= PAR1_to)) or ((transcript.start >= PAR2_from) and (transcript.end > PAR2_from))
         
-        # load the according VCF file to Pandas (skip the comments at the beginning)
-        vcf_df = vcf_dfs[transcriptID]
+        # load the according VCF file to Pandas
+        vcf_df = pd.read_csv(tmp_dir + '/' + transcriptID + '.tsv', sep='\t')
 
         # no variation in this transcript -> store reference haplotype only
         if (len(vcf_df) == 0):

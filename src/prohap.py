@@ -6,7 +6,7 @@ Creates a database of CDS + protein haplotypes, and a fasta file of protein hapl
 
 import gffutils
 import argparse
-import os.path
+import os
 from numpy import int64
 import pandas as pd
 
@@ -71,6 +71,9 @@ parser.add_argument("-acc_prefix", dest="accession_prefix", required=False,
 parser.add_argument("-log", dest="log_file", required=False,
                     help="output log file", default="prohap.log")
 
+parser.add_argument("-tmp_dir", dest="tmp_dir", required=False,
+                    help="directory for temporary files", default="tmp")
+
 parser.add_argument("-output_csv", dest="output_file", required=True,
                     help="output CSV file")
 
@@ -79,7 +82,7 @@ parser.add_argument("-output_fasta", dest="output_fasta", required=True,
 
 args = parser.parse_args()
 
-print('ProHap: computing protein haplotypes from', args.input_vcf.name)
+print('[ProHap] Computing protein haplotypes from', args.input_vcf.name)
 
 print (('Chr ' + args.chromosome + ':'), 'Reading', args.annotation_db)
 # Load the annotations database
@@ -104,11 +107,15 @@ all_transcripts.sort(key=lambda x: x.start)
 
 print (('Chr ' + args.chromosome + ':'), 'Assigning variants to transcripts.')
 # parse the VCF file, get a dataframe of variants for each transcript
-vcf_dfs = parse_vcf(all_transcripts, args.input_vcf, annotations_db, args.min_af)
+vcf_colnames = parse_vcf(all_transcripts, args.input_vcf, annotations_db, args.min_af, args.tmp_dir)
 
 print (('Chr ' + args.chromosome + ':'), 'Computing co-occurence of alleles.')
 # check co-occurence of alleles -> get the haplotypes for all transcripts
-gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_dfs, args.log_file, args.threads, (args.chromosome == 'X'), args.x_par1_to, args.x_par2_from, male_samples)
+gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_colnames, args.tmp_dir, args.log_file, args.threads, (args.chromosome == 'X'), args.x_par1_to, args.x_par2_from, male_samples)
+
+# remove the temporary files
+for transcript_id in transcript_list:
+    os.remove(args.tmp_dir + '/' + transcript_id + '.tsv')
 
 # filter the haplotypes by FoO
 gene_haplo_df = gene_haplo_df[gene_haplo_df['Frequency'] >= args.min_foo]

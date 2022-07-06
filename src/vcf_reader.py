@@ -3,13 +3,13 @@ from common import KeyWrapper
 from io import StringIO
 import pandas as pd
 
-# Process a VCF file, select rows that intersect exons of given transcripts. Return a dictionary of dataframes by transcript.
+# Process a VCF file, select rows that intersect exons of given transcripts. Results are written as TSV files in to a temporary folder. Returns a list of column names in the VCF.
 # input: 
 # all_transcripts: list of GTF transcript features, ordered by start position
 # vcf_file: file handle for reading the VCF
 # annotations_db: FeatureDB of the GTF file
 # min_af: threshold allele frequency (float)
-def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af):
+def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af, tmp_dir):
 
     # read the header of the VCF - keep only the last line of the header
     VCF_header = ""
@@ -29,7 +29,7 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af):
 
     transcript_queue = []               # queue of transcript objects inc. the exons, sorted by end position, each element aggregates the VCF file contents
     current_pos = int(line.split()[1])  # position of the current VCF entry 
-    result_dfs = {}                     # a list of dataframes with VCF entries for each transcript, accessed by the stable transcript id
+    #result_dfs = {}                     # a list of dataframes with VCF entries for each transcript, accessed by the stable transcript id
 
     last_transcript = None
 
@@ -75,7 +75,8 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af):
             # remove passed transcripts from queue
             while (len(transcript_queue) > 0 and transcript_queue[0]['end'] < current_pos):
                 df = pd.read_csv(StringIO(VCF_header + transcript_queue[0]['file_content']), sep='\t')
-                result_dfs[transcript_queue[0]['ID']] = df
+                df.to_csv(tmp_dir + '/' + transcript_queue[0]['ID'] + '.tsv', sep='\t', index=False, header=True)
+                #result_dfs[transcript_queue[0]['ID']] = df
                 transcript_queue.pop(0)
 
         # add the new transcript to the queue    
@@ -89,7 +90,8 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af):
     # write the output for the remaining transcripts
     while (len(transcript_queue) > 0):
         df = pd.read_csv(StringIO(VCF_header + transcript_queue[0]['file_content']), sep='\t')
-        result_dfs[transcript_queue[0]['ID']] = df
+        df.to_csv(tmp_dir + '/' + transcript_queue[0]['ID'] + '.tsv', sep='\t', index=False, header=True)
+        #result_dfs[transcript_queue[0]['ID']] = df
         transcript_queue.pop(0)
 
-    return result_dfs
+    return list(df.columns.values)

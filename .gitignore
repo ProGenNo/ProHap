@@ -1,6 +1,7 @@
 data/*
 results/*
 test/
+tmp/
 .snakemake/*
 src/__pycache__
 .vscode
