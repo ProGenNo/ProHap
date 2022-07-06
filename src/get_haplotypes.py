@@ -68,26 +68,13 @@ def remove_conflicting_mutations(changes, AFs):
     '''
     return result_kept, result_removed
 
-tmp_dir_g = None
-is_X_chrom_g = None
-PAR1_to_g = None
-PAR2_from_g = None
-male_samples_g = None
-indiv_count = None
-indiv_ids = None
-
 # Creates a list of observed haplotypes from VCF files (individual file for each transcript, with phased genotypes). 
 # Returns a dataframe, haplotypes described by DNA location, reference and alternative allele.
 def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, threads, is_X_chrom, PAR1_to, PAR2_from, male_samples):
 
-    tmp_dir_g = tmp_dir
-    is_X_chrom_g = is_X_chrom
-    PAR1_to_g = PAR1_to
-    PAR2_from_g = PAR2_from
-    male_samples_g = male_samples
-
     result_data = []
     removed_samples = {}        # Dict giving the list of removed samples by transcript (samples are removed if there are conflicting mutations found)
+    indiv_count = 0             # number of individuals in the dataset
     autosomal_transcripts = []  # list of transcripts in the pseudo-autosomal region (PAR), only applicable for X chromosome
 
     # the VCF dataframes all have the same columns -> store the IDs (colnames) of included infividuals:
@@ -96,6 +83,120 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
     indiv_count = len(indiv_ids)
 
     male_samples = [ sampleID for sampleID in male_samples if sampleID in indiv_ids ]
+
+    # check haplotypes for every transcript in the DB -> return the ID, payload of the dataframe, and list of samples removed because of conflicting mutations
+    def get_haplotypes(transcript):
+        transcriptID = transcript.id
+
+        is_autosomal = (not is_X_chrom) or ((transcript.start < PAR1_to) and (transcript.end <= PAR1_to)) or ((transcript.start >= PAR2_from) and (transcript.end > PAR2_from))
+        
+        # load the according VCF file to Pandas
+        vcf_df = pd.read_csv(tmp_dir + '/' + transcriptID + '.tsv', sep='\t')
+
+        # no variation in this transcript -> store reference haplotype only
+        if (len(vcf_df) == 0):
+            return { 'id': transcriptID, 'data': [transcriptID, 'REF', '', '', indiv_count * 2, 'all'], 'removed_samples' : [], 'autosomal': is_autosomal }            
+
+        haplo_combinations = []
+        haplo_samples = []
+        removed_haplo_samples = []
+
+        # check the combination for every individual
+        for indiv in indiv_ids:
+
+            # store indices of rows for which the alternative allele has been found -> create a temporary string ID of the haplotype
+            vals = vcf_df[indiv].to_list()
+
+            # sanity check - correct separator between paternal / maternal chromosome
+            err_rows = ','.join([ str(i) for i,elem in enumerate(vals) if '|' not in elem ])
+            if (len(err_rows) > 1):
+                print('Incorrect formatting!', 'indivudial:', indiv, 'rows:', err_rows, 'transcript:', transcriptID)
+
+            hap1 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.startswith('1|') ])
+            hap2 = None
+            if (is_autosomal or (indiv not in male_samples)):                                       # males have alleles for the X chromosome specified on the first copy, second copy is always 0
+                hap2 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.endswith('|1') ])
+
+            # no alternative alleles -> reference haplotype
+            if hap1 == '':
+                hap1 = 'REF'
+            if hap2 == '':
+                hap2 = 'REF'
+
+            # find if this haplotype has been identified before
+            # if so, add this individual to the list, otherwise add new haoplotype
+            nearest_idx = bisect.bisect_left(haplo_combinations, hap1)
+            if (len(haplo_combinations) > nearest_idx and haplo_combinations[nearest_idx] == hap1):
+                haplo_samples[nearest_idx].append(indiv + ':1')
+            else:
+                haplo_combinations.insert(nearest_idx, hap1)
+                haplo_samples.insert(nearest_idx, [indiv + ':1'])
+
+            if (hap2 is not None):
+                nearest_idx = bisect.bisect_left(haplo_combinations, hap2)
+                if (len(haplo_combinations) > nearest_idx and haplo_combinations[nearest_idx] == hap2):
+                    haplo_samples[nearest_idx].append(indiv + ':2')
+                else:
+                    haplo_combinations.insert(nearest_idx, hap2)
+                    haplo_samples.insert(nearest_idx, [indiv + ':2'])    
+
+        # once all individuals in this VCF have been processed -> summarize observed haplotypes, compute worldwide frequencies
+        for i,combination in enumerate(haplo_combinations):
+            if combination == 'REF':
+                changes_str = 'REF'
+                AFs_str = ""
+                combination = ""
+                #removed_str = ""
+
+            else:
+                indexes = [ int(idx) for idx in combination.split(',') ]
+                changes = []    # changes in the POS:REF>ALT format
+                changelist = [] # changes with the POS, REF and ALT fields sepatared
+                AFs = []        # allele frequencies
+                vcf_IDs = []    # IDs in the VCF file
+
+                for idx in indexes:
+                    row = vcf_df.iloc[idx]
+
+                    vcf_IDs.append(str(row['ID']))
+
+                    changelist.append([row['POS'], row['REF'], row['ALT']])
+                    changes.append(str(row['POS']) + ':' + row['REF'] + '>' + row['ALT'])
+                    if 'AF' in row['INFO']:
+                        AFs.append(row['INFO'].split('AF=')[1].split(';')[0])
+                    else:
+                        AFs.append('-1')
+
+                # check for conflicting mutations! -> remove these samples from analysis if conflicts found
+                changes_enum = [{ 'change': ch, 'id': i} for i,ch in enumerate(changelist)]
+                changes_clustered = cluster_conflicting_mutations(changes_enum)
+                conflict_found = False
+                for cluster in changes_clustered:
+                    if (len(cluster) > 1):
+                        removed_haplo_samples.extend(haplo_samples[i])
+
+                        conflict_found = True
+                        break
+
+                if (conflict_found):
+                    continue
+
+                #kept, removed = remove_conflicting_mutations(changelist, AFs)
+                #removedChanges = [ changes[i] for i in removed ]
+                #changelist = [ changelist[i] for i in kept ]
+                #changes = [ changes[i] for i in kept ]
+                #AFs = [ AFs[i] for i in kept ]
+
+                # sort the changes according to the position
+                zipped = list(zip(changelist, changes, AFs))
+                zipped.sort(key=lambda x: int(x[0][0]))
+                changelist, changes, AFs = zip(*zipped)
+
+                #removed_str = ';'.join(removedChanges)
+                changes_str = ';'.join(changes)
+                AFs_str = ';'.join(AFs)
+
+            return { 'id': transcriptID, 'data': [transcriptID, changes_str, AFs_str, ';'.join(vcf_IDs), len(haplo_samples[i]), ';'.join(haplo_samples[i])], 'removed_samples': removed_haplo_samples, 'autosomal': is_autosomal }
 
     with Pool(threads) as p:
         aggregated_results = p.map(get_haplotypes, all_transcripts)
@@ -140,117 +241,3 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
     log_file_handle.close()
 
     return result_df
-
-# check haplotypes for every transcript in the DB -> return the ID, payload of the dataframe, and list of samples removed because of conflicting mutations
-def get_haplotypes(transcript):
-    transcriptID = transcript.id
-
-    is_autosomal = (not is_X_chrom_g) or ((transcript.start < PAR1_to_g) and (transcript.end <= PAR1_to_g)) or ((transcript.start >= PAR2_from_g) and (transcript.end > PAR2_from_g))
-    
-    # load the according VCF file to Pandas
-    vcf_df = pd.read_csv(tmp_dir_g + '/' + transcriptID + '.tsv', sep='\t')
-
-    # no variation in this transcript -> store reference haplotype only
-    if (len(vcf_df) == 0):
-        return { 'id': transcriptID, 'data': [transcriptID, 'REF', '', '', indiv_count * 2, 'all'], 'removed_samples' : [], 'autosomal': is_autosomal }            
-
-    haplo_combinations = []
-    haplo_samples = []
-    removed_haplo_samples = []
-
-    # check the combination for every individual
-    for indiv in indiv_ids:
-
-        # store indices of rows for which the alternative allele has been found -> create a temporary string ID of the haplotype
-        vals = vcf_df[indiv].to_list()
-
-        # sanity check - correct separator between paternal / maternal chromosome
-        err_rows = ','.join([ str(i) for i,elem in enumerate(vals) if '|' not in elem ])
-        if (len(err_rows) > 1):
-            print('Incorrect formatting!', 'indivudial:', indiv, 'rows:', err_rows, 'transcript:', transcriptID)
-
-        hap1 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.startswith('1|') ])
-        hap2 = None
-        if (is_autosomal or (indiv not in male_samples_g)):                                       # males have alleles for the X chromosome specified on the first copy, second copy is always 0
-            hap2 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.endswith('|1') ])
-
-        # no alternative alleles -> reference haplotype
-        if hap1 == '':
-            hap1 = 'REF'
-        if hap2 == '':
-            hap2 = 'REF'
-
-        # find if this haplotype has been identified before
-        # if so, add this individual to the list, otherwise add new haoplotype
-        nearest_idx = bisect.bisect_left(haplo_combinations, hap1)
-        if (len(haplo_combinations) > nearest_idx and haplo_combinations[nearest_idx] == hap1):
-            haplo_samples[nearest_idx].append(indiv + ':1')
-        else:
-            haplo_combinations.insert(nearest_idx, hap1)
-            haplo_samples.insert(nearest_idx, [indiv + ':1'])
-
-        if (hap2 is not None):
-            nearest_idx = bisect.bisect_left(haplo_combinations, hap2)
-            if (len(haplo_combinations) > nearest_idx and haplo_combinations[nearest_idx] == hap2):
-                haplo_samples[nearest_idx].append(indiv + ':2')
-            else:
-                haplo_combinations.insert(nearest_idx, hap2)
-                haplo_samples.insert(nearest_idx, [indiv + ':2'])    
-
-    # once all individuals in this VCF have been processed -> summarize observed haplotypes, compute worldwide frequencies
-    for i,combination in enumerate(haplo_combinations):
-        if combination == 'REF':
-            changes_str = 'REF'
-            AFs_str = ""
-            combination = ""
-            #removed_str = ""
-
-        else:
-            indexes = [ int(idx) for idx in combination.split(',') ]
-            changes = []    # changes in the POS:REF>ALT format
-            changelist = [] # changes with the POS, REF and ALT fields sepatared
-            AFs = []        # allele frequencies
-            vcf_IDs = []    # IDs in the VCF file
-
-            for idx in indexes:
-                row = vcf_df.iloc[idx]
-
-                vcf_IDs.append(str(row['ID']))
-
-                changelist.append([row['POS'], row['REF'], row['ALT']])
-                changes.append(str(row['POS']) + ':' + row['REF'] + '>' + row['ALT'])
-                if 'AF' in row['INFO']:
-                    AFs.append(row['INFO'].split('AF=')[1].split(';')[0])
-                else:
-                    AFs.append('-1')
-
-            # check for conflicting mutations! -> remove these samples from analysis if conflicts found
-            changes_enum = [{ 'change': ch, 'id': i} for i,ch in enumerate(changelist)]
-            changes_clustered = cluster_conflicting_mutations(changes_enum)
-            conflict_found = False
-            for cluster in changes_clustered:
-                if (len(cluster) > 1):
-                    removed_haplo_samples.extend(haplo_samples[i])
-
-                    conflict_found = True
-                    break
-
-            if (conflict_found):
-                continue
-
-            #kept, removed = remove_conflicting_mutations(changelist, AFs)
-            #removedChanges = [ changes[i] for i in removed ]
-            #changelist = [ changelist[i] for i in kept ]
-            #changes = [ changes[i] for i in kept ]
-            #AFs = [ AFs[i] for i in kept ]
-
-            # sort the changes according to the position
-            zipped = list(zip(changelist, changes, AFs))
-            zipped.sort(key=lambda x: int(x[0][0]))
-            changelist, changes, AFs = zip(*zipped)
-
-            #removed_str = ';'.join(removedChanges)
-            changes_str = ';'.join(changes)
-            AFs_str = ';'.join(AFs)
-
-        return { 'id': transcriptID, 'data': [transcriptID, changes_str, AFs_str, ';'.join(vcf_IDs), len(haplo_samples[i]), ';'.join(haplo_samples[i])], 'removed_samples': removed_haplo_samples, 'autosomal': is_autosomal }
