@@ -8,7 +8,7 @@ rule all:
 
 rule download_vcf:
     output:
-        "data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
+        "data/1000genomes_GRCh38_vcf/" + config['vcf_file_prefix'] + "{chr}" + config['vcf_file_postfix']
     shell:
         "wget " + config['1000GsURL'] + "ALL.chr{wildcards.chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz -O {output}.gz  && gunzip {output}.gz"
 
@@ -59,7 +59,7 @@ rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr="data/chr{chr}_transcripts_noncoding.txt",
-        vcf="data/1000genomes_GRCh38_vcf/ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf",
+        vcf="data/1000genomes_GRCh38_vcf/" + config['vcf_file_prefix'] + "{chr}" + config['vcf_file_postfix'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
     output:
@@ -72,7 +72,7 @@ rule compute_haplotypes:
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
         "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} "
-        "-threads 8 -log {params.log_file} -output_csv {output.csv} -output_fasta {output.fasta} "
+        "-threads 8 -log {params.log_file} -tmp_dir tmp/transcript_vcf -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_fasta:
     input:
