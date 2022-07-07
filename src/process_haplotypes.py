@@ -189,7 +189,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
         if (len(spl_junctions_affected_str) == 0):
             spl_junctions_affected_str = '-'
 
-        haplotypeID = id_prefix + hex(index)[2:]
+        haplotypeID = id_prefix + '_' + hex(index)[2:]
 
         # store result
         result_data.append([
