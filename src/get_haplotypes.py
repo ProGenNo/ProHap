@@ -88,6 +88,8 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
     def get_haplotypes(transcript):
         transcriptID = transcript.id
 
+        result_local = []
+
         is_autosomal = (not is_X_chrom) or ((transcript.start < PAR1_to) and (transcript.end <= PAR1_to)) or ((transcript.start >= PAR2_from) and (transcript.end > PAR2_from))
         
         # load the according VCF file to Pandas
@@ -95,7 +97,7 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
 
         # no variation in this transcript -> store reference haplotype only
         if (len(vcf_df) == 0):
-            return { 'id': transcriptID, 'data': [transcriptID, 'REF', '', '', indiv_count * 2, 'all'], 'removed_samples' : [], 'autosomal': is_autosomal }            
+            return [{ 'id': transcriptID, 'data': [transcriptID, 'REF', '', '', indiv_count * 2, 'all'], 'removed_samples' : [], 'autosomal': is_autosomal }]
 
         haplo_combinations = []
         haplo_samples = []
@@ -196,19 +198,22 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
                 changes_str = ';'.join(changes)
                 AFs_str = ';'.join(AFs)
 
-            return { 'id': transcriptID, 'data': [transcriptID, changes_str, AFs_str, ';'.join(vcf_IDs), len(haplo_samples[i]), ';'.join(haplo_samples[i])], 'removed_samples': removed_haplo_samples, 'autosomal': is_autosomal }
+            result_local.append({'id': transcriptID, 'data': [transcriptID, changes_str, AFs_str, ';'.join(vcf_IDs), len(haplo_samples[i]), ';'.join(haplo_samples[i])], 'removed_samples': removed_haplo_samples, 'autosomal': is_autosomal })
+
+        return result_local
 
     with Pool(threads) as p:
         aggregated_results = p.map(get_haplotypes, all_transcripts)
         #aggregated_results = list(map(get_haplotypes, all_transcripts))
 
-        for elem in aggregated_results:
-            result_data.append(elem['data'])
+        for processed_transcript in aggregated_results:
+            for elem in processed_transcript:
+                result_data.append(elem['data'])
 
-            removed_samples[elem['id']] = elem['removed_samples']
+                removed_samples[elem['id']] = elem['removed_samples']
 
-            if (is_X_chrom and elem['autosomal']):
-                autosomal_transcripts.append(elem['id'])
+                if (is_X_chrom and elem['autosomal']):
+                    autosomal_transcripts.append(elem['id'])
 
     result_df = pd.DataFrame(columns=result_columns, data=result_data)
 
