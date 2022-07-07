@@ -5,3 +5,5 @@ vcf_file_name_30: "1kGP_high_coverage_Illumina.chr{chr}.filtered.SNV_INDEL_SV_ph
 
 EnsemblFTP: ftp.ensembl.org/pub/release-106/
 annotationFilename: Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff
+
+final_fasta_file: results/220707_ensembl_reference_contaminants_1000Gs_haplo_noncoding.fa

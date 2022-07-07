@@ -4,7 +4,7 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 
 rule all:
     input:
-        final_fasta="results/haplotypes_nc/haplo_all.fa"
+        final_fasta=config['final_fasta_file']
 
 rule download_vcf:
     output:
@@ -26,12 +26,6 @@ rule download_cdnas_fasta:
         "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/ncrna/Homo_sapiens.GRCh38.ncrna.fa.gz -O {output.out1}.gz && gunzip {output.out1}.gz; "
         "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz -O {output.out2}.gz && gunzip {output.out2}.gz; "
 
-rule download_reference_proteome:
-    output:
-        "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
-    shell:
-        "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz -O {output}.gz && gunzip {output}.gz; "
-
 rule merge_cdnas_fasta:
 	input:
 		in1="data/fasta/Homo_sapiens.GRCh38.ncrna.fa",
@@ -40,6 +34,28 @@ rule merge_cdnas_fasta:
 		"data/fasta/total_cdnas.fa"
 	shell:
 		"cat {input.in1} > {output}; cat {input.in2} >> {output}"
+
+rule download_reference_proteome:
+    output:
+        "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
+    shell:
+        "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz -O {output}.gz && gunzip {output}.gz; "
+
+rule reference_fix_headers:
+	input:
+		"data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
+	output:
+		"data/fasta/ensembl_reference_proteinDB_tagged.fa"
+	shell:
+		"python3 src/fix_headers.py -i {input} -o {output} -t _ensref "
+
+rule contaminants_fix_headers:
+	input:
+		"crap.fasta"
+	output:
+		"data/fasta/crap_tagged.fa"
+	shell:
+		"python3 src/fix_headers.py -i {input} -o {output} -t _cont"
 
 # filter the GTF so that only features on one chromosome are present:
 rule split_gtf:
@@ -89,3 +105,21 @@ rule merge_fasta:
         input_file_list = ' '.join(expand("results/haplotypes_nc/haplo_chr{chr}.fa", chr=CHROMOSOMES))
     shell:
         "cat {params.input_file_list} > {output}"
+
+rule haplo_fasta_remove_stop:
+    input:
+        "results/haplotypes_nc/haplo_all.fa"
+    output:
+        "results/haplotypes_nc/haplo_all_clean.fa"
+    shell:
+        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
+
+rule mix_with_reference_proteome:
+	input:
+		in1="data/fasta/ensembl_reference_proteinDB_tagged.fa",
+		in2="data/haplotypes_nc/haplo_all_clean.fa",
+        in3="data/fasta/crap_tagged.fa"
+	output:
+		config['final_fasta_file']		
+	shell:
+		"cat {input.in1} {input.in2} {input.in3} > {output}; "
