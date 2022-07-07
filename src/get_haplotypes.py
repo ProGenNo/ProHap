@@ -84,6 +84,7 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
 
     male_samples = [ sampleID for sampleID in male_samples if sampleID in indiv_ids ]
 
+    global get_haplotypes
     # check haplotypes for every transcript in the DB -> return the ID, payload of the dataframe, and list of samples removed because of conflicting mutations
     def get_haplotypes(transcript):
         transcriptID = transcript.id
