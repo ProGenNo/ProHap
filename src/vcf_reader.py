@@ -2,6 +2,7 @@ import bisect
 from common import KeyWrapper
 from io import StringIO
 import pandas as pd
+import re
 
 # Process a VCF file, select rows that intersect exons of given transcripts. Results are written as TSV files in to a temporary folder. Returns a list of column names in the VCF.
 # input: 
@@ -47,8 +48,14 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af, tmp_dir):
                     AF = float(line.split('AF=')[1].split(';')[0])
                     AF_pass = AF >= min_af
 
+                # check validity of alleles
+                val_pass = True
+                REF, ALT = line.split(maxsplit=5)[3:5]
+                if ((re.match(r'[CGTA]*[^CGTA]+[CGTA]*', REF)) or (re.match(r'[CGTA]*[^CGTA]+[CGTA]*', ALT))):
+                    val_pass = False
+
                 # check all transcripts in the queue
-                if AF_pass:
+                if AF_pass and val_pass:
                     for transcript_entry in transcript_queue:
 
                         # check if the snp belongs to any of the exons
