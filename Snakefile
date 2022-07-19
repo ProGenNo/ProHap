@@ -2,15 +2,17 @@ configfile: "config.yaml"
 
 CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
 
+WORKING_DIR_NAME = 'haplotypes'
+
 rule all:
     input:
         final_fasta=config['final_fasta_file']
 
 rule download_vcf:
     output:
-        "data/1000genomes_GRCh38_vcf/" + config['vcf_file_name']
+        "data/1000genomes_GRCh38_30x_vcf/" + config['vcf_file_name_30']
     shell:
-        "wget " + config['1000GsURL'] + config['vcf_file_name'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
+        "wget " + config['1000Gs30_URL'] + config['vcf_file_name_30'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
 
 rule download_gtf:
     output:
@@ -49,6 +51,14 @@ rule reference_fix_headers:
 	shell:
 		"python3 src/fix_headers.py -i {input} -o {output} -t _ensref "
 
+rule reference_remove_stop:
+    input:
+        "data/fasta/ensembl_reference_proteinDB_tagged.fa"
+    output:
+        "data/fasta/ensembl_reference_proteinDB_clean.fa"
+    shell:
+        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
+
 rule contaminants_fix_headers:
 	input:
 		"crap.fasta"
@@ -73,53 +83,61 @@ rule parse_gtf:
         "data/gtf/" + config['annotationFilename'] + "_chr{chr}.gtf"
     output:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts_noncoding.txt"
+        tr="data/chr{chr}_transcripts.txt"
     shell:
         "python3 src/parse_gtf.py -i {input} -o {output.db} -transcript_list {output.tr}"
 
 rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts_noncoding.txt",
+        tr="data/chr{chr}_transcripts.txt",
         vcf="data/1000genomes_GRCh38_vcf/" + config['vcf_file_name'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
     output:
-        csv="results/haplotypes_nc/haplo_chr{chr}.tsv",
-        fasta="results/haplotypes_nc/haplo_chr{chr}.fa"
+        csv="results/" + WORKING_DIR_NAME + "/haplo_chr{chr}.tsv",
+        fasta="results/" + WORKING_DIR_NAME + "/haplo_chr{chr}.fa"
     params:
         log_file="log/chr{chr}.log"
-    threads: 8
+    threads: 3
     shell:
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
         "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} "
-        "-threads 8 -log {params.log_file} -tmp_dir tmp/transcript_vcf -output_csv {output.csv} -output_fasta {output.fasta} "
+        "-threads 3 -log {params.log_file} -tmp_dir tmp/transcript_vcf -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_fasta:
     input:
-        expand("results/haplotypes_nc/haplo_chr{chr}.fa", chr=CHROMOSOMES)
+        expand("results/" + WORKING_DIR_NAME + "/haplo_chr{chr}.fa", chr=CHROMOSOMES)
     output:
-        "results/haplotypes_nc/haplo_all.fa"
+        "results/" + WORKING_DIR_NAME + "/haplo_all.fa"
     params:
-        input_file_list = ' '.join(expand("results/haplotypes_nc/haplo_chr{chr}.fa", chr=CHROMOSOMES))
+        input_file_list = ' '.join(expand("results/" + WORKING_DIR_NAME + "/haplo_chr{chr}.fa", chr=CHROMOSOMES))
     shell:
         "cat {params.input_file_list} > {output}"
 
 rule haplo_fasta_remove_stop:
     input:
-        "results/haplotypes_nc/haplo_all.fa"
+        "results/" + WORKING_DIR_NAME + "/haplo_all.fa"
     output:
-        "results/haplotypes_nc/haplo_all_clean.fa"
+        "results/" + WORKING_DIR_NAME + "/haplo_all_clean.fa"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
 rule mix_with_reference_proteome:
 	input:
-		in1="data/fasta/ensembl_reference_proteinDB_tagged.fa",
-		in2="data/haplotypes_nc/haplo_all_clean.fa",
-        in3="data/fasta/crap_tagged.fa"
+		in1="data/fasta/ensembl_reference_proteinDB_clean.fa",
+		in2="results/" + WORKING_DIR_NAME + "/haplo_all_clean.fa",
+		in3="data/fasta/crap_tagged.fa"
 	output:
-		config['final_fasta_file']		
+		"results/" + WORKING_DIR_NAME + "/ref_contam_haplo_all_clean.fa"		
 	shell:
 		"cat {input.in1} {input.in2} {input.in3} > {output}; "
+
+rule remove_duplicate_seq: #TODO
+	input:
+		"results/" + WORKING_DIR_NAME + "/ref_contam_haplo_all_clean.fa"
+	output:
+		config['final_fasta_file']
+	shell:
+		"python3 src/remove_duplicate_seq.py -i {input} -o {output} "

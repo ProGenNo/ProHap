@@ -108,6 +108,7 @@ all_transcripts.sort(key=lambda x: x.start)
 print (('Chr ' + args.chromosome + ':'), 'Assigning variants to transcripts.')
 # parse the VCF file, get a dataframe of variants for each transcript
 vcf_colnames = parse_vcf(all_transcripts, args.input_vcf, annotations_db, args.min_af, args.tmp_dir)
+#vcf_colnames = list(pd.read_csv(args.tmp_dir + '/' + transcript_list[0] + '.tsv', sep='\t').columns.values)
 
 print (('Chr ' + args.chromosome + ':'), 'Computing co-occurence of alleles.')
 # check co-occurence of alleles -> get the haplotypes for all transcripts
@@ -126,4 +127,4 @@ all_cds = read_fasta(args.cdnas_fasta)
 
 print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
 # align the variant coordinates to transcript, translate into the protein database
-process_store_haplotypes(gene_haplo_df, all_cds, annotations_db, args.fasta_tag, args.haplo_id_prefix, args.accession_prefix, args.output_file, args.output_fasta)
+process_store_haplotypes(gene_haplo_df, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.haplo_id_prefix, args.accession_prefix, args.output_file, args.output_fasta)

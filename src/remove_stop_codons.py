@@ -40,8 +40,11 @@ while metadata != "":
     tag, accession, description = metadata.split('|')
 
     if "*" in sequence:
-        
-        start_pos = int(description.split('start:', 1)[1].split(' ', 1)[0])
+        if 'start:' in description:
+            start_pos = int(description.split('start:', 1)[1].split(' ', 1)[0])
+        else:
+            start_pos = 0
+
 
         positions = [0] + [m.start() + 1 for m in re.finditer('\*', sequence)]  # remember the positions of stop codons
 
@@ -86,7 +89,7 @@ while metadata != "":
         #metadata = metadata[:-1] + " stop:" + ".".join(str(x) for x in positions) + '\n'
 
     elif len(sequence) >= args.min_len:
-        args.output_file.write(metadata)    # if non-empty, write the metadata line
+        args.output_file.write(tag + '|' + accession + '|position_within_protein:0 ' + description)    # if non-empty, write the metadata line
 
         if sequence.endswith('\n'): 
             args.output_file.write(sequence)    

@@ -26,7 +26,7 @@ result_columns = [
 ]
 
 
-def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_tag, id_prefix, accession_prefix, output_file, output_fasta):
+def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromosome, fasta_tag, id_prefix, accession_prefix, output_file, output_fasta):
     current_transcript = None
     result_data = []
     protein_sequence_list = []      # way to avoid duplicate sequences -> access sequences by hash, aggregate haplotype IDs that correspond
@@ -252,7 +252,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, fasta_ta
     output_fasta_file = open(output_fasta, 'w')
 
     for i,seq in enumerate(protein_sequence_list):
-        accession = accession_prefix + hex(i)[2:]
+        accession = accession_prefix + '_' + hex(i)[2:]
         description = 'haplotypes:' + ';'.join(seq['haplotypes']) + ' start:' + str(seq['start']) + ' reading_frame:' + ';'.join(seq['rfs'])
 
         output_fasta_file.write('>' + fasta_tag + '|' + accession + '|' + description + '\n')
