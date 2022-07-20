@@ -106,6 +106,17 @@ rule compute_haplotypes:
         "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} "
         "-threads 3 -log {params.log_file} -tmp_dir tmp/transcript_vcf -output_csv {output.csv} -output_fasta {output.fasta} "
 
+rule merge_haplo_tables:
+    input:
+        expand("results/" + WORKING_DIR_NAME + "/haplo_chr{chr}.tsv", chr=CHROMOSOMES)
+    output:
+        "results/" + WORKING_DIR_NAME + "/haplo_all.tsv"
+    params:
+        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME + "/haplo_chr{chr}.tsv", chr=CHROMOSOMES))
+    shell:
+        "python3 src/merge_tables.py -i {params.imput_file_list} -o {output}"
+
+
 rule merge_fasta:
     input:
         expand("results/" + WORKING_DIR_NAME + "/haplo_chr{chr}.fa", chr=CHROMOSOMES)
