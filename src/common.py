@@ -25,7 +25,7 @@ def read_fasta(filename):
 
         if "|" in metadata:					# the header is at least partially formated
             metadata_parsed = metadata[1:].split('|')
-            if 'generic' in tag:
+            if 'generic' in metadata_parsed[0]:
                 tag = metadata_parsed[0]
             else:
                 tag = 'generic_' + metadata_parsed[0]

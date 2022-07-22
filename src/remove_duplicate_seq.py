@@ -40,11 +40,11 @@ for proteinID in all_proteins:
 		result_proteins[nearest_idx]['haplotypes'].extend(haplotypes)
 		result_proteins[nearest_idx]['rfs'].extend(rfs)
 		result_proteins[nearest_idx]['proteinIDs'].append(protein['accession'])
-		result_proteins[nearest_idx]['tags'].append(protein['tag'][1:])
+		result_proteins[nearest_idx]['tags'].append(protein['tag'])
 		result_proteins[nearest_idx]['start'].append(protein_start)
 		result_proteins[nearest_idx]['seq_position'].append(seq_position)
 	else:
-		result_proteins.insert(nearest_idx, {'hash': seq_hash, 'haplotypes': haplotypes, 'tags': [protein['tag'][1:]], 'proteinIDs': [protein['accession']], 'sequence': seq, 'start': [protein_start], 'seq_position': [seq_position], 'rfs': rfs})
+		result_proteins.insert(nearest_idx, {'hash': seq_hash, 'haplotypes': haplotypes, 'tags': [protein['tag']], 'proteinIDs': [protein['accession']], 'sequence': seq, 'start': [protein_start], 'seq_position': [seq_position], 'rfs': rfs})
 
 outfile = open(args.output_file, 'w')
 
