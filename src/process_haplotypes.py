@@ -77,6 +77,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
         spl_junctions_affected = [] # list of splicing junctions where a mutation takes place (identified by order, where 1 is the junction between the 1. and 2. exon), empty if none affected
         #frameshifts = []            # boolean for every change whether it does or does not introduce a frameshift
 
+        # Get the reading frame from the length between the start of the transcript and the start codon
         if (current_transcript['start_codon'] is not None):
             start_loc = get_rna_position_simple(transcript_id, current_transcript['start_codon'].start, current_transcript['exons'])
             if (reverse_strand):
@@ -245,15 +246,17 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 #output_fasta_file.write(str(protein_seq) + '\n')
 
 
+    print ('Storing the result metadata:', output_file)
     result_df = pd.DataFrame(columns=result_columns, data=result_data)
     result_df.to_csv(output_file, sep='\t', header=True, index=False)
     
     # write the unique protein sequences into the fasta file
     output_fasta_file = open(output_fasta, 'w')
+    print ('Writing FASTA file:', output_fasta)
 
     for i,seq in enumerate(protein_sequence_list):
         accession = accession_prefix + '_' + hex(i)[2:]
-        description = 'haplotypes:' + ';'.join(seq['haplotypes']) + ' start:' + str(seq['start']) + ' reading_frame:' + ';'.join(seq['rfs'])
+        description = 'matching_proteins:' + ';'.join(seq['haplotypes']) + ' start:' + str(seq['start']) + ' reading_frame:' + ';'.join(seq['rfs'])
 
         output_fasta_file.write('>' + fasta_tag + '|' + accession + '|' + description + '\n')
         output_fasta_file.write(str(seq['sequence']) + '\n')

@@ -53,19 +53,7 @@ def remove_conflicting_mutations(changes, AFs):
                 tmp_groups.extend(cluster_conflicting_mutations(group_changes))
 
         id_groups = tmp_groups
-
-    '''
-    for group in id_groups:
-        while (len(group) > 1)
-
-
-        if (len(group) == 1):               # no conflifting mutations here
-            result_kept.append(group[0])
-        elif (len(group) > 1):              # conflicting mutations -> sort according to AF and pick the highest one, remove the rest
-            group_sorted = sorted(group, key=lambda i: float(AFs[i]))
-            result_kept.append(group_sorted[0])
-            result_removed.extend(group_sorted[1:])
-    '''
+        
     return result_kept, result_removed
 
 # Creates a list of observed haplotypes from VCF files (individual file for each transcript, with phased genotypes). 
