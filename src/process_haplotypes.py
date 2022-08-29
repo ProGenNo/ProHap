@@ -115,7 +115,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 rna_location = len(cdna_sequence) - rna_location - ref_len     
             
             # remember reference allele in protein
-            ref_allele_protein = ""     # reference residues directly affected (ignoring prossible frameshift)
+            ref_alleles_protein = []    # reference residues directly affected (ignoring prossible frameshift), stored in a list for all three reading frames
             protein_location = 0        # location of these residues in the canonical protein (can be negative if in 5' UTR)
             
             if (reading_frame == -1):
@@ -123,14 +123,18 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             else:
                 protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3) -  protein_start)
 
-            bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0
+            bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
             bpFrom = max(bpFrom, 0)                                                                     # in case the beginning of the change is before the reading frame start
 
             bpTo = int(ceil((rna_location + len(ref_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
             if (bpTo >= 2): # make sure we have at least 1 codon covered
                 affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
-                ref_allele_protein = str(affected_codons.transcribe().translate())
+                ref_alleles_protein = [str(affected_codons.transcribe().translate())]
+                if reading_frame == -1:
+                    for rf in [1,2]:
+                        affected_codons = Seq(cdna_sequence[bpFrom+rf:bpTo+rf])
+                        ref_alleles_protein.append(str(affected_codons.transcribe().translate()))
 
             # store change in cDNA
             cDNA_changes.append(str(rna_location) + ':' + str(ref_allele) + '>' + str(alt_allele))
@@ -150,28 +154,41 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             sequence_length_diff += alt_len - ref_len
 
             # remember alternative allele in protein after the new location is computed
-            # at this stage, it can only be done for the forward strand
-            alt_allele_protein = ""
+            alt_alleles_protein = []
             
-            bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0
+            bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
             bpFrom = max(bpFrom, 0)                                                                     # in case the beginning of the change is before the reading frame start
             bpTo = int(ceil((rna_location + len(alt_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
             if (bpTo >= 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
                 affected_codons = mutated_cdna[bpFrom:bpTo]
-                alt_allele_protein = str(affected_codons.transcribe().translate())
+                alt_alleles_protein = str(affected_codons.transcribe().translate())                
+                if reading_frame == -1:
+                    for rf in [1,2]:
+                        affected_codons = Seq(mutated_cdna[bpFrom+rf:bpTo+rf])
+                        alt_alleles_protein.append(str(affected_codons.transcribe().translate()))
 
             # store the change in protein as a string - only if there is a change (i.e. ignore synonymous variants) or a frameshift
-            protein_change = str(protein_location) + ':' + ref_allele_protein + '>' + alt_allele_protein
-            if (abs(len(ref_allele) - len(alt_allele)) % 3 > 0):
-                protein_change += "(+fs)"
-                protein_changes.append(protein_change)
-            elif ((sequence_length_diff % 3) > 0):
-                protein_change += "(fs)"
-                protein_changes.append(protein_change)
-            elif (ref_allele_protein != alt_allele_protein):
-                protein_changes.append(protein_change)
-            all_protein_changes.append(protein_change)
+            # loop through all possible reading frames
+            allele_changes = []
+            is_synonymous = False
+            for i,ref_allele_protein in enumerate(ref_alleles_protein):
+                alt_allele_protein = alt_alleles_protein[i]
+
+                protein_change = str(protein_location) + ':' + ref_allele_protein + '>' + alt_allele_protein
+                if (abs(len(ref_allele) - len(alt_allele)) % 3 > 0):
+                    protein_change += "(+fs)"
+                elif ((sequence_length_diff % 3) > 0):
+                    protein_change += "(fs)"
+                elif (ref_allele_protein == alt_allele_protein):
+                    is_synonymous = True
+
+                allele_changes.append(protein_change)
+
+            if not is_synonymous:
+                protein_changes.append("|".join(allele_changes))
+
+            all_protein_changes.append("|".join(allele_changes))
 
             # is a splice junction affected? -> remember if so 
             if (mutation_intersects_intron is not None) and (mutation_intersects_intron not in spl_junctions_affected):
