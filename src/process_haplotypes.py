@@ -131,9 +131,14 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             if (bpTo >= 2): # make sure we have at least 1 codon covered
                 affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
                 ref_alleles_protein = [str(affected_codons.transcribe().translate())]
+
                 if reading_frame == -1:
                     for rf in [1,2]:
-                        affected_codons = Seq(cdna_sequence[bpFrom+rf:bpTo+rf])
+                        bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
+                        bpFrom = max(bpFrom, 0)                                                    
+                        bpTo = int(ceil((rna_location + len(ref_allele) - rf) / 3) * 3 + rf)
+
+                        affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
                         ref_alleles_protein.append(str(affected_codons.transcribe().translate()))
 
             # store change in cDNA
@@ -165,7 +170,11 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 alt_alleles_protein = str(affected_codons.transcribe().translate())                
                 if reading_frame == -1:
                     for rf in [1,2]:
-                        affected_codons = mutated_cdna[bpFrom+rf:bpTo+rf]
+                        bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
+                        bpFrom = max(bpFrom, 0)                                                    
+                        bpTo = int(ceil((rna_location + len(alt_allele) - rf) / 3) * 3 + rf)
+
+                        affected_codons = mutated_cdna[bpFrom:bpTo]
                         alt_alleles_protein.append(str(affected_codons.transcribe().translate()))
 
             # store the change in protein as a string - only if there is a change (i.e. ignore synonymous variants) or a frameshift
