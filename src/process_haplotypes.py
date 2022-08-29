@@ -116,12 +116,13 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             
             # remember reference allele in protein
             ref_alleles_protein = []    # reference residues directly affected (ignoring prossible frameshift), stored in a list for all three reading frames
-            protein_location = 0        # location of these residues in the canonical protein (can be negative if in 5' UTR)
+            protein_location = []       # location of these residues in the canonical protein (can be negative if in 5' UTR), creating a list as it can differ with reading frame
             
             if (reading_frame == -1):
-                protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3))               # if reading frame is unknown, assume 0
+                for rf in range(3):                    
+                    protein_location.append(int(floor((rna_location - rf) / 3)))
             else:
-                protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3) -  protein_start)
+                protein_location = [int(floor((rna_location - max(reading_frame, 0)) / 3) -  protein_start)]
 
             bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
             bpFrom = max(max(bpFrom, 0), reading_frame)                                                 # in case the beginning of the change is before the reading frame start
@@ -180,21 +181,25 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             # store the change in protein as a string - only if there is a change (i.e. ignore synonymous variants) or a frameshift
             # loop through all possible reading frames
             allele_changes = []
-            is_synonymous = False
+            is_synonymous = []
             for i,ref_allele_protein in enumerate(ref_alleles_protein):
                 alt_allele_protein = alt_alleles_protein[i]
+                loc = protein_location[i]
 
-                protein_change = str(protein_location) + ':' + ref_allele_protein + '>' + alt_allele_protein
+                protein_change = str(loc) + ':' + ref_allele_protein + '>' + alt_allele_protein
                 if (abs(len(ref_allele) - len(alt_allele)) % 3 > 0):
                     protein_change += "(+fs)"
                 elif ((sequence_length_diff % 3) > 0):
                     protein_change += "(fs)"
-                elif (ref_allele_protein == alt_allele_protein):
-                    is_synonymous = True
+
+                if (ref_allele_protein == alt_allele_protein):
+                    is_synonymous.append(True)
+                else:
+                    is_synonymous.append(False)
 
                 allele_changes.append(protein_change)
 
-            if not is_synonymous:
+            if not all(is_synonymous):
                 protein_changes.append("|".join(allele_changes))
 
             all_protein_changes.append("|".join(allele_changes))
