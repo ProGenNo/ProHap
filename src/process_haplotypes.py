@@ -165,7 +165,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 alt_alleles_protein = str(affected_codons.transcribe().translate())                
                 if reading_frame == -1:
                     for rf in [1,2]:
-                        affected_codons = Seq(mutated_cdna[bpFrom+rf:bpTo+rf])
+                        affected_codons = mutated_cdna[bpFrom+rf:bpTo+rf]
                         alt_alleles_protein.append(str(affected_codons.transcribe().translate()))
 
             # store the change in protein as a string - only if there is a change (i.e. ignore synonymous variants) or a frameshift
