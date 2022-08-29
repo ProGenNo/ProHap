@@ -124,18 +124,18 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3) -  protein_start)
 
             bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
-            bpFrom = max(bpFrom, 0)                                                                     # in case the beginning of the change is before the reading frame start
+            bpFrom = max(max(bpFrom, 0), reading_frame)                                                 # in case the beginning of the change is before the reading frame start
 
             bpTo = int(ceil((rna_location + len(ref_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
-            if (bpTo >= 2): # make sure we have at least 1 codon covered
+            if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
                 affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
                 ref_alleles_protein = [str(affected_codons.transcribe().translate())]
 
                 if reading_frame == -1:
                     for rf in [1,2]:
                         bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
-                        bpFrom = max(bpFrom, 0)                                                    
+                        bpFrom = max(max(bpFrom, 0), rf)                                                    
                         bpTo = int(ceil((rna_location + len(ref_allele) - rf) / 3) * 3 + rf)
 
                         affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
@@ -162,16 +162,16 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             alt_alleles_protein = []
             
             bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
-            bpFrom = max(bpFrom, 0)                                                                     # in case the beginning of the change is before the reading frame start
+            bpFrom = max(max(bpFrom, 0), reading_frame)                                                                     # in case the beginning of the change is before the reading frame start
             bpTo = int(ceil((rna_location + len(alt_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
-            if (bpTo >= 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
+            if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
                 affected_codons = mutated_cdna[bpFrom:bpTo]
                 alt_alleles_protein = str(affected_codons.transcribe().translate())                
                 if reading_frame == -1:
                     for rf in [1,2]:
                         bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
-                        bpFrom = max(bpFrom, 0)                                                    
+                        bpFrom = max(max(bpFrom, 0), rf)                                                    
                         bpTo = int(ceil((rna_location + len(alt_allele) - rf) / 3) * 3 + rf)
 
                         affected_codons = mutated_cdna[bpFrom:bpTo]
