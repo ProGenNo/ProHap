@@ -167,7 +167,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
 
             if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
                 affected_codons = mutated_cdna[bpFrom:bpTo]
-                alt_alleles_protein = str(affected_codons.transcribe().translate())                
+                alt_alleles_protein = [str(affected_codons.transcribe().translate())]                
                 if reading_frame == -1:
                     for rf in [1,2]:
                         bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
