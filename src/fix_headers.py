@@ -44,7 +44,7 @@ while metadata != "":
 
     if "|" in metadata:					# the header is at least partially formated
         metadata_parsed = metadata[1:].split('|')
-        if 'generic' in tag:
+        if 'generic' in metadata_parsed[0]:
             tag = metadata_parsed[0]
         else:
             tag = 'generic_' + metadata_parsed[0]
@@ -71,7 +71,7 @@ while metadata != "":
                 description = metadata.split(" ", 1)[1]
 
     if 'matching_proteins:' not in description:
-        description += ' matching_proteins:' + accession
+        description = description[:-1] + ' matching_proteins:' + accession + '\n'
 
     if len(description) > 0:
         new_header = '>' + '|'.join([tag, accession, description])
