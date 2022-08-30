@@ -29,6 +29,14 @@ for proteinID in all_proteins:
 			seq_position = protein['description'].split('position_within_protein:', 1)[1].split(maxsplit=1)[0]
 		else:
 			seq_position = '0'
+	elif 'ref' in protein['tag']:
+		matching_proteins = protein['description'].split('matching_proteins:', 1)[1].split(maxsplit=1)[0].split(';')
+		rfs = ['-']
+		protein_start = '0'
+		if ('position_within_protein' in protein['description']):
+			seq_position = protein['description'].split('position_within_protein:', 1)[1].split(maxsplit=1)[0]
+		else:
+			seq_position = '0'
 	else:
 		matching_proteins = [protein['accession']]
 		rfs = ['-']
