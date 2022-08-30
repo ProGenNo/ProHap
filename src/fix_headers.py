@@ -71,7 +71,7 @@ while metadata != "":
                 description = metadata.split(" ", 1)[1]
 
     if 'matching_proteins:' not in description:
-        description += 'matching_proteins:' + accession
+        description += ' matching_proteins:' + accession
 
     if len(description) > 0:
         new_header = '>' + '|'.join([tag, accession, description])
