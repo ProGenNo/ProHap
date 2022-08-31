@@ -55,7 +55,7 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af, tmp_dir):
                 # check validity of alleles
                 val_pass = True
                 REF, ALT = line.split(maxsplit=5)[3:5]
-                if ((re.match(r'[CGTA]*[^CGTA]+[CGTA]*', REF)) or (re.match(r'[CGTA]*[^CGTA]+[CGTA]*', ALT))):
+                if ((re.match(r'[CGTA]*[^CGTA]+[CGTA]*', REF) and REF != '-') or (re.match(r'[CGTA]*[^CGTA]+[CGTA]*', ALT) and ALT != '-')):
                     val_pass = False
 
                 # check all transcripts in the queue

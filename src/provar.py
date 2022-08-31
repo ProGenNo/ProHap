@@ -1,8 +1,7 @@
 import gffutils
 import argparse
 import os
-from numpy import int64
-import pandas as pd
+from datetime import datetime
 
 from vcf_reader import parse_vcf
 from common import read_fasta
@@ -89,10 +88,13 @@ else:
         all_cds = read_fasta(args.cdnas_fasta)
 
         log_file = open(args.log_file, 'a')
+        log_file.write('------------' + '[' + datetime.now().strftime('%X %x') + '] Chr ' + args.chromosome + ':' + '------------\n')
 
         print (('Chr ' + args.chromosome + ':'), 'Creating variant database.')
         # align the variant coordinates to transcript, translate into the protein database
         process_store_variants(all_transcripts, args.tmp_dir, log_file, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.accession_prefix, args.output_file, args.output_fasta)
+
+        log_file.close()
 
         # remove the temporary files
         for transcript_id in transcript_list:

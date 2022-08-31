@@ -1,4 +1,4 @@
-import re
+from datetime import datetime
 from numpy import ceil, floor
 import pandas as pd
 import bisect
@@ -82,8 +82,19 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
         # iterate through rows of the VCF
         for index, vcf_row in vcf_df.iterrows():
             dna_location = int(vcf_row['POS'])
-            ref_allele = Seq(vcf_row['REF'])
-            alt_allele = Seq(vcf_row['ALT'])
+
+            ref_allele = ''
+            if vcf_row['REF'] == '-':
+                ref_allele = Seq('')
+            else:
+                ref_allele = Seq(vcf_row['REF'])
+
+            alt_allele = ''
+            if vcf_row['ALT'] == '-':
+                alt_allele = Seq('')
+            else:
+                alt_allele = Seq(vcf_row['ALT'])
+
             var_ID = accession_prefix + '_' + vcf_row['ID']
 
             DNA_change = str(vcf_row['POS']) + ':' + vcf_row['REF'] + '>' + vcf_row['ALT']
@@ -117,7 +128,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
             bpFrom = max(max(bpFrom, 0), reading_frame)                                                 # in case the beginning of the change is before the reading frame start
 
-            bpTo = int(ceil((rna_location + len(ref_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+            bpTo = int(ceil((rna_location + ref_len - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
             if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
                 affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
@@ -129,7 +140,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                 for rf in [1,2]:
                     bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
                     bpFrom = max(max(bpFrom, 0), rf)                                                    
-                    bpTo = int(ceil((rna_location + len(ref_allele) - rf) / 3) * 3 + rf)
+                    bpTo = int(ceil((rna_location + ref_len - rf) / 3) * 3 + rf)
 
                     if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
                         affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
@@ -142,7 +153,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             # check if what we expected to find is in fact in the cDNA
             if (str(ref_allele) != mutated_cdna[rna_location:rna_location+ref_len]):
                 print('Ref allele not matching the cDNA sequence, skipping!')
-                log_file.write('Ref allele not matching the cDNA sequence: ' + transcript_id + ' strand ' + current_transcript['feature'].strand + ' ' + DNA_change + ' cDNA: ' +  str(mutated_cdna[rna_location-10:rna_location]) + ' ' + str(mutated_cdna[rna_location:rna_location+ref_len]) + ' ' + str(mutated_cdna[rna_location+ref_len:rna_location+ref_len+10]) + '\n')
+                log_file.write('[' + datetime.now().strftime('%X %x') + '] Ref allele not matching the cDNA sequence: ' + transcript_id + ' strand ' + current_transcript['feature'].strand + ' ID:' + vcf_row['ID'] + ' ' + DNA_change + ' cDNA: ' +  str(mutated_cdna[rna_location-10:rna_location]) + ' ' + str(mutated_cdna[rna_location:rna_location+ref_len]) + ' ' + str(mutated_cdna[rna_location+ref_len:rna_location+ref_len+10]) + '\n')
                 continue
 
             # apply the change to the cDNA
@@ -153,7 +164,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
 
             bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
             bpFrom = max(max(bpFrom, 0), reading_frame)                                                                     # in case the beginning of the change is before the reading frame start
-            bpTo = int(ceil((rna_location + len(alt_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+            bpTo = int(ceil((rna_location + alt_len - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
             if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
                 affected_codons = mutated_cdna[bpFrom:bpTo]
@@ -165,7 +176,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                 for rf in [1,2]:
                     bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
                     bpFrom = max(max(bpFrom, 0), rf)                                                    
-                    bpTo = int(ceil((rna_location + len(alt_allele) - rf) / 3) * 3 + rf)
+                    bpTo = int(ceil((rna_location + alt_len - rf) / 3) * 3 + rf)
 
                     if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
                         affected_codons = mutated_cdna[bpFrom:bpTo]
@@ -181,7 +192,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                 loc_ref = protein_location_ref[i]
 
                 change = str(loc_ref) + ':' + ref_allele_protein + '>' + alt_allele_protein
-                if (abs(len(ref_allele) - len(alt_allele)) % 3 > 0):
+                if (abs(ref_len - alt_len) % 3 > 0):
                     change += "(+fs)"
 
                 allele_changes.append(change)

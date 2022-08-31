@@ -135,7 +135,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
             bpFrom = max(max(bpFrom, 0), reading_frame)                                                 # in case the beginning of the change is before the reading frame start
 
-            bpTo = int(ceil((rna_location + len(ref_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+            bpTo = int(ceil((rna_location + ref_len - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
             if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
                 affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
@@ -147,7 +147,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 for rf in [1,2]:
                     bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
                     bpFrom = max(max(bpFrom, 0), rf)                                                    
-                    bpTo = int(ceil((rna_location + len(ref_allele) - rf) / 3) * 3 + rf)
+                    bpTo = int(ceil((rna_location + ref_len - rf) / 3) * 3 + rf)
 
                     if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
                         affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
@@ -185,7 +185,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             
             bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
             bpFrom = max(max(bpFrom, 0), reading_frame)                                                                     # in case the beginning of the change is before the reading frame start
-            bpTo = int(ceil((rna_location + len(alt_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
+            bpTo = int(ceil((rna_location + alt_len - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
             if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
                 affected_codons = mutated_cdna[bpFrom:bpTo]
@@ -197,7 +197,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 for rf in [1,2]:
                     bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
                     bpFrom = max(max(bpFrom, 0), rf)                                                    
-                    bpTo = int(ceil((rna_location + len(alt_allele) - rf) / 3) * 3 + rf)
+                    bpTo = int(ceil((rna_location + alt_len - rf) / 3) * 3 + rf)
 
                     if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
                         affected_codons = mutated_cdna[bpFrom:bpTo]
@@ -215,7 +215,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 loc_alt = protein_location_alt[i]
 
                 protein_change = str(loc_ref) + ':' + ref_allele_protein + '>' + str(loc_alt) + ':' + alt_allele_protein
-                if (abs(len(ref_allele) - len(alt_allele)) % 3 > 0):
+                if (abs(ref_len - alt_len) % 3 > 0):
                     protein_change += "(+fs)"
                 elif ((sequence_length_diff % 3) > 0):
                     protein_change += "(fs)"
