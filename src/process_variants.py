@@ -153,7 +153,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             # check if what we expected to find is in fact in the cDNA
             if (str(ref_allele) != mutated_cdna[rna_location:rna_location+ref_len]):
                 print('Ref allele not matching the cDNA sequence, skipping!')
-                log_file.write('[' + datetime.now().strftime('%X %x') + '] Ref allele not matching the cDNA sequence: ' + transcript_id + ' strand ' + current_transcript['feature'].strand + ' ID:' + vcf_row['ID'] + ' ' + DNA_change + ' cDNA: ' +  str(mutated_cdna[rna_location-10:rna_location]) + ' ' + str(mutated_cdna[rna_location:rna_location+ref_len]) + ' ' + str(mutated_cdna[rna_location+ref_len:rna_location+ref_len+10]) + '\n')
+                log_file.write('[' + datetime.now().strftime('%X %x') + '] Ref allele not matching the cDNA sequence: ' + transcript_id + ' ID:' + vcf_row['ID'] + ' expected: ' + cDNA_change + ' found in cDNA: ' +  str(mutated_cdna[rna_location-10:rna_location]) + ' ' + str(mutated_cdna[rna_location:rna_location+ref_len]) + ' ' + str(mutated_cdna[rna_location+ref_len:rna_location+ref_len+10]) + '\n')
                 continue
 
             # apply the change to the cDNA
