@@ -1,9 +1,18 @@
 1000GsURL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/
 1000Gs30_URL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/
-vcf_file_name: "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
-vcf_file_name_30: "1kGP_high_coverage_Illumina.chr{chr}.filtered.SNV_INDEL_SV_phased_panel.vcf"
+1kGP_vcf_file_name: "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
+1kGP_vcf_file_name_30: "1kGP_high_coverage_Illumina.chr{chr}.filtered.SNV_INDEL_SV_phased_panel.vcf"
+
+working_dir_name_haplo: 'haplotypes_30'
+working_dir_name_var: 'variants'
+
+variant_vcf:
+  MODYvar: { file_prefix: "data/variant_vcf/Rafique_ClinVar_indels_coord", fasta_accession_prefix: "MODYvar_" }
+  MODYvar_manual: { file_prefix: "data/variant_vcf/Rafique_ClinVar_indels_coord_manual", fasta_accession_prefix: "MODYvar_manual_" }
+
+include_haplo: True
 
 EnsemblFTP: ftp.ensembl.org/pub/release-106/
 annotationFilename: Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff
 
-final_fasta_file: results/220719_ensembl_ref_contam_1kGs_haplo_30x.fa
+final_fasta_file: results/220831_ensembl_ref_contam_1kGs_haplo_30x_MODYvar.fa

@@ -12,7 +12,6 @@ result_columns = [
     'transcript_biotype',
     'variantID',
     'DNA_change', 
-    'allele_frequency', 
     'cDNA_change', 
     'protein_change',
     'reading_frame', 
@@ -76,8 +75,9 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             dna_location = int(vcf_row['POS'])
             ref_allele = Seq(vcf_row['REF'])
             alt_allele = Seq(vcf_row['ALT'])
+            var_ID = accession_prefix + '_' + vcf_row['ID']
 
-            DNA_change = vcf_row['POS'] + ':' + vcf_row['REF'] + '>' + vcf_row['ALT']
+            DNA_change = str(vcf_row['POS']) + ':' + vcf_row['REF'] + '>' + vcf_row['ALT']
 
             cDNA_change = ''                    # change in the cDNA
             protein_change = ''                 # change in the protein sequence
@@ -96,22 +96,37 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                 rna_location = len(cdna_sequence) - rna_location - ref_len
 
             # remember reference allele in protein
-            ref_allele_protein = ""     # reference residues directly affected (ignoring prossible frameshift)
-            protein_location = 0        # location of these residues in the canonical protein (can be negative if in 5' UTR)
+            ref_alleles_protein = []    # reference residues directly affected (ignoring prossible frameshift), stored in a list for all three reading frames
+            protein_location_ref = []       # location of these residues in the canonical protein (can be negative if in 5' UTR), creating a list as it can differ with reading frame
             
             if (reading_frame == -1):
-                protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3))               # if reading frame is unknown, assume 0
+                for rf in range(3):                    
+                    protein_location_ref.append(int(floor((rna_location - rf) / 3)))
             else:
-                protein_location = int(floor((rna_location - max(reading_frame, 0)) / 3) -  protein_start)
+                protein_location_ref = [int(floor((rna_location - reading_frame) / 3) -  protein_start)]
 
-            bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0
-            bpFrom = max(bpFrom, 0)                                                                     # in case the beginning of the change is before the reading frame start
+            bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
+            bpFrom = max(max(bpFrom, 0), reading_frame)                                                 # in case the beginning of the change is before the reading frame start
 
             bpTo = int(ceil((rna_location + len(ref_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
-            if (bpTo >= 2): # make sure we have at least 1 codon covered
+            if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
                 affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
-                ref_allele_protein = str(affected_codons.transcribe().translate())
+                ref_alleles_protein = [str(affected_codons.transcribe().translate())]
+            else:
+                ref_alleles_protein = ['-']
+
+            if reading_frame == -1:
+                for rf in [1,2]:
+                    bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
+                    bpFrom = max(max(bpFrom, 0), rf)                                                    
+                    bpTo = int(ceil((rna_location + len(ref_allele) - rf) / 3) * 3 + rf)
+
+                    if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
+                        affected_codons = Seq(cdna_sequence[bpFrom:bpTo])
+                        ref_alleles_protein.append(str(affected_codons.transcribe().translate()))
+                    else:
+                        ref_alleles_protein.append('-')
 
             cDNA_change = str(rna_location) + ':' + str(ref_allele) + '>' + str(alt_allele)
 
@@ -123,31 +138,54 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
 
             # apply the change to the cDNA
             mutated_cdna = mutated_cdna[:rna_location] + alt_allele + mutated_cdna[rna_location+ref_len:]
-            sequence_length_diff += alt_len - ref_len
 
             # remember alternative allele in protein after the new location is computed
-            # at this stage, it can only be done for the forward strand
-            alt_allele_protein = ""
-            
-            bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0
-            bpFrom = max(bpFrom, 0)                                                                     # in case the beginning of the change is before the reading frame start
+            alt_alleles_protein = []
+
+            bpFrom = int(floor((rna_location - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0)) # if reading frame is unknown, assume 0 and add other reading frames later
+            bpFrom = max(max(bpFrom, 0), reading_frame)                                                                     # in case the beginning of the change is before the reading frame start
             bpTo = int(ceil((rna_location + len(alt_allele) - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
-            if (bpTo >= 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
+            if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered (i.e., the change doesn't fall before the reading frame start)
                 affected_codons = mutated_cdna[bpFrom:bpTo]
-                alt_allele_protein = str(affected_codons.transcribe().translate())
+                alt_alleles_protein = [str(affected_codons.transcribe().translate())]  
+            else:
+                alt_alleles_protein = ['-']
+
+            if reading_frame == -1:
+                for rf in [1,2]:
+                    bpFrom = int(floor((rna_location - rf) / 3) * 3 + rf) 
+                    bpFrom = max(max(bpFrom, 0), rf)                                                    
+                    bpTo = int(ceil((rna_location + len(alt_allele) - rf) / 3) * 3 + rf)
+
+                    if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
+                        affected_codons = mutated_cdna[bpFrom:bpTo]
+                        alt_alleles_protein.append(str(affected_codons.transcribe().translate()))
+                    else:
+                        alt_alleles_protein.append('-')
 
             # store the change in protein as a string - only if there is a change (i.e. ignore synonymous variants) or a frameshift
-            protein_change = str(protein_location) + ':' + ref_allele_protein + '>' + alt_allele_protein
-            if (abs(len(ref_allele) - len(alt_allele)) % 3 > 0):
-                protein_change += "(+fs)"
+            # loop through all possible reading frames
+            allele_changes = []
+            for i,ref_allele_protein in enumerate(ref_alleles_protein):
+                alt_allele_protein = alt_alleles_protein[i]
+                loc_ref = protein_location_ref[i]
+
+                change = str(loc_ref) + ':' + ref_allele_protein + '>' + alt_allele_protein
+                if (abs(len(ref_allele) - len(alt_allele)) % 3 > 0):
+                    change += "(+fs)"
+
+                allele_changes.append(change)
+
+            # store the change in protein as a string - only if there is a change (i.e. ignore synonymous variants) or a frameshift
+            protein_change = "|".join(allele_changes)
 
             # store result
             result_data.append([
                 transcript_id,
                 chromosome,
                 current_transcript['biotype'],
-                vcf_row['ID'],
+                var_ID,
                 DNA_change,
                 cDNA_change,
                 protein_change,
@@ -164,10 +202,10 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                 seq_hash = hash(str(protein_seq))
                 nearest_idx = bisect.bisect_left(KeyWrapper(protein_sequence_list, key=lambda x: x['hash']), seq_hash)
                 if (len(protein_sequence_list) > nearest_idx and protein_sequence_list[nearest_idx]['hash'] == seq_hash):
-                    protein_sequence_list[nearest_idx]['variants'].append(vcf_row['ID'])
+                    protein_sequence_list[nearest_idx]['variants'].append(var_ID)
                     protein_sequence_list[nearest_idx]['rfs'].append(str(reading_frame))
                 else:
-                    protein_sequence_list.insert(nearest_idx, {'hash': seq_hash, 'variants': [vcf_row['ID']], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(reading_frame)]})
+                    protein_sequence_list.insert(nearest_idx, {'hash': seq_hash, 'variants': [var_ID], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(reading_frame)]})
 
 
             # unknown reading frame -> translate in all 3 reading frames
@@ -179,10 +217,10 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                     seq_hash = hash(str(protein_seq))
                     nearest_idx = bisect.bisect_left(KeyWrapper(protein_sequence_list, key=lambda x: x['hash']), seq_hash)
                     if (len(protein_sequence_list) > nearest_idx and protein_sequence_list[nearest_idx]['hash'] == seq_hash):
-                        protein_sequence_list[nearest_idx]['variants'].append(vcf_row['ID'])
+                        protein_sequence_list[nearest_idx]['variants'].append(var_ID)
                         protein_sequence_list[nearest_idx]['rfs'].append(str(rf))
                     else:
-                        protein_sequence_list.insert(nearest_idx, {'hash': seq_hash, 'variants': [vcf_row['ID']], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(rf)]})
+                        protein_sequence_list.insert(nearest_idx, {'hash': seq_hash, 'variants': [var_ID], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(rf)]})
 
     # write the result table
     print ('Storing the result metadata:', output_file)

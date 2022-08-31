@@ -43,7 +43,7 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af, tmp_dir):
             # Process VCF lines
             while (current_pos < current_transcript.start and line != ""):
                 # check the allele frequency
-                AF_pass = False
+                AF_pass = min_af <= 0
                 if ';AF=' in line:
                     AF = float(line.split('AF=')[1].split(';')[0])
                     AF_pass = AF >= min_af

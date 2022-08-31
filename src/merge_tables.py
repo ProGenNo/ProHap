@@ -17,9 +17,7 @@ inputs = args.input_filenames.split(",")
 dataframes = []
 
 for i,inputFilename in enumerate(inputs):
-    chromosome = inputFilename.split('chr', 1)[1].split('.', 1)[0]
     df = pd.read_csv(inputFilename, sep='\t', header=0)
-    df['chromosome'] = chromosome
     dataframes.append(df)
 
 result = pd.concat(dataframes)

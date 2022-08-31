@@ -41,7 +41,7 @@ parser.add_argument("-tag", dest="fasta_tag", required=False,
                     help="tag for FASTa file entries", default='generic_var')
 
 parser.add_argument("-acc_prefix", dest="accession_prefix", required=False,
-                    help="prefix for FASTA file entries accession", default='var_')
+                    help="prefix for FASTA file entries accession", default='var')
 
 parser.add_argument("-log", dest="log_file", required=False,
                     help="output log file", default="provar.log")
@@ -79,16 +79,18 @@ print (('Chr ' + args.chromosome + ':'), 'Assigning variants to transcripts.')
 # parse the VCF file, get a dataframe of variants for each transcript
 parse_vcf(all_transcripts, args.input_vcf, annotations_db, args.min_af, args.tmp_dir)
 
-# remove the temporary files
-for transcript_id in transcript_list:
-    os.remove(args.tmp_dir + '/' + transcript_id + '.tsv')
-
 # read the CDS sequence file
 print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
 all_cds = read_fasta(args.cdnas_fasta)
 
 log_file = open(args.log_file, 'a')
 
-print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
+print (('Chr ' + args.chromosome + ':'), 'Creating variant database.')
 # align the variant coordinates to transcript, translate into the protein database
 process_store_variants(all_transcripts, args.tmp_dir, log_file, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.accession_prefix, args.output_file, args.output_fasta)
+
+# remove the temporary files
+for transcript_id in transcript_list:
+    os.remove(args.tmp_dir + '/' + transcript_id + '.tsv')
+
+print('Done.')

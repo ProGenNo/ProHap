@@ -66,7 +66,7 @@ parser.add_argument("-id_prefix", dest="haplo_id_prefix", required=False,
                     help="prefix for the haplotype identifier", default='haplo_')
 
 parser.add_argument("-acc_prefix", dest="accession_prefix", required=False,
-                    help="prefix for FASTA file entries accession", default='enshap_')
+                    help="prefix for FASTA file entries accession", default='enshap')
 
 parser.add_argument("-log", dest="log_file", required=False,
                     help="output log file", default="prohap.log")
