@@ -13,7 +13,7 @@ import pandas as pd
 from vcf_reader import parse_vcf
 from common import read_fasta
 from get_haplotypes import get_gene_haplotypes
-from process_haplotypes import process_store_haplotypes
+from process_haplotypes import process_store_haplotypes, empty_output
 
 parser = argparse.ArgumentParser(
         description='Creates a database of CDS + protein haplotypes, and a fasta file of protein haplotype sequences.')
@@ -110,21 +110,26 @@ print (('Chr ' + args.chromosome + ':'), 'Assigning variants to transcripts.')
 vcf_colnames = parse_vcf(all_transcripts, args.input_vcf, annotations_db, args.min_af, args.tmp_dir)
 #vcf_colnames = list(pd.read_csv(args.tmp_dir + '/' + transcript_list[0] + '.tsv', sep='\t').columns.values)
 
-print (('Chr ' + args.chromosome + ':'), 'Computing co-occurence of alleles.')
-# check co-occurence of alleles -> get the haplotypes for all transcripts
-gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_colnames, args.tmp_dir, args.log_file, args.threads, (args.chromosome == 'X'), args.x_par1_to, args.x_par2_from, male_samples)
+# check if the vcf file was empty
+if (len(vcf_colnames) == 0):
+        print(('Chr ' + args.chromosome + ':'), 'VCF file is empty, creating empty output files.')
+        empty_output(args.output_file, args.output_fasta)
+else:
+        print (('Chr ' + args.chromosome + ':'), 'Computing co-occurence of alleles.')
+        # check co-occurence of alleles -> get the haplotypes for all transcripts
+        gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_colnames, args.tmp_dir, args.log_file, args.threads, (args.chromosome == 'X'), args.x_par1_to, args.x_par2_from, male_samples)
 
-# remove the temporary files
-for transcript_id in transcript_list:
-    os.remove(args.tmp_dir + '/' + transcript_id + '.tsv')
+        # remove the temporary files
+        for transcript_id in transcript_list:
+                os.remove(args.tmp_dir + '/' + transcript_id + '.tsv')
 
-# filter the haplotypes by FoO
-gene_haplo_df = gene_haplo_df[gene_haplo_df['Frequency'] >= args.min_foo]
+        # filter the haplotypes by FoO
+        gene_haplo_df = gene_haplo_df[gene_haplo_df['Frequency'] >= args.min_foo]
 
-# read the CDS sequence file
-print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
-all_cds = read_fasta(args.cdnas_fasta)
+        # read the CDS sequence file
+        print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
+        all_cds = read_fasta(args.cdnas_fasta)
 
-print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
-# align the variant coordinates to transcript, translate into the protein database
-process_store_haplotypes(gene_haplo_df, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.haplo_id_prefix, args.accession_prefix, args.output_file, args.output_fasta)
+        print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
+        # align the variant coordinates to transcript, translate into the protein database
+        process_store_haplotypes(gene_haplo_df, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.haplo_id_prefix, args.accession_prefix, args.output_file, args.output_fasta)

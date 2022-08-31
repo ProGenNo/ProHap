@@ -23,6 +23,10 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af, tmp_dir):
         vcf_linecount += 1
         line = vcf_file.readline()
 
+    # check if the VCF has any valid lines
+    if (line == ''):
+        return []
+
     # browse the chromosome in a sweep-line approach - assumes that the VCF file is sorted!
     # keep a list of transcripts that intersect the current position of the sweep line -> assign the VCF line to all of these transcripts
 

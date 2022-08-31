@@ -6,7 +6,7 @@ import pandas as pd
 
 from vcf_reader import parse_vcf
 from common import read_fasta
-from process_variants import process_store_variants
+from process_variants import process_store_variants, empty_output
 
 parser = argparse.ArgumentParser(
         description='Creates a database and a FASTA file of variant protein sequences given a VCF file')
@@ -77,20 +77,25 @@ all_transcripts.sort(key=lambda x: x.start)
 
 print (('Chr ' + args.chromosome + ':'), 'Assigning variants to transcripts.')
 # parse the VCF file, get a dataframe of variants for each transcript
-parse_vcf(all_transcripts, args.input_vcf, annotations_db, args.min_af, args.tmp_dir)
+vcf_columns = parse_vcf(all_transcripts, args.input_vcf, annotations_db, args.min_af, args.tmp_dir)
 
-# read the CDS sequence file
-print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
-all_cds = read_fasta(args.cdnas_fasta)
+# check if the vcf file was empty
+if (len(vcf_columns) == 0):
+        print(('Chr ' + args.chromosome + ':'), 'VCF file is empty, creating empty output files.')
+        empty_output(args.output_file, args.output_fasta)
+else:
+        # read the CDS sequence file
+        print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
+        all_cds = read_fasta(args.cdnas_fasta)
 
-log_file = open(args.log_file, 'a')
+        log_file = open(args.log_file, 'a')
 
-print (('Chr ' + args.chromosome + ':'), 'Creating variant database.')
-# align the variant coordinates to transcript, translate into the protein database
-process_store_variants(all_transcripts, args.tmp_dir, log_file, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.accession_prefix, args.output_file, args.output_fasta)
+        print (('Chr ' + args.chromosome + ':'), 'Creating variant database.')
+        # align the variant coordinates to transcript, translate into the protein database
+        process_store_variants(all_transcripts, args.tmp_dir, log_file, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.accession_prefix, args.output_file, args.output_fasta)
 
-# remove the temporary files
-for transcript_id in transcript_list:
-    os.remove(args.tmp_dir + '/' + transcript_id + '.tsv')
+        # remove the temporary files
+        for transcript_id in transcript_list:
+                os.remove(args.tmp_dir + '/' + transcript_id + '.tsv')
 
-print('Done.')
+        print('Done.')

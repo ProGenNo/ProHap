@@ -25,6 +25,14 @@ result_columns = [
     'samples'
 ]
 
+# create dummy empty files in case of empty input
+def empty_output(output_file, output_fasta):
+    outfile = open(output_file, 'w')
+    outfile.write('\t'.join(result_columns) + '\n')
+    outfile.close()
+
+    outfile = open(output_fasta, 'w')
+    outfile.close()
 
 def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromosome, fasta_tag, id_prefix, accession_prefix, output_file, output_fasta):
     current_transcript = None

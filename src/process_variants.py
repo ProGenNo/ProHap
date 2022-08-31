@@ -19,6 +19,15 @@ result_columns = [
     'splice_site_affected', 
 ]
 
+# create dummy empty files in case of empty input
+def empty_output(output_file, output_fasta):
+    outfile = open(output_file, 'w')
+    outfile.write('\t'.join(result_columns) + '\n')
+    outfile.close()
+
+    outfile = open(output_fasta, 'w')
+    outfile.close()
+
 def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annotations_db, chromosome, fasta_tag, accession_prefix, output_file, output_fasta):
     current_transcript = None
     result_data = []
