@@ -37,3 +37,21 @@ The fields included in the description of the FASTA elements are the following:
  - `protein_starts`: positions of the start residue (usually M) within the whole protein, if known (0 otherwise)
  - `matching_proteins`: IDs of the whole protein sequences matching to this sub-sequence. Variant and haplotype IDs can be mapped to the metadata table provided.
  - `reading_frames`: Reading frames in which the matching proteins are translated, if known.
+
+### Metadata table
+Metadata file provided in a tab-separated text-file format. The columns are:
+ - `chromosome`
+ - `TranscriptID`
+ - `transcript_biotype`: Biotype of the matching transcript in Ensembl.
+ - `HaplotypeID`: ID of the haplotype sequence, matching to the ID in the FASTA entry description.
+ - `VCF_IDs`: IDs of the matching lines in the VCF file of provided
+ - `DNA_changes`: List of changes in the format POS:REF>ALT, mapped to the DNA coordinates within the chromosome
+ - `allele_frequencies`: List of allele vrequencies of the variants in cluded in this haplotype
+ - `cDNA_changes`: List of changes in the format POS:REF>ALT, mapped to the coordinates within the cDNA of this transcript
+ - `all_protein_changes`: List of changes in the format POS:REF>ALT, mapped to the coordinates within the protein sequence. The start codon is at position 0, so if a change happens in the 5' untranslated region (UTR), its coordinates within the protein are negative.
+ - `protein_changes`: List of changes in the protein excluding synonymous mutations.
+ - `reading_frame`: Canonical reading frame for this transcript, if known.
+ - `protein_prefix_length`: Number of codons in the 5' UTR
+ - `splice_sites_affected`: List of splice sites affected by a mutation, if any. (Splice site 0 happens between exon 1 and 2)
+ - `occurrence_count`: Number of occurrences of this haplotype within the participants of the 1000 Genomes project (or within the individuals provided in the phased genotype VCF)
+ - `frequency`: Frequency of this haplotype within the participants of the 1000 Genomes project (or within the individuals provided in the phased genotype VCF)
