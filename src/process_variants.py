@@ -95,7 +95,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             else:
                 alt_allele = Seq(vcf_row['ALT'])
 
-            var_ID = accession_prefix + '_' + vcf_row['ID']
+            var_ID = transcript_id + '_' + accession_prefix + vcf_row['ID']
 
             DNA_change = str(vcf_row['POS']) + ':' + vcf_row['REF'] + '>' + vcf_row['ALT']
 
@@ -252,7 +252,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
     print ('Writing FASTA file:', output_fasta)
 
     for i,seq in enumerate(protein_sequence_list):
-        accession = accession_prefix + '_' + hex(i)[2:]
+        accession = accession_prefix + hex(i)[2:]
         description = 'matching_proteins:' + ';'.join(seq['variants']) + ' start:' + str(seq['start']) + ' reading_frame:' + ';'.join(seq['rfs'])
 
         output_fasta_file.write('>' + fasta_tag + '|' + accession + '|' + description + '\n')

@@ -21,7 +21,7 @@ for proteinID in all_proteins:
 	seq = protein['sequence']
 	seq_hash = hash(seq)
 
-	if 'hap' in protein['tag']:
+	if ('hap' in protein['tag']) or ('var' in protein['tag']):
 		matching_proteins = protein['description'].split('matching_proteins:', 1)[1].split(maxsplit=1)[0].split(';')
 		rfs = protein['description'].split('reading_frame:', 1)[1].split(maxsplit=1)[0].split(';')
 		protein_start = protein['description'].split('start:', 1)[1].split(maxsplit=1)[0]
@@ -66,6 +66,8 @@ for i,protein in enumerate(result_proteins):
 		tag += 'cont'
 	elif ('generic_ensref' in protein['tags']):
 		tag += 'ensref'
+	elif ('generic_var' in protein['tags']):
+		tag += 'var'
 	else:
 		tag += 'enshap'
 
