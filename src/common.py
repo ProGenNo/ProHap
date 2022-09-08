@@ -1,3 +1,4 @@
+import pandas as pd
 
 # returns an object containing all the sequences + metadata in the fasta file,  
 # accessed by the stable element ID or accession in case of artificial identifier
@@ -55,6 +56,19 @@ def read_fasta(filename):
     fasta_file.close()
 
     return all_elements
+
+def check_vcf_df(in_df):
+        result_columns = in_df.columns.values
+        result_data = []
+        for index,row in in_df.iterrows():
+                ALT_alleles = row['ALT'].split(',')
+                REF = row['REF']
+                for ALT in ALT_alleles:
+                        result_row = row.tolist()
+                        result_row[4] = ALT
+                        result_data.append(result_row)
+        result_df = pd.DataFrame(columns=result_columns, data=result_data)
+        return result_df
 
 # hepler class for bisect to sort objects
 class KeyWrapper:

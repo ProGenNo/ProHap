@@ -4,7 +4,7 @@ import pandas as pd
 import bisect
 from Bio.Seq import Seq
 from coordinates_toolbox import get_rna_position, get_rna_position_simple
-from common import KeyWrapper
+from common import KeyWrapper, check_vcf_df
 
 result_columns = [  
     'transcriptID', 
@@ -61,7 +61,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             current_transcript = { 'ID': transcript_id, 'feature': transcript_feature, 'exons': exons, 'start_codon': start_codon, 'stop_codon': stop_codon, 'fasta_element': all_cdnas[transcript_id.split('.')[0]], 'biotype': biotype }
         
         # load the according VCF file to Pandas
-        vcf_df = pd.read_csv(tmp_dir + '/' + transcript_id + '.tsv', sep='\t')
+        vcf_df =  check_vcf_df(pd.read_csv(tmp_dir + '/' + transcript_id + '.tsv', sep='\t'))
 
         cdna_sequence = current_transcript['fasta_element']['sequence']  # reference cDNA        
         reverse_strand = current_transcript['feature'].strand == '-'     # boolean - are we on a reverse strand?

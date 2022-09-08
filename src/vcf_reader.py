@@ -8,20 +8,23 @@ def check_vcf_line_validity(line, min_af):
     # check the allele frequency
     AF_pass = min_af <= 0
     if ';AF=' in line:
-        AF = float(line.split('AF=')[1].split(';')[0])
+        AF = float(line.split(';AF=')[1].split(';')[0])
+        AF_pass = AF >= min_af
+    elif ';MAF=' in line:
+        AF = float(line.split(';MAF=')[1].split(';')[0])
         AF_pass = AF >= min_af
 
     # check validity of alleles
     val_pass = True
     REF, ALT = line.split(maxsplit=5)[3:5]
-    if ((re.match(r'[CGTA]*[^CGTA]+[CGTA]*', REF) and REF != '-') or (re.match(r'[CGTA]*[^CGTA]+[CGTA]*', ALT) and ALT != '-')):
+    if ((re.match(r'[CGTA]*[^CGTA]+[CGTA]*', REF) and REF != '-') or (re.match(r'[CGTA,]*[^CGTA,]+[CGTA,]*', ALT) and ALT != '-')):
         val_pass = False
 
     return AF_pass and val_pass
 
 def add_variants_to_transcripts(vcf_file_line, vcf_file, vcf_linecount, transcript_queue, current_pos, current_transcript, VCF_header, min_af, tmp_dir, finalize):
     # Process VCF lines
-    while (current_pos >= current_transcript.start and vcf_file_line != ""):
+    while ((current_pos < current_transcript.start or finalize) and vcf_file_line != ""):
         valid = check_vcf_line_validity(vcf_file_line, min_af)
 
         # check all transcripts in the queue
@@ -56,7 +59,7 @@ def add_variants_to_transcripts(vcf_file_line, vcf_file, vcf_linecount, transcri
         #result_dfs[transcript_queue[0]['ID']] = df
         transcript_queue.pop(0)
 
-    return df.columns.values
+    return VCF_header[:-1].split('\t'), vcf_file_line, vcf_linecount, transcript_queue, current_pos
 
 # Process a VCF file, select rows that intersect exons of given transcripts. Results are written as TSV files in to a temporary folder. Returns a list of column names in the VCF.
 # input: 
@@ -98,7 +101,7 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af, tmp_dir):
 
         if (last_transcript is not None) and (last_transcript.start < current_transcript.start):
 
-            colnames = add_variants_to_transcripts(line, vcf_file, vcf_linecount, transcript_queue, current_pos, current_transcript, VCF_header, min_af, tmp_dir, False)
+            colnames, line, vcf_linecount, transcript_queue, current_pos = add_variants_to_transcripts(line, vcf_file, vcf_linecount, transcript_queue, current_pos, current_transcript, VCF_header, min_af, tmp_dir, False)
 
         # add the new transcript to the queue    
         exons = [ exon for exon in annotations_db.children(current_transcript, featuretype='exon', order_by='start') ]
@@ -108,6 +111,6 @@ def parse_vcf(all_transcripts, vcf_file, annotations_db, min_af, tmp_dir):
 
         last_transcript = current_transcript
 
-    colnames = add_variants_to_transcripts(line, vcf_file, vcf_linecount, transcript_queue, current_pos, current_transcript, VCF_header, min_af, tmp_dir, True)
+    colnames, line, vcf_linecount, transcript_queue, current_pos = add_variants_to_transcripts(line, vcf_file, vcf_linecount, transcript_queue, current_pos, current_transcript, VCF_header, min_af, tmp_dir, True)
 
-    return list(colnames)
+    return colnames
