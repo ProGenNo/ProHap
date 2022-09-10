@@ -176,7 +176,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             bpTo = int(ceil((rna_location + alt_len - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
             # aggregate all the location info for this variant -> protein position on ref and alt sequence, and codon positions (in bp) in ref and alt cDNA
-            change_pos = [{ 'ref_codons': ref_change_bp[0], 'alt_codons': [bpFrom, bpTo], 'ref_protein_loc': protein_location_ref[0], 'ref_protein_loc': protein_location_alt }]
+            change_pos = [{ 'ref_codons': ref_change_bp[0], 'alt_codons': [bpFrom, bpTo], 'ref_protein_loc': protein_location_ref[0], 'alt_protein_loc': protein_location_alt }]
 
             if reading_frame == -1:
                 for rf in [1,2]:
@@ -184,7 +184,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                     bpFrom = max(max(bpFrom, 0), rf)                                                    
                     bpTo = int(ceil((rna_location + alt_len - rf) / 3) * 3 + rf)
                     protein_location_alt = int(floor((rna_location - rf) / 3))
-                    change_pos.append({ 'ref_codons': ref_change_bp[rf], 'alt_codons': [bpFrom, bpTo], 'ref_protein_loc': protein_location_ref[rf], 'ref_protein_loc': protein_location_alt })
+                    change_pos.append({ 'ref_codons': ref_change_bp[rf], 'alt_codons': [bpFrom, bpTo], 'ref_protein_loc': protein_location_ref[rf], 'alt_protein_loc': protein_location_alt })
             
             prot_change_positions.append(change_pos)
 
@@ -207,7 +207,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 
                 is_synonymous.append(ref_allele_protein == alt_allele_protein)
 
-                protein_change = str(rf_change['ref_protein_loc']) + ':' + ref_allele_protein + '>' + rf_change['alt_protein_loc'] + ':' + str(alt_allele_protein)
+                protein_change = str(rf_change['ref_protein_loc']) + ':' + ref_allele_protein + '>' + str(rf_change['alt_protein_loc']) + ':' + alt_allele_protein
                 if (frameshifts[i]):
                     protein_change += "(+fs)"
                 elif (has_frameshift):
