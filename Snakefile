@@ -67,13 +67,13 @@ rule reference_remove_stop:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
 rule contaminants_fix_headers:
-	input:
-		"crap.fasta"
-	output:
-		"data/fasta/crap_tagged.fa"
+    input:
+        "crap.fasta"
+    output:
+        "data/fasta/crap_tagged.fa"
     conda: "envs/prohap.yaml"
-	shell:
-		"python3 src/fix_headers.py -i {input} -o {output} -t _cont"
+    shell:
+        "python3 src/fix_headers.py -i {input} -o {output} -t _cont"
 
 # filter the GTF so that only features on one chromosome are present:
 rule split_gtf:
