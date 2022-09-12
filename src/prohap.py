@@ -10,10 +10,10 @@ import os
 from numpy import int64
 import pandas as pd
 
-from vcf_reader import parse_vcf
-from common import read_fasta
-from get_haplotypes import get_gene_haplotypes
-from process_haplotypes import process_store_haplotypes, empty_output
+from modules.vcf_reader import parse_vcf
+from modules.common import read_fasta
+from modules.get_haplotypes import get_gene_haplotypes
+from modules.process_haplotypes import process_store_haplotypes, empty_output
 
 parser = argparse.ArgumentParser(
         description='Creates a database of CDS + protein haplotypes, and a fasta file of protein haplotype sequences.')
@@ -43,6 +43,9 @@ parser.add_argument("-cdna", dest="cdnas_fasta", required=True,
 parser.add_argument("-transcripts", dest="transcript_list", required=True,
                     help="list of transcript IDs, provided in a file", metavar="FILE",
                     type=lambda x: is_valid_file(parser, x))
+
+parser.add_argument("-require_start", dest="require_start", required=False, type=int,
+                    help="flag: require annotation of the start codon, set to 0 to disable; default: 1", default=1)
 
 parser.add_argument("-x_par1_to", dest="x_par1_to", required=False, type=int64,
                     help="end location of the 1st pseudoautosomal region on chromosome X; default: 2,781,479", default=2781479)
@@ -102,6 +105,17 @@ print (('Chr ' + args.chromosome + ':'), 'Assigning annotations to transcripts.'
 all_transcripts = []
 for transcript_id in transcript_list:
     all_transcripts.append(annotations_db[transcript_id])
+
+# check if start codon is annotated
+if (args.require_start):
+        filtered_features = []
+
+        for feature in all_transcripts:
+                start_codons = [ sc for sc in annotations_db.children(feature, featuretype='start_codon', order_by='start') ]    # there should be only one, but just in case...
+                if (len(start_codons) > 0):
+                        filtered_features.append(feature)
+
+        all_transcripts = filtered_features
 
 all_transcripts.sort(key=lambda x: x.start)
 

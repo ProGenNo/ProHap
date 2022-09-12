@@ -61,7 +61,7 @@ def get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, exons)
             break
 
     if not found:
-        raise Exception(transcript_id + ': DNA location ' + str(dna_location) + ' is not in an exon.')
+        print(transcript_id + ': DNA location ' + str(dna_location) + ' is not in an exon.')
     
     return rna_location, ref_allele, ref_len, alt_allele, alt_len, mutation_intersects_intron
 

@@ -2,7 +2,7 @@ import gffutils
 import argparse
 
 parser = argparse.ArgumentParser(
-        description='Reads the GTF file, parses it into the sqlite3-like DB file used by gffutils.')
+        description='Reads the GTF file, parses it into the sqlite3-like DB file used by gffutils. Outputs a list of stable IDs for transcripts that satisfy given criteria.')
 
 parser.add_argument("-i", dest="input_file", required=True,
                     help="input GTF")

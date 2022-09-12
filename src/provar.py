@@ -3,9 +3,9 @@ import argparse
 import os
 from datetime import datetime
 
-from vcf_reader import parse_vcf
-from common import read_fasta
-from process_variants import process_store_variants, empty_output
+from modules.vcf_reader import parse_vcf
+from modules.common import read_fasta
+from modules.process_variants import process_store_variants, empty_output
 
 parser = argparse.ArgumentParser(
         description='Creates a database and a FASTA file of variant protein sequences given a VCF file')
@@ -35,6 +35,9 @@ parser.add_argument("-chr", dest="chromosome", required=True,
 parser.add_argument("-transcripts", dest="transcript_list", required=True,
                     help="list of transcript IDs, provided in a file", metavar="FILE",
                     type=lambda x: is_valid_file(parser, x))
+
+parser.add_argument("-require_start", dest="require_start", required=False, type=int,
+                    help="flag: require annotation of the start codon, set to 0 to disable; default: 1", default=1)
 
 parser.add_argument("-tag", dest="fasta_tag", required=False,
                     help="tag for FASTa file entries", default='generic_var')
@@ -71,6 +74,17 @@ print (('Chr ' + args.chromosome + ':'), 'Assigning annotations to transcripts.'
 all_transcripts = []
 for transcript_id in transcript_list:
     all_transcripts.append(annotations_db[transcript_id])
+
+# check if start codon is annotated
+if (args.require_start):
+        filtered_features = []
+
+        for feature in all_transcripts:
+                start_codons = [ sc for sc in annotations_db.children(feature, featuretype='start_codon', order_by='start') ]    # there should be only one, but just in case...
+                if (len(start_codons) > 0):
+                        filtered_features.append(feature)
+
+        all_transcripts = filtered_features
 
 all_transcripts.sort(key=lambda x: x.start)
 

@@ -1,0 +1,14 @@
+channels:
+  - bioconda
+  - conda-forge
+  - default
+  - anaconda
+dependencies:
+  - argparse
+  - multiprocessing
+  - numpy
+  - pandas
+  - re
+  - os
+  - gffutils
+  - datetime

@@ -53,6 +53,7 @@ rule reference_fix_headers:
 		"data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
 	output:
 		"data/fasta/ensembl_reference_proteinDB_tagged.fa"
+    conda: "envs/prohap.yaml"
 	shell:
 		"python3 src/fix_headers.py -i {input} -o {output} -t _ensref "
 
@@ -61,6 +62,7 @@ rule reference_remove_stop:
         "data/fasta/ensembl_reference_proteinDB_tagged.fa"
     output:
         "data/fasta/ensembl_reference_proteinDB_clean.fa"
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
@@ -69,6 +71,7 @@ rule contaminants_fix_headers:
 		"crap.fasta"
 	output:
 		"data/fasta/crap_tagged.fa"
+    conda: "envs/prohap.yaml"
 	shell:
 		"python3 src/fix_headers.py -i {input} -o {output} -t _cont"
 
@@ -89,6 +92,7 @@ rule parse_gtf:
     output:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr="data/chr{chr}_transcripts.txt"
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/parse_gtf.py -i {input} -o {output.db} -noncoding 0 -transcript_list {output.tr}"
 
@@ -104,6 +108,7 @@ rule compute_variants:
     params:
         acc_prefix=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['fasta_accession_prefix'],
         log_file="log/{vcf}_chr{chr}.log"
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/provar.py "
          "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
@@ -117,6 +122,7 @@ rule merge_var_tables_vcf:
         temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv")
     params:
         input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.tsv", chr=CHROMOSOMES))
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/merge_tables.py -i {params.input_file_list} -o {output}"
 
@@ -137,6 +143,7 @@ rule merge_var_tables:
         config['var_table_file']
     params:
         input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv", vcf=VARIANT_VCF_FILES.keys()))
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/merge_tables.py -i {params.input_file_list} -o {output}"
 
@@ -155,6 +162,7 @@ rule var_fasta_remove_stop:
         "results/" + WORKING_DIR_NAME_VAR + "/variants_all.fa"
     output:
         temp("results/" + WORKING_DIR_NAME_VAR + "/variants_all_clean.fa")
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
@@ -171,6 +179,7 @@ rule compute_haplotypes:
     params:
         log_file="log/chr{chr}.log"
     threads: 3
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
@@ -184,6 +193,7 @@ rule merge_haplo_tables:
         config['haplo_table_file']
     params:
         input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv", chr=CHROMOSOMES))
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/merge_tables.py -i {params.input_file_list} -o {output}"
 
@@ -202,6 +212,7 @@ rule haplo_fasta_remove_stop:
         "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.fa"
     output:
         temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all_clean.fa")
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
@@ -226,6 +237,7 @@ rule merge_duplicate_seq:
 	output:
 		temp("results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa")
 		#config['final_fasta_file']
+    conda: "envs/prohap.yaml"
 	shell:
 		"python3 src/merge_duplicate_seq.py -i {input} -o {output} "
 
@@ -234,6 +246,7 @@ rule remove_UTR_seq:
 		"results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa"
 	output:
 		config['final_fasta_file']
+    conda: "envs/prohap.yaml"
 	shell:
 		"python src/remove_UTR_seq.py -i {input} -o {output}"
 

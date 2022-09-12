@@ -1,4 +1,4 @@
-from common import read_fasta, KeyWrapper
+from modules.common import read_fasta, KeyWrapper
 import bisect
 import argparse
 

@@ -1,6 +1,5 @@
 import argparse
 import os.path
-import re
 
 parser = argparse.ArgumentParser(description='Format the protein headers as follows: >generic[your tag]|[protein accession]|[protein description]. Creates a single-line fasta.')
 

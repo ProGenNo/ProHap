@@ -1,4 +1,4 @@
-from common import read_fasta
+from modules.common import read_fasta
 import argparse
 
 parser = argparse.ArgumentParser(description='Reads a FASTA file, removes entries only matching to UTR regions.')
