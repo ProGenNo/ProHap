@@ -9,8 +9,8 @@ WORKING_DIR_NAME_VAR = config['working_dir_name_var']
 rule all:
     input:
         final_fasta=config['final_fasta_file'],
-        var_table="results/" + WORKING_DIR_NAME_VAR + "variants_all.csv",
-        haplo_table="results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.tsv"
+        var_table=config['var_table_file'],
+        haplo_table=config['haplo_table_file']
 
 
 rule download_vcf:
@@ -90,32 +90,33 @@ rule parse_gtf:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr="data/chr{chr}_transcripts.txt"
     shell:
-        "python3 src/parse_gtf.py -i {input} -o {output.db} -transcript_list {output.tr}"
+        "python3 src/parse_gtf.py -i {input} -o {output.db} -noncoding 0 -transcript_list {output.tr}"
 
 rule compute_variants:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr="data/chr{chr}_transcripts.txt",
-        vcf=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['file_prefix'] + f"{wildcards.chr}.vcf",
+        vcf=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['file_prefix'] + f"_chr{wildcards.chr}.vcf",
         fasta="data/fasta/total_cdnas.fa",
     output:
-        csv="results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.csv"
+        tsv="results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.tsv",
         fasta="results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.fa"
     params:
-        acc_prefix=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['fasta_accession_prefix']
+        acc_prefix=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['fasta_accession_prefix'],
+        log_file="log/{vcf}_chr{chr}.log"
     shell:
         "python3 src/provar.py "
-        "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
-        "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} "
-        "-log {params.log_file} -tmp_dir tmp/transcript_vcf -output_csv {output.csv} -output_fasta {output.fasta} "
+         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
+         "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af 0.01 "
+         "-log {params.log_file} -tmp_dir tmp/transcript_vcf -output_csv {output.tsv} -output_fasta {output.fasta} ;"
 
 rule merge_var_tables_vcf:
     input:
-        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.csv", chr=CHROMOSOMES)
+        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.tsv", chr=CHROMOSOMES)
     output:
-        "results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.csv"
+        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv")
     params:
-        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.csv", chr=CHROMOSOMES))
+        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.tsv", chr=CHROMOSOMES))
     shell:
         "python3 src/merge_tables.py -i {params.input_file_list} -o {output}"
 
@@ -123,19 +124,19 @@ rule merge_var_fasta_vcf:
     input:
         expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.fa", chr=CHROMOSOMES)
     output:
-        "results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa"
+        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa")
     params:
         input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.fa", chr=CHROMOSOMES))
     shell:
-        "cat {params.input_file_list} > {output}"
+        "cat {input} > {output}"
 
 rule merge_var_tables:
     input:
-        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.csv", vcf=VARIANT_VCF_FILES.keys())
+        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv", vcf=VARIANT_VCF_FILES.keys())
     output:
-        "results/" + WORKING_DIR_NAME_VAR + "variants_all.csv"
+        config['var_table_file']
     params:
-        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.csv", vcf=VARIANT_VCF_FILES.keys()))
+        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv", vcf=VARIANT_VCF_FILES.keys()))
     shell:
         "python3 src/merge_tables.py -i {params.input_file_list} -o {output}"
 
@@ -143,17 +144,17 @@ rule merge_var_fasta:
     input:
         expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa", vcf=VARIANT_VCF_FILES.keys())
     output:
-        "results/" + WORKING_DIR_NAME_VAR + "variants_all.fa"
+        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_all.fa")
     params:
         input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa", vcf=VARIANT_VCF_FILES.keys()))
     shell:
-        "cat {params.input_file_list} > {output}"
+        "cat {input} > {output}"
 
 rule var_fasta_remove_stop:
     input:
-        "results/" + WORKING_DIR_NAME_VAR + "variants_all.fa"
+        "results/" + WORKING_DIR_NAME_VAR + "/variants_all.fa"
     output:
-        "results/" + WORKING_DIR_NAME_VAR + "variants_all_clean.fa"
+        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_all_clean.fa")
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
@@ -161,7 +162,7 @@ rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr="data/chr{chr}_transcripts.txt",
-        vcf="data/1000genomes_GRCh38_vcf/" + config['vcf_file_name_30'],
+        vcf="data/1000genomes_GRCh38_30x_vcf/" + config['1kGP_vcf_file_name_30'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
     output:
@@ -180,7 +181,7 @@ rule merge_haplo_tables:
     input:
         expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv", chr=CHROMOSOMES)
     output:
-        "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.tsv"
+        config['haplo_table_file']
     params:
         input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv", chr=CHROMOSOMES))
     shell:
@@ -190,37 +191,50 @@ rule merge_fasta:
     input:
         expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa", chr=CHROMOSOMES)
     output:
-        "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.fa"
+        temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.fa")
     params:
         input_file_list = ' '.join(expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa", chr=CHROMOSOMES))
     shell:
-        "cat {params.input_file_list} > {output}"
+        "cat {input} > {output}"
 
 rule haplo_fasta_remove_stop:
     input:
         "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.fa"
     output:
-        "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all_clean.fa"
+        temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all_clean.fa")
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
 rule mix_with_reference_proteome:
 	input:
 		in1="data/fasta/ensembl_reference_proteinDB_clean.fa",
-		in2="results/" + WORKING_DIR_NAME_VAR + "variants_all_clean.fa",
-		in3="data/fasta/crap_tagged.fa",
-        in4=expand('{proxy}', proxy=["results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all_clean.fa"] if config["include_haplo"] else []),
+                in2="data/fasta/crap_tagged.fa",
+		in3=expand('{proxy}', proxy=["results/" + WORKING_DIR_NAME_VAR + "/variants_all_clean.fa"] if config["include_var"] else []),
+		in4=expand('{proxy}', proxy=["results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all_clean.fa"] if config["include_haplo"] else []),
 	output:
-		"results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_clean.fa"		
+		temp("results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_clean.fa")		
 	run:
-		shell("cat {input.in1} {input.in2} {input.in3} > {output}; ")
-        if config["include_haplo"]:
-            shell("cat {input.in4} >> {output}")
+		shell("cat {input.in1} {input.in2} > {output}; ")
+		if config["include_var"]:
+			shell("cat {input.in3} >> {output}")
+		if config["include_haplo"]:
+			shell("cat {input.in4} >> {output}")
 
 rule merge_duplicate_seq:
 	input:
 		"results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_clean.fa"
 	output:
+		temp("results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa")
+		#config['final_fasta_file']
+	shell:
+		"python3 src/merge_duplicate_seq.py -i {input} -o {output} "
+
+rule remove_UTR_seq:
+	input:
+		"results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa"
+	output:
 		config['final_fasta_file']
 	shell:
-		"python3 src/remove_duplicate_seq.py -i {input} -o {output} "
+		"python src/remove_UTR_seq.py -i {input} -o {output}"
+
+
