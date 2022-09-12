@@ -49,13 +49,13 @@ rule download_reference_proteome:
         "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz -O {output}.gz && gunzip {output}.gz; "
 
 rule reference_fix_headers:
-	input:
-		"data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
-	output:
-		"data/fasta/ensembl_reference_proteinDB_tagged.fa"
+    input:
+        "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
+    output:
+        "data/fasta/ensembl_reference_proteinDB_tagged.fa"
     conda: "envs/prohap.yaml"
-	shell:
-		"python3 src/fix_headers.py -i {input} -o {output} -t _ensref "
+    shell:
+        "python3 src/fix_headers.py -i {input} -o {output} -t _ensref "
 
 rule reference_remove_stop:
     input:
@@ -232,22 +232,22 @@ rule mix_with_reference_proteome:
 			shell("cat {input.in4} >> {output}")
 
 rule merge_duplicate_seq:
-	input:
-		"results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_clean.fa"
-	output:
-		temp("results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa")
-		#config['final_fasta_file']
+    input:
+        "results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_clean.fa"
+    output:
+        temp("results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa")
+        #config['final_fasta_file']
     conda: "envs/prohap.yaml"
-	shell:
-		"python3 src/merge_duplicate_seq.py -i {input} -o {output} "
+    shell:
+        "python3 src/merge_duplicate_seq.py -i {input} -o {output} "
 
 rule remove_UTR_seq:
-	input:
-		"results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa"
-	output:
-		config['final_fasta_file']
+    input:
+        "results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa"
+    output:
+        config['final_fasta_file']
     conda: "envs/prohap.yaml"
-	shell:
-		"python src/remove_UTR_seq.py -i {input} -o {output}"
+    shell:
+        "python src/remove_UTR_seq.py -i {input} -o {output}"
 
 
