@@ -1,14 +1,14 @@
+name: ProHap
 channels:
   - bioconda
   - conda-forge
-  - default
   - anaconda
 dependencies:
-  - argparse
-  - multiprocessing
+  - python=3.9
   - numpy
-  - pandas
-  - re
-  - os
+  - biopython
   - gffutils
-  - datetime
+  - pip
+  - pip:
+    - pandas
+    - argparse

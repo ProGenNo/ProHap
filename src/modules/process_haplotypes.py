@@ -3,8 +3,8 @@ from numpy import ceil, floor
 import pandas as pd
 import bisect
 from Bio.Seq import Seq
-from coordinates_toolbox import get_rna_position, get_rna_position_simple
-from common import KeyWrapper
+from modules.coordinates_toolbox import get_rna_position, get_rna_position_simple
+from modules.common import KeyWrapper
 
 result_columns = [  
     'TranscriptID',             # transcript stable ID from Ensembl

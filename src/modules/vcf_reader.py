@@ -1,5 +1,5 @@
 import bisect
-from common import KeyWrapper
+from modules.common import KeyWrapper
 from io import StringIO
 import pandas as pd
 import re

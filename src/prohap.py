@@ -116,6 +116,7 @@ if (args.require_start):
                         filtered_features.append(feature)
 
         all_transcripts = filtered_features
+        transcript_list = [ feature.id for feature in all_transcripts ]
 
 all_transcripts.sort(key=lambda x: x.start)
 
