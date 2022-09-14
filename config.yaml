@@ -3,13 +3,13 @@
 1kGP_vcf_file_name: "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
 1kGP_vcf_file_name_30: "1kGP_high_coverage_Illumina.chr{chr}.filtered.SNV_INDEL_SV_phased_panel.vcf"
 
-working_dir_name_haplo: 'haplotypes_30'
+working_dir_name_haplo: 'haplotypes_30_clean'
 working_dir_name_var: 'variants'
 
 variant_vcf: #{}
 #   EnsemblVar: { file_prefix: "data/ensembl_vcf/checked_homo_sapiens_incl_consequences-", fasta_accession_prefix: "ensvar_" }
-  MODYvar: { file_prefix: "data/variant_vcf/Rafique_ClinVar_indels_coord", fasta_accession_prefix: "MODYvar_" }
-  MODYvar_manual: { file_prefix: "data/variant_vcf/Rafique_ClinVar_indels_coord_manual", fasta_accession_prefix: "MODYvar_manual_" }
+  MODYvar_clean: { file_prefix: "data/MODYvar_vcf/Rafique_ClinVar_indels_coord_120922", fasta_accession_prefix: "MODYvar_", min_af: 0 }
+  MODYvar_manual_clean: { file_prefix: "data/MODYvar_manual_vcf/Rafique_ClinVar_indels_coord_manual", fasta_accession_prefix: "MODYvar_manual_", min_af: 0 }
 
 include_haplo: True
 include_var: True
@@ -17,6 +17,6 @@ include_var: True
 EnsemblFTP: ftp.ensembl.org/pub/release-106/
 annotationFilename: Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff
 
-final_fasta_file: results/220910_ensembl_ref_crap_MODYvar_haplo.fa
-haplo_table_file: results/220910_Haplo_30x.tsv
-var_table_file: results/220910_MODYvar.tsv
+final_fasta_file: results/220914_ensembl_ref_crap_MODYvar_haplo_clean.fa
+haplo_table_file: results/220911_Haplo_30x_clean.tsv
+var_table_file: results/220914_MODYvar_clean.tsv

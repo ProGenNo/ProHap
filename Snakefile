@@ -107,13 +107,16 @@ rule compute_variants:
         fasta="results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.fa"
     params:
         acc_prefix=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['fasta_accession_prefix'],
-        log_file="log/{vcf}_chr{chr}.log"
+        min_af=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['min_af'],
+        log_file="log/{vcf}_chr{chr}.log",
+        tmp_dir="tmp/transcript_{vcf}"
     conda: "envs/prohap.yaml"
     shell:
+        "mkdir -p {params.tmp_dir}; "
         "python3 src/provar.py "
-         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
-         "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af 0.01 "
-         "-log {params.log_file} -tmp_dir tmp/transcript_vcf -output_csv {output.tsv} -output_fasta {output.fasta} ;"
+        "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
+        "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af {min_af} "
+        "-log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.tsv} -output_fasta {output.fasta} ;"
 
 rule merge_var_tables_vcf:
     input:
@@ -177,14 +180,16 @@ rule compute_haplotypes:
         csv="results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv",
         fasta="results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa"
     params:
-        log_file="log/chr{chr}.log"
+        log_file="log/chr{chr}.log",
+        tmp_dir="tmp/transcript_vcf_haplo"
     threads: 3
     conda: "envs/prohap.yaml"
     shell:
+        "mkdir -p {params.tmp_dir}; "
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
         "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} "
-        "-threads 3 -log {params.log_file} -tmp_dir tmp/transcript_vcf -output_csv {output.csv} -output_fasta {output.fasta} "
+        "-threads 3 -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_haplo_tables:
     input:
