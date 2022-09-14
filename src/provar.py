@@ -70,24 +70,21 @@ print (('Chr ' + args.chromosome + ':'), 'Reading', args.transcript_list.name)
 transcript_list = [ line[:-1].split('.', 1)[0] for line in args.transcript_list.readlines() ]
 
 print (('Chr ' + args.chromosome + ':'), 'Assigning annotations to transcripts.')
+
 # create a list of transcript features from the annotation db
 all_transcripts = []
+
 for transcript_id in transcript_list:
-    all_transcripts.append(annotations_db[transcript_id])
-
-# check if start codon is annotated
-if (args.require_start):
-        filtered_features = []
-
-        for feature in all_transcripts:
-                start_codons = [ sc for sc in annotations_db.children(feature, featuretype='start_codon', order_by='start') ]    # there should be only one, but just in case...
-                if (len(start_codons) > 0):
-                        filtered_features.append(feature)
-
-        all_transcripts = filtered_features
-        transcript_list = [ feature.id for feature in all_transcripts ]
+    feature = annotations_db[transcript_id]
+    if (args.require_start):
+        start_codons = [ sc for sc in annotations_db.children(feature, featuretype='start_codon', order_by='start') ]    # there should be only one, but just in case...
+        if (len(start_codons) > 0):
+                all_transcripts.append(feature)
+    else:
+        all_transcripts.append(feature)
 
 all_transcripts.sort(key=lambda x: x.start)
+transcript_list = [ feature.id for feature in all_transcripts ]
 
 print (('Chr ' + args.chromosome + ':'), 'Assigning variants to transcripts.')
 # parse the VCF file, get a dataframe of variants for each transcript
