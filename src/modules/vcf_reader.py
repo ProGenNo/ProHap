@@ -33,8 +33,8 @@ def add_variants_to_transcripts(vcf_file_line, vcf_file, vcf_linecount, transcri
 
                 # check if the snp belongs to any of the exons
                 for exon in transcript_entry['exons']:
-                    if (exon.start <= current_pos):
-                        if (exon.end > current_pos):
+                    if (exon.start < current_pos or ((transcript_entry['transcript_obj'].strand == '+' and exon.start == current_pos))):    # on a forward strand, the start location is included in the exon sequence
+                        if (exon.end >= current_pos or ((transcript_entry['transcript_obj'].strand == '-' and exon.end == current_pos))):   # on a reverse strand, the end location is included in the exon sequence
                             transcript_entry['file_content'] += vcf_file_line
                             break
                     else:
