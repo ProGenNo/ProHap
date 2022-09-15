@@ -54,9 +54,12 @@ def get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, exons)
                         alt_allele = alt_allele[:remaining_length]
                         alt_len = remaining_length
 
-            # remember if we change the last letter in the exon
-            elif (dna_location + ref_len == exon.end):
+            # remember if we change the last or first 3 letters in the exon
+            elif (exon.end - dna_location + ref_len < 3):
                 mutation_intersects_intron = exon_idx + 1
+            
+            elif (dna_location - exon.start < 3):
+                mutation_intersects_intron = exon_idx
 
             break
 
