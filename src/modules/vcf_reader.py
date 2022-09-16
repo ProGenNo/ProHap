@@ -4,7 +4,7 @@ from io import StringIO
 import pandas as pd
 import re
 
-def check_vcf_line_validity(line, min_af):
+def check_vcf_line_validity(line, min_af, REF, ALT):
     # check the allele frequency
     AF_pass = min_af <= 0
     if ';AF=' in line:
@@ -16,7 +16,6 @@ def check_vcf_line_validity(line, min_af):
 
     # check validity of alleles
     val_pass = True
-    REF, ALT = line.split(maxsplit=5)[3:5]
     if ((re.match(r'[CGTA]*[^CGTA]+[CGTA]*', REF) and REF != '-') or (re.match(r'[CGTA,]*[^CGTA,]+[CGTA,]*', ALT) and ALT != '-')):
         val_pass = False
 
@@ -25,7 +24,8 @@ def check_vcf_line_validity(line, min_af):
 def add_variants_to_transcripts(vcf_file_line, vcf_file, vcf_linecount, transcript_queue, current_pos, current_transcript, VCF_header, min_af, tmp_dir, finalize):
     # Process VCF lines
     while ((current_pos < current_transcript.start or finalize) and vcf_file_line != ""):
-        valid = check_vcf_line_validity(vcf_file_line, min_af)
+        REF, ALT = vcf_file_line.split(maxsplit=5)[3:5]
+        valid = check_vcf_line_validity(vcf_file_line, min_af, REF, ALT)
 
         # check all transcripts in the queue
         if valid:
@@ -33,7 +33,7 @@ def add_variants_to_transcripts(vcf_file_line, vcf_file, vcf_linecount, transcri
 
                 # check if the snp belongs to any of the exons
                 for exon in transcript_entry['exons']:
-                    if (exon.start <= current_pos):
+                    if (exon.start < (current_pos + len(REF))):
                         if (exon.end >= current_pos):
                             transcript_entry['file_content'] += vcf_file_line
                             break

@@ -19,7 +19,21 @@ def get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, exons)
         
         # exon where the mutation happens -> remember position within
         # check for allele sequences ovrlapping borders of the exon
-        elif (exon.start <= dna_location):
+        elif (exon.start < (dna_location + ref_len)):
+            
+            # check if the mutation covers the intron before
+            if (exon.start > dna_location):
+                intronic_len = exon.start - dna_location
+                ref_allele = ref_allele[intronic_len:]
+                alt_allele = alt_allele[intronic_len:]
+
+                ref_len = ref_len - intronic_len
+                alt_len = alt_len - intronic_len
+
+                dna_location += intronic_len
+
+                mutation_intersects_intron = exon_idx
+
             rna_location += (dna_location - exon.start)
             found = True
 
