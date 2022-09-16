@@ -112,8 +112,20 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
 
         # iterate through mutations, construct mutated cdna
         for mutation in all_changes:
-            ref_allele = Seq(re.split('\d+', mutation)[1].split('>')[0][1:])
-            alt_allele = Seq(re.split('\d+', mutation)[1].split('>')[1])
+            ref_allele = re.split('\d+', mutation)[1].split('>')[0][1:]
+            alt_allele = re.split('\d+', mutation)[1].split('>')[1]
+
+            # in case the allele is fully deleted
+            if ref_allele == '-':
+                ref_allele = Seq('')
+            else:
+                ref_allele = Seq(ref_allele)
+
+            if alt_allele == '-':
+                alt_allele = Seq('')
+            else:
+                alt_allele = Seq(alt_allele)
+
             dna_location = int(re.split('[a-zA-Z\*]+', mutation)[0][:-1])
             
             # compute the location in the RNA sequence

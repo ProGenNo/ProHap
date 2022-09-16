@@ -7,6 +7,9 @@ Special case: Mutation reaches over an intron into another exon. Probably covere
 def get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, exons):
     ref_len = len(ref_allele)
     alt_len = len(alt_allele)
+    if alt_allele == '-':
+        alt_len = 0
+        
     rna_location = 0
     found = False
     mutation_intersects_intron = None
@@ -74,6 +77,9 @@ def get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, exons)
             
             elif (dna_location - exon.start < 3):
                 mutation_intersects_intron = exon_idx
+
+            if (alt_len == 0):
+                alt_allele = '-'
 
             break
 
