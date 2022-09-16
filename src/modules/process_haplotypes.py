@@ -102,6 +102,14 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             reading_frame = start_loc % 3
             protein_start = int((start_loc - reading_frame) / 3)
 
+        # Alternatively, use the stop codon in the same way, assume start at codon 0
+        if (current_transcript['stop_codon'] is not None):
+            stop_loc = get_rna_position_simple(transcript_id, current_transcript['stop_codon'].start, current_transcript['exons'])
+            if (reverse_strand):
+                stop_loc = len(cdna_sequence) - stop_loc - 3  
+
+            reading_frame = stop_loc % 3
+
         all_changes = row['Changes'].split(';')
         all_AFs = row['AlleleFrequencies'].split(';')
         all_vcf_IDs = row['VCF_IDs'].split(';')

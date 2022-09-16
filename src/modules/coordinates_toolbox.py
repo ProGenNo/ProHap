@@ -28,7 +28,7 @@ def get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, exons)
                 alt_allele = alt_allele[intronic_len:]
 
                 ref_len = ref_len - intronic_len
-                alt_len = alt_len - intronic_len
+                alt_len = len(alt_allele)
 
                 dna_location += intronic_len
 
