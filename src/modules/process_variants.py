@@ -220,7 +220,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             ref_alleles_protein = []        # reference residues directly affected (ignoring prossible frameshift), stored in a list for all three reading frames
             protein_location_ref = []       # location of these residues in the canonical protein (can be negative if in 5' UTR), creating a list as it can differ with reading frame
 
-            ref_alleles_protein, protein_location_ref = get_affected_codons(cdna_sequence, rna_location, ref_len, reading_frame_variant, protein_start_variant)
+            ref_alleles_protein, protein_location_ref = get_affected_codons(cdna_sequence, rna_location, ref_len, reading_frame_variant, protein_start)
             
             alt_alleles_protein = []        # alternative allele in protein
             alt_alleles_protein, protein_location_alt = get_affected_codons(mutated_cdna, rna_location, alt_len, reading_frame_variant, protein_start_variant)
@@ -231,8 +231,9 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             for i,ref_allele_protein in enumerate(ref_alleles_protein):
                 alt_allele_protein = alt_alleles_protein[i]
                 loc_ref = protein_location_ref[i]
+                loc_alt = protein_location_alt[i]
 
-                change = str(loc_ref) + ':' + ref_allele_protein + '>' + alt_allele_protein
+                change = str(loc_ref) + ':' + ref_allele_protein + '>' + str(loc_alt) + ':' + alt_allele_protein
                 if (abs(ref_len - alt_len) % 3 > 0):
                     change += "(+fs)"
 
