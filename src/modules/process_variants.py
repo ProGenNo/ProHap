@@ -3,7 +3,7 @@ from numpy import ceil, floor
 import pandas as pd
 import bisect
 from Bio.Seq import Seq
-from modules.coordinates_toolbox import get_rna_position, get_rna_position_simple
+from modules.coordinates_toolbox import get_rna_position, get_rna_position_simple, check_start_change, get_affected_codons
 from modules.common import KeyWrapper, check_vcf_df
 
 result_columns = [  
@@ -42,57 +42,6 @@ def check_start_gain(mutated_cdna, rna_location, alt_len):
             return i
 
     return -1
-
-# check if we have an alteration of the start codon (either inframe indel before it, or stop loss)
-# return new start location, -1 if start lost
-def check_start_change(original_start, variant_rna_loc, ref_len, alt_len):
-    if (variant_rna_loc < original_start+3):
-        if (variant_rna_loc + ref_len > original_start):
-            return -1   # original start codon affected by mutation
-
-        if (abs(alt_len - ref_len) % 3) != 0:
-            return -1   # frameshift before start codon 
-
-        # stop codon might be shifted by inframe indel
-        return original_start + (alt_len - ref_len)
-
-    # change happening after start codon
-    return original_start
-
-def get_affected_codons(cdna, allele_loc, allele_len, reading_frame, protein_start):
-    alleles_protein = []        # residues directly affected (ignoring prossible frameshift), stored in a list for all three reading frames
-    protein_location = []       # location of these residues in the protein (can be negative if in 5' UTR), creating a list as it can differ with reading frame
-    
-    if (reading_frame == -1):
-        for rf in range(3):                    
-            protein_location.append(int(floor((allele_loc - rf) / 3)))
-    else:
-        protein_location = [int(floor((allele_loc - reading_frame) / 3) -  protein_start)]
-
-    bpFrom = int(floor((allele_loc - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))   # if reading frame is unknown, assume 0 and add other reading frames later
-    bpFrom = max(max(bpFrom, 0), reading_frame)                                                 # in case the beginning of the change is before the reading frame start
-
-    bpTo = int(ceil((allele_loc + allele_len - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
-
-    if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
-        affected_codons = Seq(cdna[bpFrom:bpTo])
-        alleles_protein = [str(affected_codons.transcribe().translate())]
-    else:
-        alleles_protein = ['-']
-
-    if reading_frame == -1:
-        for rf in [1,2]:
-            bpFrom = int(floor((allele_loc - rf) / 3) * 3 + rf) 
-            bpFrom = max(max(bpFrom, 0), rf)                                                    
-            bpTo = int(ceil((allele_loc + allele_len - rf) / 3) * 3 + rf)
-
-            if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
-                affected_codons = Seq(cdna[bpFrom:bpTo])
-                alleles_protein.append(str(affected_codons.transcribe().translate()))
-            else:
-                alleles_protein.append('-')
-
-    return alleles_protein, protein_location
 
 def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annotations_db, chromosome, fasta_tag, accession_prefix, output_file, output_fasta):
     current_transcript = None
