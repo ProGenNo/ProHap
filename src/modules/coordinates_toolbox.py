@@ -107,19 +107,21 @@ def get_rna_position_simple(transcript_id,dna_location, exons):
 
 # check if we have an alteration of the start codon (either inframe indel before it, or stop loss)
 # return new start location, -1 if start lost
-def check_start_change(original_start, variant_rna_loc, ref_len, alt_len):
+def check_start_change(original_start, original_rf, variant_rna_loc, ref_len, alt_len, ignore_frameshift):
     if (variant_rna_loc < original_start+3):
         if (variant_rna_loc + ref_len > original_start):
-            return -1   # original start codon affected by change
+            return -1, -1   # original start codon affected by change
 
-        if (abs(alt_len - ref_len) % 3) != 0:
-            return -1   # frameshift before start codon 
+        if (abs(alt_len - ref_len) % 3) != 0: # frameshift before start codon
+            if (ignore_frameshift):
+                return original_start + (alt_len - ref_len), (original_rf  + (alt_len - ref_len)) % 3
+            return -1, -1    
 
         # stop codon might be shifted by inframe indel
-        return original_start + (alt_len - ref_len)
+        return original_start + (alt_len - ref_len), original_rf
 
     # change happening after start codon
-    return original_start
+    return original_start, original_rf
 
 def get_affected_codons(cdna, allele_loc, allele_len, reading_frame, protein_start):
     alleles_protein = []        # residues directly affected (ignoring prossible frameshift), stored in a list for all three reading frames

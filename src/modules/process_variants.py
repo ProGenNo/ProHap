@@ -43,7 +43,7 @@ def check_start_gain(mutated_cdna, rna_location, alt_len):
 
     return -1
 
-def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annotations_db, chromosome, fasta_tag, accession_prefix, output_file, output_fasta):
+def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annotations_db, chromosome, fasta_tag, accession_prefix, force_rf, output_file, output_fasta):
     current_transcript = None
     result_data = []
     protein_sequence_list = []      # way to avoid duplicate sequences -> access sequences by hash, aggregate variant IDs that correspond
@@ -98,7 +98,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             protein_start = int((start_loc - reading_frame) / 3)
 
         # Alternatively, use the stop codon in the same way, assume start at codon 0
-        if (current_transcript['stop_codon'] is not None):
+        elif ((current_transcript['stop_codon'] is not None) and force_rf):
             stop_loc = get_rna_position_simple(transcript_id, current_transcript['stop_codon'].start, current_transcript['exons'])
             if (reverse_strand):
                 stop_loc = len(cdna_sequence) - stop_loc - 3  
@@ -157,7 +157,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
 
             # check if the start codon gets shifted
             if (current_transcript['start_codon'] is not None):
-                new_start_loc = check_start_change(start_loc, rna_location, ref_len, alt_len)
+                new_start_loc, reading_frame_variant = check_start_change(start_loc, reading_frame, rna_location, ref_len, alt_len, force_rf)
                 if (new_start_loc == -1):
                     protein_start_variant = 0
                     reading_frame_variant = -1

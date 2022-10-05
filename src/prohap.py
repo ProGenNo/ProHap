@@ -47,6 +47,9 @@ parser.add_argument("-transcripts", dest="transcript_list", required=True,
 parser.add_argument("-require_start", dest="require_start", required=False, type=int,
                     help="flag: require annotation of the start codon, set to 0 to disable; default: 1", default=1)
 
+parser.add_argument("-force_rf", dest="force_rf", required=False,
+                    help="Force the most likely reading frame when start codon is not annotated or lost due to mutation, set to 0 to disable; default: 1", default=1)
+
 parser.add_argument("-x_par1_to", dest="x_par1_to", required=False, type=int64,
                     help="end location of the 1st pseudoautosomal region on chromosome X; default: 2,781,479", default=2781479)
 
@@ -107,7 +110,7 @@ all_transcripts = []
 
 for transcript_id in transcript_list:
     feature = annotations_db[transcript_id]
-    if (args.require_start):
+    if (args.require_start):    # start codon annotation is required - check if present
         start_codons = [ sc for sc in annotations_db.children(feature, featuretype='start_codon', order_by='start') ]    # there should be only one, but just in case...
         if (len(start_codons) > 0):
                 all_transcripts.append(feature)
@@ -140,8 +143,8 @@ else:
 
         # read the CDS sequence file
         print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
-        all_cds = read_fasta(args.cdnas_fasta)
+        all_cds = read_fasta(args.cdnas_fasta, True)
 
         print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
         # align the variant coordinates to transcript, translate into the protein database
-        process_store_haplotypes(gene_haplo_df, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.haplo_id_prefix, args.accession_prefix, args.output_file, args.output_fasta)
+        process_store_haplotypes(gene_haplo_df, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.haplo_id_prefix, args.accession_prefix, args.force_rf, args.output_file, args.output_fasta)

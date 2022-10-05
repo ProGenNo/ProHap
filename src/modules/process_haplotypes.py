@@ -8,6 +8,7 @@ from modules.common import KeyWrapper
 
 result_columns = [  
     'TranscriptID',             # transcript stable ID from Ensembl
+    'chromosome',               
     'transcript_biotype',       # transcript biotype annotation from Ensembl
     'HaplotypeID',              # artificial haplotype identifier -> matching in FASTA and result table
     'VCF_IDs',                  # IDs of corresponding lines in the VCF file
@@ -18,6 +19,7 @@ result_columns = [
     'protein_changes',          # list of changes mapped to the protein sequence, excluding synonymous mutations
     'reading_frame',            # canonical reading frame for this transcript (-1 if unknown)
     'protein_prefix_length',    # length of the 5' UTR (in codons)    
+    'start_missing',            # boolean - is the canonical annotation of a start codon present?
     'start_lost',               # boolean - does one of the changes cause loss of start codon?
     'splice_sites_affected',    # list of splice sites affected (1 means splice site between exon 1 annd 2, '-' if none)
 #    'removed_DNA_changes', 
@@ -35,7 +37,7 @@ def empty_output(output_file, output_fasta):
     outfile = open(output_fasta, 'w')
     outfile.close()
 
-def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromosome, fasta_tag, id_prefix, accession_prefix, output_file, output_fasta):
+def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromosome, fasta_tag, id_prefix, accession_prefix, force_rf, output_file, output_fasta):
     current_transcript = None
     result_data = []
     protein_sequence_list = []      # way to avoid duplicate sequences -> access sequences by hash, aggregate haplotype IDs that correspond
@@ -49,6 +51,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
 
         # Check if we have the cDNA sequence in the fasta
         if transcript_id not in all_cdnas:
+            print('Trnascript', transcript_id, 'not in cDNA database, skipping!')
             continue
 
         # store the annotation features of this transcript
@@ -96,7 +99,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             protein_start = int((start_loc - reading_frame) / 3)
 
         # Alternatively, use the stop codon in the same way, assume start at codon 0
-        if (current_transcript['stop_codon'] is not None):
+        elif ((current_transcript['stop_codon'] is not None) and force_rf):
             stop_loc = get_rna_position_simple(transcript_id, current_transcript['stop_codon'].start, current_transcript['exons'])
             if (reverse_strand):
                 stop_loc = len(cdna_sequence) - stop_loc - 3  
@@ -157,11 +160,10 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
 
             # check if the start codon gets shifted
             if (current_transcript['start_codon'] is not None) and (reading_frame > -1):
-                start_loc = check_start_change(start_loc, rna_location, ref_len, alt_len)
+                start_loc, reading_frame = check_start_change(start_loc, reading_frame, rna_location, ref_len, alt_len, force_rf)
                 if (start_loc == -1):
                     start_loc = 0
                     protein_start = 0
-                    reading_frame = -1
                     start_lost = True
                 else:
                     protein_start = int((start_loc - reading_frame) / 3)
@@ -236,7 +238,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 is_synonymous.append(ref_allele_protein == alt_allele_protein)
 
                 protein_change = str(loc_ref) + ':' + ref_allele_protein + '>' + str(loc_alt) + ':' + alt_allele_protein
-                if (frameshifts[i]):
+                if (frameshifts[ch_idx]):
                     protein_change += "(+fs)"
                 elif (has_frameshift):
                     protein_change += "(fs)"
@@ -247,7 +249,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
                 protein_changes.append("|".join(rf_changes))
             all_protein_changes.append("|".join(rf_changes))
 
-            has_frameshift = has_frameshift or frameshifts[i]
+            has_frameshift = has_frameshift or frameshifts[ch_idx]
             sequence_length_diff += alt_len - ref_len
 
         cDNA_changes_str = ';'.join(cDNA_changes)
@@ -266,6 +268,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
         # store result
         result_data.append([
             row['TranscriptID'],
+            chromosome,
             current_transcript['biotype'],
             haplotypeID,
             ';'.join(all_vcf_IDs),      # could be sorted in reverse order if on reverse strand
@@ -276,6 +279,7 @@ def process_store_haplotypes(genes_haplo_df, all_cdnas, annotations_db, chromoso
             protein_changes_str,
             reading_frame,
             protein_start,
+            current_transcript['start_codon'] is not None,
             start_lost,
             spl_junctions_affected_str,
 #            row['RemovedChanges'],

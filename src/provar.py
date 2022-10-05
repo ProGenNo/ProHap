@@ -39,6 +39,9 @@ parser.add_argument("-transcripts", dest="transcript_list", required=True,
 parser.add_argument("-require_start", dest="require_start", required=False, type=int,
                     help="flag: require annotation of the start codon, set to 0 to disable; default: 1", default=1)
 
+parser.add_argument("-force_rf", dest="force_rf", required=False,
+                    help="Force the most likely reading frame when start codon is not annotated or lost due to mutation, set to 0 to disable; default: 1", default=1)
+
 parser.add_argument("-tag", dest="fasta_tag", required=False,
                     help="tag for FASTa file entries", default='generic_var')
 
@@ -97,14 +100,14 @@ if (len(vcf_columns) == 0):
 else:
         # read the CDS sequence file
         print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
-        all_cds = read_fasta(args.cdnas_fasta)
+        all_cds = read_fasta(args.cdnas_fasta, True)
 
         log_file = open(args.log_file, 'a')
         log_file.write('------------' + '[' + datetime.now().strftime('%X %x') + '] Chr ' + args.chromosome + ':' + '------------\n')
 
         print (('Chr ' + args.chromosome + ':'), 'Creating variant database.')
         # align the variant coordinates to transcript, translate into the protein database
-        process_store_variants(all_transcripts, args.tmp_dir, log_file, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.accession_prefix, args.output_file, args.output_fasta)
+        process_store_variants(all_transcripts, args.tmp_dir, log_file, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.accession_prefix, args.force_rf, args.output_file, args.output_fasta)
 
         log_file.close()
 
