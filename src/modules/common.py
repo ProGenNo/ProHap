@@ -3,7 +3,7 @@ import pandas as pd
 # returns an object containing all the sequences + metadata in the fasta file,  
 # accessed by the stable element ID or accession in case of artificial identifier
 # all_elements[elementID] = {'tag': tag, 'accession': accession, 'description': description, 'sequence': sequence}
-def read_fasta(filename):
+def read_fasta(filename, truncate_accession = False):
 
     fasta_file = open(filename, 'r')
 
@@ -46,7 +46,10 @@ def read_fasta(filename):
             if " " in metadata:
                 description = metadata.split(" ", 1)[1]
 
-        elementID = accession.split('.')[0]
+        if (truncate_accession):
+            elementID = accession.split('.')[0]
+        else:
+            elementID = accession
 
         all_elements[elementID] = {'tag': tag, 'accession': accession, 'description': description.replace('\n', ''), 'sequence': sequence}
 

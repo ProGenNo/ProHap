@@ -9,13 +9,14 @@ WORKING_DIR_NAME_VAR = config['working_dir_name_var']
 rule all:
     input:
         final_fasta=config['final_fasta_file'],
-        var_table=config['var_table_file'],
-        haplo_table=config['haplo_table_file']
-
+        var_table=expand('{proxy}', proxy=[config['var_table_file']] if config["include_var"] else []),
+        haplo_table=expand('{proxy}', proxy=[config['haplo_table_file']] if config["include_haplo"] else []),
+        var_fasta=expand('{proxy}', proxy=[config['var_fasta_file']] if config["include_var"] else []),
+        haplo_fasta=expand('{proxy}', proxy=[config['haplo_fasta_file']] if config["include_haplo"] else []),
 
 rule download_vcf:
     output:
-        "data/1000genomes_GRCh38_30x_vcf/" + config['1kGP_vcf_file_name_30']
+        config['1kGP_vcf_file_name_30']
     shell:
         "wget " + config['1000Gs30_URL'] + config['1kGP_vcf_file_name_30'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
 
@@ -99,7 +100,7 @@ rule parse_gtf:
 rule compute_variants:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts.txt",
+        tr="data/chr{chr}_transcripts_reference.txt",
         vcf=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['file_prefix'] + f"_chr{wildcards.chr}.vcf",
         fasta="data/fasta/total_cdnas.fa",
     output:
@@ -109,13 +110,14 @@ rule compute_variants:
         acc_prefix=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['fasta_accession_prefix'],
         min_af=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['min_af'],
         log_file="log/{vcf}_chr{chr}.log",
+        #log_file="log/221018_provar.log",
         tmp_dir="tmp/transcript_{vcf}"
     conda: "envs/prohap.yaml"
     shell:
         "mkdir -p {params.tmp_dir}; "
         "python3 src/provar.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
-        "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af {min_af} "
+        "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af {params.min_af} -require_start 1 "
         "-log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.tsv} -output_fasta {output.fasta} ;"
 
 rule merge_var_tables_vcf:
@@ -154,7 +156,7 @@ rule merge_var_fasta:
     input:
         expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa", vcf=VARIANT_VCF_FILES.keys())
     output:
-        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_all.fa")
+        config['var_fasta_file']
     params:
         input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa", vcf=VARIANT_VCF_FILES.keys()))
     shell:
@@ -162,9 +164,9 @@ rule merge_var_fasta:
 
 rule var_fasta_remove_stop:
     input:
-        "results/" + WORKING_DIR_NAME_VAR + "/variants_all.fa"
+        config['var_fasta_file']
     output:
-        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_all_clean.fa")
+        temp("results/variants_all_clean.fa")
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
@@ -172,8 +174,8 @@ rule var_fasta_remove_stop:
 rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts.txt",
-        vcf="data/1000genomes_GRCh38_30x_vcf/" + config['1kGP_vcf_file_name_30'],
+        tr="data/chr{chr}_transcripts_reference.txt",
+        vcf=config['1kGP_vcf_file_name_30'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
     output:
@@ -188,7 +190,7 @@ rule compute_haplotypes:
         "mkdir -p {params.tmp_dir}; "
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
-        "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} "
+        "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr}  -require_start 1 "
         "-threads 3 -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_haplo_tables:
@@ -206,7 +208,7 @@ rule merge_fasta:
     input:
         expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa", chr=CHROMOSOMES)
     output:
-        temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.fa")
+        config['haplo_fasta_file']
     params:
         input_file_list = ' '.join(expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa", chr=CHROMOSOMES))
     shell:
@@ -214,9 +216,9 @@ rule merge_fasta:
 
 rule haplo_fasta_remove_stop:
     input:
-        "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.fa"
+        config['haplo_fasta_file']
     output:
-        temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all_clean.fa")
+        temp("results/haplo_all_clean.fa")
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
@@ -225,10 +227,10 @@ rule mix_with_reference_proteome:
 	input:
 		in1="data/fasta/ensembl_reference_proteinDB_clean.fa",
                 in2="data/fasta/crap_tagged.fa",
-		in3=expand('{proxy}', proxy=["results/" + WORKING_DIR_NAME_VAR + "/variants_all_clean.fa"] if config["include_var"] else []),
-		in4=expand('{proxy}', proxy=["results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all_clean.fa"] if config["include_haplo"] else []),
+		in3=expand('{proxy}', proxy=["results/variants_all_clean.fa"] if config["include_var"] else []),
+		in4=expand('{proxy}', proxy=["results/haplo_all_clean.fa"] if config["include_haplo"] else []),
 	output:
-		temp("results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_clean.fa")		
+		temp("results/ref_contam_vcf_haplo_all_clean.fa")		
 	run:
 		shell("cat {input.in1} {input.in2} > {output}; ")
 		if config["include_var"]:
@@ -238,9 +240,9 @@ rule mix_with_reference_proteome:
 
 rule merge_duplicate_seq:
     input:
-        "results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_clean.fa"
+        "results/ref_contam_vcf_haplo_all_clean.fa"
     output:
-        temp("results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa")
+        temp("results/ref_contam_vcf_haplo_all_nodupl.fa")
         #config['final_fasta_file']
     conda: "envs/prohap.yaml"
     shell:
@@ -248,11 +250,10 @@ rule merge_duplicate_seq:
 
 rule remove_UTR_seq:
     input:
-        "results/" + WORKING_DIR_NAME_VAR + "/ref_contam_vcf_haplo_all_nodupl.fa"
+        "results/ref_contam_vcf_haplo_all_nodupl.fa"
     output:
         config['final_fasta_file']
     conda: "envs/prohap.yaml"
     shell:
         "python src/remove_UTR_seq.py -i {input} -o {output}"
-
 

@@ -66,6 +66,8 @@ for i,protein in enumerate(result_proteins):
 		tag += 'cont'
 	elif ('generic_ensref' in protein['tags']):
 		tag += 'ensref'
+	elif ('generic_ensvar' in protein['tags']):
+		tag += 'ensvar'
 	elif ('generic_var' in protein['tags']):
 		tag += 'var'
 	else:
