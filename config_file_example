@@ -1,0 +1,28 @@
+1000Gs_URL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/
+1kGP_vcf_file_name: "1kGP_high_coverage_Illumina.chr{chr}.filtered.SNV_INDEL_SV_phased_panel.vcf"
+
+working_dir_name_haplo: <directory where haplotypes will be processed>
+working_dir_name_var: <directory where all variants will be processed>
+
+# The variant_vcf contains a dictionary of objects describing different data sources of variants not to be included in the haplotype computation. Give an empty object if not included.
+# Dictionary is structured as follows:
+# <dataset_name> : { file_prefix: <filename without subsequent '_chr{x}.vcf'>, fasta_accession_prefix: <accession prefix for these variants in the resulting fasta file> }
+# Example of usage:
+# variant_vcf:
+#   EnsemblVar: { file_prefix: "data/ensembl_vcf/homo_sapiens_incl_consequences-", fasta_accession_prefix: "ensvar_" }
+#   RareVar: { file_prefix: "data/inhouse_vcf/inhouse_variation", fasta_accession_prefix: "rarevar_" }
+
+variant_vcf: {}
+
+include_haplo: <boolean value - True or False - whether or not to compute haplotypes>
+include_var: <boolean value - True or False - whether or not to compute individual variants>
+
+EnsemblFTP: ftp.ensembl.org/pub/release-106/
+annotationFilename: Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff
+
+final_fasta_file: <resulting fasta filename>
+haplo_fasta_file: <fasta file with unmodified haplotype sequences>
+var_fasta_file: <fasta file with unmodified variant sequences>
+
+haplo_table_file: <supplementary table for haplotypes>
+var_table_file: <supplementary table for variants>

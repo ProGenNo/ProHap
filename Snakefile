@@ -16,9 +16,9 @@ rule all:
 
 rule download_vcf:
     output:
-        config['1kGP_vcf_file_name_30']
+        config['1kGP_vcf_file_name']
     shell:
-        "wget " + config['1000Gs30_URL'] + config['1kGP_vcf_file_name_30'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
+        "wget " + config['1000Gs_URL'] + config['1kGP_vcf_file_name'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
 
 rule download_gtf:
     output:
@@ -175,7 +175,7 @@ rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr="data/chr{chr}_transcripts_reference.txt",
-        vcf=config['1kGP_vcf_file_name_30'],
+        vcf=config['1kGP_vcf_file_name'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
     output:
