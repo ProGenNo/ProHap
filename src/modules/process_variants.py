@@ -16,7 +16,8 @@ result_columns = [
     'protein_change',
     'reading_frame', 
     'protein_prefix_length', 
-    'start_lost',
+    'start_missing',            # boolean - is the canonical annotation of a start codon present?
+    'start_lost',               # boolean - does one of the changes cause loss of start codon?
     'splice_site_affected', 
 ]
 
@@ -147,7 +148,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             # check if what we expected to find is in fact in the cDNA
             if (str(ref_allele) != mutated_cdna[rna_location:rna_location+ref_len]):
                 print('Ref allele not matching the cDNA sequence, skipping!')
-                log_file.write('[' + datetime.now().strftime('%X %x') + '] Ref allele not matching the cDNA sequence: ' + transcript_id + ' ID:' + vcf_row['ID'] + ' expected: ' + cDNA_change + ' found in cDNA: ' +  str(mutated_cdna[rna_location-10:rna_location]) + ' ' + str(mutated_cdna[rna_location:rna_location+ref_len]) + ' ' + str(mutated_cdna[rna_location+ref_len:rna_location+ref_len+10]) + '\n')
+                log_file.write('[' + datetime.now().strftime('%X %x') + '] Ref allele not matching the cDNA sequence: ' + transcript_id + ' ID:' + vcf_row['ID'] + ' expected: ' + ref_allele + ' found in cDNA: ' +  str(mutated_cdna[rna_location-10:rna_location]) + ' ' + str(mutated_cdna[rna_location:rna_location+ref_len]) + ' ' + str(mutated_cdna[rna_location+ref_len:rna_location+ref_len+10]) + '\n')
                 continue
             
             # apply the change to the cDNA
@@ -201,7 +202,8 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                 cDNA_change,
                 protein_change,
                 reading_frame_variant,
-                protein_start_variant,
+                protein_start_variant,                
+                current_transcript['start_codon'] is not None,
                 start_lost,
                 spl_junction_affected
             ])
@@ -251,13 +253,3 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
         output_fasta_file.write(str(seq['sequence']) + '\n')
 
     output_fasta_file.close()
-
-
-
-
-            
-
-            
-
-
-

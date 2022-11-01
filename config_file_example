@@ -6,16 +6,20 @@ working_dir_name_var: <directory where all variants will be processed>
 
 # The variant_vcf contains a dictionary of objects describing different data sources of variants not to be included in the haplotype computation. Give an empty object if not included.
 # Dictionary is structured as follows:
-# <dataset_name> : { file_prefix: <filename without subsequent '_chr{x}.vcf'>, fasta_accession_prefix: <accession prefix for these variants in the resulting fasta file> }
+# <dataset_name> : { file: <VCF filename>, fasta_accession_prefix: <accession prefix for these variants in the resulting fasta file>, min_af: <minimal required minor allele frequency> }
 # Example of usage:
 # variant_vcf:
-#   EnsemblVar: { file_prefix: "data/ensembl_vcf/homo_sapiens_incl_consequences-", fasta_accession_prefix: "ensvar_" }
-#   RareVar: { file_prefix: "data/inhouse_vcf/inhouse_variation", fasta_accession_prefix: "rarevar_" }
+#   EnsemblVar: { file: "data/ensembl_vcf/homo_sapiens_incl_consequences.vcf", fasta_accession_prefix: "ensvar_", min_af: 0.01 }
+#   RareVar: { file: "data/inhouse_vcf/inhouse_variation.csv", fasta_accession_prefix: "rarevar_", min_af: 0 }
 
 variant_vcf: {}
 
 include_haplo: <boolean value - True or False - whether or not to compute haplotypes>
 include_var: <boolean value - True or False - whether or not to compute individual variants>
+
+# parameters
+var_require_start: <Require annotation of canonical start codon? 0 or 1>
+haplo_require_start: <Require annotation of canonical start codon? 0 or 1>
 
 EnsemblFTP: ftp.ensembl.org/pub/release-106/
 annotationFilename: Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff

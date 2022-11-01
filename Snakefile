@@ -97,27 +97,41 @@ rule parse_gtf:
     shell:
         "python3 src/parse_gtf.py -i {input} -o {output.db} -noncoding 0 -transcript_list {output.tr}"
 
+# ------------------------------------ ProVar rules ------------------------------------
+
+rule split_variant_vcf:
+    input:
+        lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['file']
+    output:
+        temp("tmp/variants_{vcf}/ready")
+    params:
+        output_prefix="tmp/variants_{vcf}/variants_"
+    shell:
+        "python src/fragment_variant_vcf.py -i {input} -o {params.output_prefix} ; touch {output}"
+
 rule compute_variants:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts_reference.txt",
-        vcf=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['file_prefix'] + f"_chr{wildcards.chr}.vcf",
+        tr="data/chr{chr}_transcripts.txt",
         fasta="data/fasta/total_cdnas.fa",
+        flag="tmp/variants_{vcf}/ready",
     output:
         tsv="results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.tsv",
         fasta="results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.fa"
     params:
+        input_vcf="tmp/variants_{vcf}/variants_chr{chr}.vcf",
         acc_prefix=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['fasta_accession_prefix'],
         min_af=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['min_af'],
         log_file="log/{vcf}_chr{chr}.log",
         #log_file="log/221018_provar.log",
-        tmp_dir="tmp/transcript_{vcf}"
+        tmp_dir="tmp/transcript_{vcf}",
+        require_start=config['var_require_start']
     conda: "envs/prohap.yaml"
     shell:
         "mkdir -p {params.tmp_dir}; "
         "python3 src/provar.py "
-        "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
-        "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af {params.min_af} -require_start 1 "
+        "-i {params.input_vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
+        "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af {params.min_af} -require_start {params.require_start} "
         "-log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.tsv} -output_fasta {output.fasta} ;"
 
 rule merge_var_tables_vcf:
@@ -171,10 +185,12 @@ rule var_fasta_remove_stop:
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
+# ------------------------------------ ProHap rules ------------------------------------
+
 rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts_reference.txt",
+        tr="data/chr{chr}_transcripts.txt",
         vcf=config['1kGP_vcf_file_name'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
@@ -183,14 +199,15 @@ rule compute_haplotypes:
         fasta="results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa"
     params:
         log_file="log/chr{chr}.log",
-        tmp_dir="tmp/transcript_vcf_haplo"
+        tmp_dir="tmp/transcript_vcf_haplo",
+        require_start=config['haplo_require_start']
     threads: 3
     conda: "envs/prohap.yaml"
     shell:
         "mkdir -p {params.tmp_dir}; "
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
-        "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr}  -require_start 1 "
+        "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr}  -require_start {params.require_start} "
         "-threads 3 -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_haplo_tables:
