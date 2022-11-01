@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser(description="Splits a VCF into separate files f
 parser.add_argument("-i", dest="input_file", required=True,
                     help="input CSV file", metavar="FILE")
 
-parser.add_argument("-h", dest="header_size", required=False, type=int,
+parser.add_argument("-hs", dest="header_size", required=False, type=int,
                     help="number of lines of the VCF header", default=1)
 
 parser.add_argument("-sep", dest="infile_sep", required=False, type=str,
