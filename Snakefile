@@ -105,7 +105,7 @@ rule split_variant_vcf:
     output:
         temp("tmp/variants_{vcf}/ready")
     params:
-        output_prefix="tmp/variants_{vcf}/variants_"
+        output_prefix="tmp/variants_{vcf}/variants"
     shell:
         "python src/fragment_variant_vcf.py -i {input} -o {params.output_prefix} ; touch {output}"
 
