@@ -70,6 +70,8 @@ for i,protein in enumerate(result_proteins):
 		tag += 'ensvar'
 	elif ('generic_var' in protein['tags']):
 		tag += 'var'
+	elif ('generic_manual' in protein['tags']):		# in case some sequences were added to the fasta manually
+		tag += 'manual'
 	else:
 		tag += 'enshap'
 
