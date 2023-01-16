@@ -276,4 +276,4 @@ rule remove_UTR_seq:
     conda: "envs/prohap.yaml"
     shell:
         "python src/remove_UTR_seq.py -i {input} -o {output}"
-''''
+'''
