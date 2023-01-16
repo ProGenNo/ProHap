@@ -201,14 +201,14 @@ rule compute_haplotypes:
         log_file="log/chr{chr}.log",
         tmp_dir="tmp/transcript_vcf_haplo",
         require_start=config['haplo_require_start']
-    threads: 3
+    threads: 10
     conda: "envs/prohap.yaml"
     shell:
         "mkdir -p {params.tmp_dir}; "
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
         "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr}  -require_start {params.require_start} "
-        "-threads 3 -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
+        "-threads 10 -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_haplo_tables:
     input:
