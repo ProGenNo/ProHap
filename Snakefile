@@ -259,11 +259,14 @@ rule merge_duplicate_seq:
     input:
         "results/ref_contam_vcf_haplo_all_clean.fa"
     output:
-        temp("results/ref_contam_vcf_haplo_all_nodupl.fa")
-        #config['final_fasta_file']
+        #temp("results/ref_contam_vcf_haplo_all_nodupl.fa")
+        config['final_fasta_file']
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/merge_duplicate_seq.py -i {input} -o {output} "
+
+'''
+UTRs are now removed internally in ProHap
 
 rule remove_UTR_seq:
     input:
@@ -273,4 +276,4 @@ rule remove_UTR_seq:
     conda: "envs/prohap.yaml"
     shell:
         "python src/remove_UTR_seq.py -i {input} -o {output}"
-
+''''

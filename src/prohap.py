@@ -13,7 +13,7 @@ import pandas as pd
 from modules.vcf_reader import parse_vcf
 from modules.common import read_fasta
 from modules.get_haplotypes import get_gene_haplotypes
-from modules.process_haplotypes import process_store_haplotypes, empty_output
+from modules.process_haplotypes import process_haplotypes, empty_output
 
 parser = argparse.ArgumentParser(
         description='Creates a database of CDS + protein haplotypes, and a fasta file of protein haplotype sequences.')
@@ -138,8 +138,8 @@ else:
         for transcript_id in transcript_list:
                 os.remove(args.tmp_dir + '/' + transcript_id + '.tsv')
 
-        # filter the haplotypes by FoO
-        gene_haplo_df = gene_haplo_df[gene_haplo_df['Frequency'] >= args.min_foo]
+        # filter the haplotypes by FoO -> CHANGE: filter only after processing, some haplotypes can be merged
+        #gene_haplo_df = gene_haplo_df[gene_haplo_df['Frequency'] >= args.min_foo]
 
         # read the CDS sequence file
         print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
@@ -147,4 +147,24 @@ else:
 
         print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
         # align the variant coordinates to transcript, translate into the protein database
-        process_store_haplotypes(gene_haplo_df, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.haplo_id_prefix, args.accession_prefix, args.force_rf, args.output_file, args.output_fasta)
+        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, True)
+        result_data = haplo_results[0]
+
+        # store the result metadata        
+        print ('Storing the result metadata:', args.output_file)
+        result_data[result_data['frequency'] >= args.min_foo].to_csv(args.output_file, sep='\t', header=True, index=False)
+    
+        # write the protein sequences into the fasta file
+        output_fasta_file = open(args.output_fasta, 'w')
+        print ('Writing FASTA file:', args.output_fasta)
+
+        for i,seq in enumerate(haplo_results[1]):
+                accession = args.accession_prefix + '_' + hex(i)[2:]
+                description = 'matching_proteins:' + ';'.join(seq['haplotypes']) + ' start:' + str(seq['start']) + ' reading_frame:' + ';'.join(seq['rfs'])
+
+                output_fasta_file.write('>' + args.fasta_tag + '|' + accession + '|' + description + '\n')
+                output_fasta_file.write(str(seq['sequence']) + '\n')
+
+        output_fasta_file.close()
+
+        print ("Done.")
