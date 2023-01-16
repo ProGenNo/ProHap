@@ -147,7 +147,7 @@ else:
 
         print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
         # align the variant coordinates to transcript, translate into the protein database
-        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, True)
+        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, True)
         result_data = haplo_results[0]
 
         # store the result metadata        

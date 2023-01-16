@@ -112,7 +112,7 @@ rule split_variant_vcf:
 rule compute_variants:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts.txt",
+        tr="data/chr{chr}_transcripts_reference.txt",
         fasta="data/fasta/total_cdnas.fa",
         flag="tmp/variants_{vcf}/ready",
     output:
@@ -190,7 +190,7 @@ rule var_fasta_remove_stop:
 rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts.txt",
+        tr="data/chr{chr}_transcripts_reference.txt",
         vcf=config['1kGP_vcf_file_name_30'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
