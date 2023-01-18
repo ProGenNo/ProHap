@@ -224,7 +224,7 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
         return (row['Count'] / total_count)
 
     result_df['Frequency'] = result_df.apply(count_freq, axis=1)
-    result_df.sort_values(by=['TranscriptID', 'Frequency'], ascending=[True, False], inplace=True)
+    #result_df.sort_values(by=['TranscriptID', 'Frequency'], ascending=[True, False], inplace=True)
 
     # write info about the removed samples into the log file
     log_file_handle = open(log_file, 'w')

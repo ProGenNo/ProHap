@@ -288,6 +288,10 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                             alt_len = len(change.split(':')[2])
                             variant_filter.append((loc >= protein_start) and (loc + alt_len <= first_stop))
 
+                        # skip this haplotype if no variants are left
+                        if not any(variant_filter):
+                            continue
+
                         all_vcf_IDs = [ vcf_id for idx,vcf_id in enumerate(all_vcf_IDs) if variant_filter[idx] ]
                         all_changes = [ ch for idx,ch in enumerate(all_changes) if variant_filter[idx] ]
                         all_AFs = [ af for idx,af in enumerate(all_AFs) if variant_filter[idx] ]
@@ -379,9 +383,9 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 
         return [transcript_result_data, protein_sequence_list]
 
+    #aggregated_results = list(map(process_transcript_haplotypes, all_transcripts))
     with Pool(threads) as p:
         aggregated_results = p.map(process_transcript_haplotypes, all_transcripts)
-    #aggregated_results = list(map(process_transcript_haplotypes, all_transcripts))
 
         result_data = []
         protein_sequence_list = []
