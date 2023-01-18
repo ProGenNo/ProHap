@@ -24,6 +24,7 @@ include_var: <boolean value - True or False - whether or not to compute individu
 var_require_start: <Require annotation of canonical start codon? 0 or 1>
 haplo_require_start: <Require annotation of canonical start codon? 0 or 1>
 haplo_ignore_UTR: <Ignore variation in UTRs? 0 or 1>
+max_cores: <Maximum number of cores used per chromosome>
 
 # output files
 final_fasta_file: <resulting fasta filename>
