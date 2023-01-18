@@ -47,6 +47,9 @@ parser.add_argument("-transcripts", dest="transcript_list", required=True,
 parser.add_argument("-require_start", dest="require_start", required=False, type=int,
                     help="flag: require annotation of the start codon, set to 0 to disable; default: 1", default=1)
 
+parser.add_argument("-ignore_UTR", dest="ignore_UTR", required=False, type=int,
+                    help="flag: ignore variation in the UTR sequences, do not add UTR translation to proteins; default: 1", default=1)
+
 parser.add_argument("-force_rf", dest="force_rf", required=False,
                     help="Force the most likely reading frame when start codon is not annotated or lost due to mutation, set to 0 to disable; default: 1", default=1)
 
@@ -145,18 +148,18 @@ else:
         print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
         all_cds = read_fasta(args.cdnas_fasta, True)
 
-        print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
         # align the variant coordinates to transcript, translate into the protein database
-        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, True)
+        print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
+        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, args.ignore_UTR)
         result_data = haplo_results[0]
 
         # store the result metadata        
-        print ('Storing the result metadata:', args.output_file)
+        print (('Chr ' + args.chromosome + ':'), 'Storing the result metadata:', args.output_file)
         result_data[result_data['frequency'] >= args.min_foo].to_csv(args.output_file, sep='\t', header=True, index=False)
     
         # write the protein sequences into the fasta file
         output_fasta_file = open(args.output_fasta, 'w')
-        print ('Writing FASTA file:', args.output_fasta)
+        print (('Chr ' + args.chromosome + ':'), 'Writing FASTA file:', args.output_fasta)
 
         for i,seq in enumerate(haplo_results[1]):
                 accession = args.accession_prefix + '_' + hex(i)[2:]
@@ -167,4 +170,4 @@ else:
 
         output_fasta_file.close()
 
-        print ("Done.")
+        print (('Chr ' + args.chromosome + ':'), "Done.")
