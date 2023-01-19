@@ -386,6 +386,9 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
             seq['haplotypes'] = [ hap for hap_idx,hap in enumerate(seq['haplotypes']) if haplotypes_filter[hap_idx] ]
             seq['rfs'] = [ rf for hap_idx,rf in enumerate(seq['rfs']) if haplotypes_filter[hap_idx] ]
 
+        # remove sequences where all matching haplotypes were filtered out
+        local_result_sequences = [ seq for seq in local_result_sequences if len(seq['haplotypes']) > 0 ]
+
         return [result_table, local_result_sequences]
 
     #aggregated_results = list(map(process_transcript_haplotypes, all_transcripts))
