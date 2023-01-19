@@ -150,18 +150,19 @@ else:
 
         # align the variant coordinates to transcript, translate into the protein database
         print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
-        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, args.ignore_UTR)
+        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, args.min_foo, args.ignore_UTR)
         result_data = haplo_results[0]
+        result_sequences = haplo_results[1]
 
         # store the result metadata        
         print (('Chr ' + args.chromosome + ':'), 'Storing the result metadata:', args.output_file)
-        result_data[result_data['frequency'] >= args.min_foo].to_csv(args.output_file, sep='\t', header=True, index=False)
+        result_data.to_csv(args.output_file, sep='\t', header=True, index=False)
     
         # write the protein sequences into the fasta file
         output_fasta_file = open(args.output_fasta, 'w')
         print (('Chr ' + args.chromosome + ':'), 'Writing FASTA file:', args.output_fasta)
 
-        for i,seq in enumerate(haplo_results[1]):
+        for i,seq in enumerate(result_sequences):
                 accession = args.accession_prefix + '_' + hex(i)[2:]
                 description = 'matching_proteins:' + ';'.join(seq['haplotypes']) + ' start:' + str(seq['start']) + ' reading_frame:' + ';'.join(seq['rfs'])
 
