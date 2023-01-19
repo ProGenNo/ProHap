@@ -21,10 +21,10 @@ include_haplo: <boolean value - True or False - whether or not to compute haplot
 include_var: <boolean value - True or False - whether or not to compute individual variants>
 
 # parameters
-var_require_start: <Require annotation of canonical start codon? 0 or 1>
-haplo_require_start: <Require annotation of canonical start codon? 0 or 1>
-haplo_ignore_UTR: <Ignore variation in UTRs? 0 or 1>
-max_cores: <Maximum number of cores used per chromosome>
+var_require_start: 1    # Require annotation of canonical start codon for ProVar? 0 or 1 - default: 1
+haplo_require_start: 1  # Require annotation of canonical start codon for ProHap? 0 or 1 - default: 1
+haplo_ignore_UTR: 1     # Ignore variation in UTRs in ProHap? 0 or 1 - default: 1
+max_cores: 3            # Maximum number of cores used per chromosome, default: 3
 
 # output files
 final_fasta_file: <resulting fasta filename>
