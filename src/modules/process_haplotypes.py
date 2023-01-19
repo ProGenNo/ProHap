@@ -397,7 +397,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
 
         for result_point in aggregated_results:
             if (len(result_point) == 2):
-                result_data = result_data + list(result_point[0].values())
+                result_data = result_data + list(result_point[0])
                 result_sequences = result_sequences + result_point[1]
 
         result_df = pd.DataFrame(columns=result_columns, data=result_data)
