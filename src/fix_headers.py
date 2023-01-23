@@ -28,7 +28,7 @@ print("Formatting protein headers.")
 
 metadata = args.input_file.readline()   # line starting with '>'
 sequence = ""                           # all the other lines are considered protein sequences (considering also a multi-line format)
-variant_count = 0			# counter used to create unique identifiers for variants
+variant_count = 0		        # counter used to create unique identifiers for variants
 
 while metadata != "":
 
@@ -42,7 +42,7 @@ while metadata != "":
     description = ''
 
     if "|" in metadata:					# the header is at least partially formated
-        metadata_parsed = metadata[1:].split('|')
+        metadata_parsed = metadata[1:-1].split('|')
         if 'generic' in metadata_parsed[0]:
             tag = metadata_parsed[0]
         else:
@@ -62,15 +62,15 @@ while metadata != "":
         tag = 'generic' + args.tag					# add the keyword "generic" and a custom tag (empty if not provided)
         if 'var' in metadata:
             accession = args.tag[1:] + '_' + hex(variant_count)[2:]
-            description = metadata[1:]
+            description = metadata[1:-1]
             variant_count += 1
         else:
-            accession = metadata[1:].split(" ")[0]
+            accession = metadata[1:-1].split()[0]
             if " " in metadata:
-                description = metadata.split(" ", 1)[1]
+                description = metadata[:-1].split(" ", 1)[1]
 
     if 'matching_proteins:' not in description:
-        description = description[:-1] + ' matching_proteins:' + accession + '\n'
+        description = description + ' matching_proteins:' + accession + '\n'
 
     if len(description) > 0:
         new_header = '>' + '|'.join([tag, accession, description])
