@@ -68,7 +68,7 @@ print (('Chr ' + args.chromosome + ':'), 'Reading', args.annotation_db)
 # Load the annotations database
 annotations_db = gffutils.FeatureDB(args.annotation_db)
 
-print (('Chr ' + args.chromosome + ':'), 'Reading', args.transcript_list.name)
+print (('Chr ' + args.chromosome + ':'), 'Reading', args.transcript_list)
 # read the list of transcript IDs
 transcript_df = pd.read_csv(args.transcripts)
 transcript_df['chromosome'] = transcript_df['chromosome'].apply(lambda x: str(x))
