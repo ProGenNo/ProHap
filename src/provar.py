@@ -1,6 +1,7 @@
 import gffutils
 import argparse
 import os
+import pandas as pd
 from datetime import datetime
 
 from modules.vcf_reader import parse_vcf
@@ -33,8 +34,7 @@ parser.add_argument("-chr", dest="chromosome", required=True,
                     help="chromosome being processed (e.g., 1, 12 or X)")
 
 parser.add_argument("-transcripts", dest="transcript_list", required=True,
-                    help="list of transcript IDs, provided in a file", metavar="FILE",
-                    type=lambda x: is_valid_file(parser, x))
+                    help="list of transcript IDs, provided in a CSV file", metavar="FILE")
 
 parser.add_argument("-require_start", dest="require_start", required=False, type=int,
                     help="flag: require annotation of the start codon, set to 0 to disable; default: 1", default=1)
@@ -70,7 +70,9 @@ annotations_db = gffutils.FeatureDB(args.annotation_db)
 
 print (('Chr ' + args.chromosome + ':'), 'Reading', args.transcript_list.name)
 # read the list of transcript IDs
-transcript_list = [ line[:-1].split('.', 1)[0] for line in args.transcript_list.readlines() ]
+transcript_df = pd.read_csv(args.transcripts)
+transcript_df['chromosome'] = transcript_df['chromosome'].apply(lambda x: str(x))
+transcript_list = transcript_df[transcript_df['chromosome'] == args.chromosome]['transcriptID'].tolist()
 
 print (('Chr ' + args.chromosome + ':'), 'Assigning annotations to transcripts.')
 

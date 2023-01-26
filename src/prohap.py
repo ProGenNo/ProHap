@@ -41,8 +41,7 @@ parser.add_argument("-cdna", dest="cdnas_fasta", required=True,
                     help="input cDNA fasta file")
 
 parser.add_argument("-transcripts", dest="transcript_list", required=True,
-                    help="list of transcript IDs, provided in a file", metavar="FILE",
-                    type=lambda x: is_valid_file(parser, x))
+                    help="list of transcript IDs, provided in a CSV file", metavar="FILE")
 
 parser.add_argument("-require_start", dest="require_start", required=False, type=int,
                     help="flag: require annotation of the start codon, set to 0 to disable; default: 1", default=1)
@@ -99,7 +98,9 @@ annotations_db = gffutils.FeatureDB(args.annotation_db)
 
 print (('Chr ' + args.chromosome + ':'), 'Reading', args.transcript_list.name)
 # read the list of transcript IDs
-transcript_list = [ line[:-1].split('.', 1)[0] for line in args.transcript_list.readlines() ]
+transcript_df = pd.read_csv(args.transcripts)
+transcript_df['chromosome'] = transcript_df['chromosome'].apply(lambda x: str(x))
+transcript_list = transcript_df[transcript_df['chromosome'] == args.chromosome]['transcriptID'].tolist()
 
 print (('Chr ' + args.chromosome + ':'), 'Reading', args.samples_filename)
 # get sample IDs of males from the metadata file
