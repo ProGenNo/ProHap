@@ -38,13 +38,13 @@ while metadata != "":
         line = args.input_file.readline()
 
     tag, accession, description = metadata.split('|')
+    
+    if 'start:' in description:
+        start_pos = int(description.split('start:', 1)[1].split(' ', 1)[0])
+    else:
+        start_pos = 0
 
-    if "*" in sequence:
-        if 'start:' in description:
-            start_pos = int(description.split('start:', 1)[1].split(' ', 1)[0])
-        else:
-            start_pos = 0
-
+    if ("*" in sequence) or (start_pos > 0):
 
         positions = [0] + [m.start() + 1 for m in re.finditer('\*', sequence)]  # remember the positions of stop codons
 
