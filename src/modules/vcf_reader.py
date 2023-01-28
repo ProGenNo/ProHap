@@ -13,6 +13,12 @@ def check_vcf_line_validity(line, min_af, REF, ALT):
     elif ';MAF=' in line:
         AF = float(line.split(';MAF=')[1].split(';')[0])
         AF_pass = AF >= min_af
+    elif '\tAF=' in line:
+        AF = float(line.split('\tAF=')[1].split(';')[0])
+        AF_pass = AF >= min_af
+    elif '\tMAF=' in line:
+        AF = float(line.split('\tMAF=')[1].split(';')[0])
+        AF_pass = AF >= min_af
 
     # check validity of alleles
     val_pass = True
@@ -22,6 +28,12 @@ def check_vcf_line_validity(line, min_af, REF, ALT):
     return AF_pass and val_pass
 
 def add_variants_to_transcripts(vcf_file_line, vcf_file, vcf_linecount, transcript_queue, current_pos, current_transcript, VCF_header, min_af, tmp_dir, finalize):
+    vcf_id = vcf_file_line.split(maxsplit=3)[2]
+
+    if (vcf_id == '.'):
+        # add an identifier = line cound
+        vcf_file_line = '\t'.join(vcf_file_line.split(maxsplit=2)[:2]) + '\t' + hex(vcf_linecount)[2:] + '\t' + vcf_file_line.split(maxsplit=3)[3]
+
     # Process VCF lines
     while ((current_pos < current_transcript.start or finalize) and vcf_file_line != ""):
         REF, ALT = vcf_file_line.split(maxsplit=5)[3:5]
