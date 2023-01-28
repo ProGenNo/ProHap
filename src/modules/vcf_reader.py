@@ -28,12 +28,7 @@ def check_vcf_line_validity(line, min_af, REF, ALT):
     return AF_pass and val_pass
 
 def add_variants_to_transcripts(vcf_file_line, vcf_file, vcf_linecount, transcript_queue, current_pos, current_transcript, VCF_header, min_af, tmp_dir, finalize):
-    vcf_id = vcf_file_line.split(maxsplit=3)[2]
-
-    if (vcf_id == '.'):
-        # add an identifier = line cound
-        vcf_file_line = '\t'.join(vcf_file_line.split(maxsplit=2)[:2]) + '\t' + hex(vcf_linecount)[2:] + '\t' + vcf_file_line.split(maxsplit=3)[3]
-
+    
     # Process VCF lines
     while ((current_pos < current_transcript.start or finalize) and vcf_file_line != ""):
         REF, ALT = vcf_file_line.split(maxsplit=5)[3:5]
@@ -41,6 +36,12 @@ def add_variants_to_transcripts(vcf_file_line, vcf_file, vcf_linecount, transcri
 
         # check all transcripts in the queue
         if valid:
+            vcf_id = vcf_file_line.split(maxsplit=3)[2]
+
+            if (vcf_id == '.'):
+                # add an identifier = line cound
+                vcf_file_line = '\t'.join(vcf_file_line.split(maxsplit=2)[:2]) + '\t' + hex(vcf_linecount)[2:] + '\t' + vcf_file_line.split(maxsplit=3)[3]
+
             for transcript_entry in transcript_queue:
 
                 # check if the snp belongs to any of the exons
@@ -58,11 +59,6 @@ def add_variants_to_transcripts(vcf_file_line, vcf_file, vcf_linecount, transcri
             break
 
         current_pos = int(vcf_file_line.split(maxsplit=2)[1])
-        vcf_id = vcf_file_line.split(maxsplit=3)[2]
-
-        if (vcf_id == '.'):
-            # add an identifier = line cound
-            vcf_file_line = '\t'.join(vcf_file_line.split(maxsplit=2)[:2]) + '\t' + hex(vcf_linecount)[2:] + '\t' + vcf_file_line.split(maxsplit=3)[3]
 
     # remove passed transcripts from queue
     while (len(transcript_queue) > 0 and (transcript_queue[0]['end'] < current_pos or finalize)):
