@@ -16,8 +16,7 @@ all_proteins = read_fasta(args.input_file)
 
 result_proteins = []
 
-for proteinID in all_proteins:
-	protein = all_proteins[proteinID]
+for protein in all_proteins.values():
 	seq = protein['sequence']
 	seq_hash = hash(seq)
 

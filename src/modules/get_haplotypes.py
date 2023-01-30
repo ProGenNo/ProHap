@@ -191,9 +191,9 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
 
         return result_local
 
-    with Pool(threads) as p:
-        aggregated_results = p.map(get_haplotypes, all_transcripts)
-    #aggregated_results = list(map(get_haplotypes, all_transcripts))
+    #with Pool(threads) as p:
+    #    aggregated_results = p.map(get_haplotypes, all_transcripts)
+    aggregated_results = list(map(get_haplotypes, all_transcripts))
 
     for processed_transcript in aggregated_results:
         for elem in processed_transcript:
