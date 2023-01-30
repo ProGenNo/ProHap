@@ -66,7 +66,7 @@ rule merge_cdnas_fasta:
 
 rule download_reference_proteome:
     output:
-        "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
+        temp("data/fasta/Homo_sapiens.GRCh38.pep.all.fa")
     shell:
         "mkdir -p data/fasta ; "
         "wget " + config['Ensembl_FTP_URL'] + "fasta/homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz -O {output}.gz && gunzip {output}.gz; "
@@ -75,7 +75,7 @@ rule reference_fix_headers:
     input:
         "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
     output:
-        "data/fasta/ensembl_reference_proteinDB_tagged.fa"
+        temp("data/fasta/ensembl_reference_proteinDB_tagged.fa")
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/fix_headers.py -i {input} -o {output} -t _ensref "
@@ -103,7 +103,7 @@ rule split_gtf:
     input:
         "data/gtf/" + config['annotationFilename'] + ".gtf"
     output:
-        "data/gtf/" + config['annotationFilename'] + "_chr{chr}.gtf"
+        temp("data/gtf/" + config['annotationFilename'] + "_chr{chr}.gtf")
     shell:
         "grep \"^#\" {input} > {output}; "
         "grep \"^{wildcards.chr}\s\" {input} >> {output}"
@@ -113,10 +113,10 @@ rule parse_gtf_chromosome:
     input:
         "data/gtf/" + config['annotationFilename'] + "_chr{chr}.gtf"
     output:
-        db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db"
+        "data/gtf/" + config['annotationFilename'] + "_chr{chr}.db"
     conda: "envs/prohap.yaml"
     shell:
-        "python3 src/parse_gtf.py -i {input} -o {output.db}"
+        "python3 src/parse_gtf.py -i {input} -o {output}"
 
 # ------------------------------------ ProVar rules ------------------------------------
 
