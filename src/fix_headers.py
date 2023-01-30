@@ -60,14 +60,9 @@ while metadata != "":
 
     else:						# the header is not formated
         tag = 'generic' + args.tag					# add the keyword "generic" and a custom tag (empty if not provided)
-        if 'var' in metadata:
-            accession = args.tag[1:] + '_' + hex(variant_count)[2:]
-            description = metadata[1:-1]
-            variant_count += 1
-        else:
-            accession = metadata[1:-1].split()[0]
-            if " " in metadata:
-                description = metadata[:-1].split(" ", 1)[1]
+        accession = metadata[1:-1].split()[0]
+        if " " in metadata:
+            description = metadata[:-1].split(" ", 1)[1]
 
     if 'matching_proteins:' not in description:
         description = description + ' matching_proteins:' + accession + '\n'
