@@ -4,10 +4,10 @@ import argparse
 parser = argparse.ArgumentParser(
         description='Reads the DB file created by gffutils, outputs a list of stable IDs for transcripts that match listed biotype annotations.')
 
-parser.add_argument("-i", dest="input_file", required=True,
+parser.add_argument("-i", dest="annotation_db", required=True,
                     help="input DB file")
 
-parser.add_argument('-bio', 'biotypes', required=False, type=str,
+parser.add_argument("-bio", dest="biotypes", required=False, type=str,
                     help="List of permitted transcript biotypes, comma-separated (default: protein_coding). Specify \"all\" to disable filtering.", default="protein_coding")
 
 parser.add_argument("-o", dest="output_file", required=True,
