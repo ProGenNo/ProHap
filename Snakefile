@@ -263,6 +263,8 @@ rule haplo_fasta_remove_stop:
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
+# ------------------------------------ post-processing rules ------------------------------------
+
 rule mix_with_reference_proteome:
     input:
         in1="data/fasta/ensembl_reference_proteinDB_clean.fa",
