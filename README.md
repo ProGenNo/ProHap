@@ -34,8 +34,8 @@ python src/analysis/peptides_annotate_variation.py
     -hap <table of haplotypes produced by ProHap, if haplotypes are included in the search database> 
     -var <table of variants produced by ProVar, if individual variants are included in the search database> 
     -f <optimized FASTA file provided by ProHap/ProVar> 
-    -tr_id <transcript ID file - provided in this repository> 
-    -g_id <gene ID file - provided in this repository> 
+    -tr_id data/protein_transcript_ids_108.csv <protein and transcript ID mapping - provided in this repository for Ensembl v.108> 
+    -g_id data/gene_transcript_ids_108.csv <transcript and gene ID mapping - provided in this repository for Ensembl v.108> 
     -t <# threads> 
     -o <output filename> 
     -log <log file>
