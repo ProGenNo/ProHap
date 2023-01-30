@@ -1,9 +1,7 @@
 import pandas as pd
 import argparse
 import bisect
-from multiprocessing import Pool
-from tqdm import tqdm
-from modules.common import read_fasta, digest
+from common import read_fasta, digest
 
 parser = argparse.ArgumentParser(description="Creates a list of discoverable peptides from a FASTA database")
 
@@ -18,9 +16,6 @@ parser.add_argument("-min_len", dest="min_len", type=int, required=False, defaul
 
 parser.add_argument("-max_len", dest="max_len", type=int, required=False, default=40,
                     help="maximum peptide length (default: 40")
-
-#parser.add_argument("-t", dest="threads", type=int, required=True,
-#                    help="# threads to use")
 
 parser.add_argument("-o", dest="output_file", required=True,
                     help="output TSV file", metavar="FILE")
