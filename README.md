@@ -17,7 +17,7 @@ Usage:
  2. Run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
 
 ## Analyzing the peptide-spectrum matches
-Once you obtain a list of peptide-spectrum matches (PSMs), you can use a script provided in this repository (`src/analysis/peptides_annotate_variation.py`) to map the peptides back to the respective protein haplotype / variant sequences, and map the identified variants back to their genetic origin. An example of the required input file (tab-separated):
+Once you obtain a list of peptide-spectrum matches (PSMs), you can use a script provided in this repository \([peptides_annotate_variation.py](https://github.com/ProGenNo/ProHap/blob/main/src/analysis/peptides_annotate_variation.py)\) to map the peptides back to the respective protein haplotype / variant sequences, and map the identified variants back to their genetic origin. An example of the required input file (tab-separated):
 
 ```
 PSMId Sequence Proteins Positions
