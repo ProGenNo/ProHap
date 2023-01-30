@@ -1,15 +1,16 @@
-1000Gs_URL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/
-1kGP_vcf_file_name: "1kGP_high_coverage_Illumina.chr{chr}.filtered.SNV_INDEL_SV_phased_panel.vcf"
+1kGP_FTP_URL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/
+1kGP_vcf_file_name: "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
 
-EnsemblFTP: ftp.ensembl.org/pub/release-106/
-annotationFilename: Homo_sapiens.GRCh38.106.chr_patch_hapl_scaff
+Ensembl_FTP_URL: ftp.ensembl.org/pub/release-108/
+annotationFilename: Homo_sapiens.GRCh38.108.chr_patch_hapl_scaff
 
-working_dir_name_haplo: <directory where haplotypes will be processed>
-working_dir_name_var: <directory where all variants will be processed>
+working_dir_name_haplo: haplotypes_tmp  # directory for temp. files where haplotypes will be processed - default: haplotypes_tmp
+working_dir_name_var: variants_tmp      # directory for temp. files where individual variants will be processed - default: variants_tmp
 
-# The variant_vcf contains a dictionary of objects describing different data sources of variants not to be included in the haplotype computation. Give an empty object if not included.
+# The variant_vcf parameter contains a dictionary of objects describing different data sources of variants not to be included in the haplotype computation. Give an empty object if not included.
 # Dictionary is structured as follows:
 # <dataset_name> : { file: <VCF filename>, fasta_accession_prefix: <accession prefix for these variants in the resulting fasta file>, min_af: <minimal required minor allele frequency> }
+#
 # Example of usage:
 # variant_vcf:
 #   EnsemblVar: { file: "data/ensembl_vcf/homo_sapiens_incl_consequences.vcf", fasta_accession_prefix: "ensvar_", min_af: 0.01 }
@@ -17,19 +18,22 @@ working_dir_name_var: <directory where all variants will be processed>
 
 variant_vcf: {}
 
-include_haplo: <boolean value - True or False - whether or not to compute haplotypes>
-include_var: <boolean value - True or False - whether or not to compute individual variants>
+custom_transcript_list: ""                        # Path to the CSV file containing transcript IDs to be included in the datavase. Give an empty string ("") to ignore.
+included_transcript_biotypes: "protein_coding"    # Comma-separated list of transcript biotypes to be included (e.g. "protein_coding,retained_intron,protein_coding_LoF"). Ignored when custom_transcript_list is given. Default: "protein_coding". Refer to Gencode for biptype names: https://www.gencodegenes.org/pages/biotypes.html
+
+include_haplo: True # boolean value - True or False - whether or not to compute haplotypes. Default: True
+include_var: False  # boolean value - True or False - whether or not to compute individual variants. Default: False
 
 # parameters
 var_require_start: 1    # Require annotation of canonical start codon for ProVar? 0 or 1 - default: 1
 haplo_require_start: 1  # Require annotation of canonical start codon for ProHap? 0 or 1 - default: 1
-haplo_ignore_UTR: 1     # Ignore variation in UTRs in ProHap? 0 or 1 - default: 1
+haplo_ignore_UTR: 1     # Ignore variation in UTRs in ProHap? 0 or 1. If 0, UTR sequences are still removed in the final optimized database, but retained in the haplotypes FASTA. - default: 1 
 max_cores: 3            # Maximum number of cores used per chromosome, default: 3
 
 # output files
 final_fasta_file: <resulting fasta filename>
-haplo_fasta_file: <fasta file with unmodified haplotype sequences>
-var_fasta_file: <fasta file with unmodified variant sequences>
+haplo_fasta_file: <filename - fasta with haplotype sequences, before any downstream optimization>
+var_fasta_file: <filename - fasta with variant sequences, before any downstream optimization>
 
-haplo_table_file: <supplementary table for haplotypes>
-var_table_file: <supplementary table for variants>
+haplo_table_file: <filename - supplementary table for haplotypes>
+var_table_file: <filename - supplementary table for variants>

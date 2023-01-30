@@ -16,23 +16,44 @@ rule all:
 
 rule download_vcf:
     output:
-        config['1kGP_vcf_file_name_30']
+        "data/vcf/1kGP_phased/" + config['1kGP_vcf_file_name']
     shell:
-        "wget " + config['1000Gs30_URL'] + config['1kGP_vcf_file_name_30'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
+        "mkdir -p data/vcf/1kGP_phased ; "
+        "wget " + config['1kGP_FTP_URL'] + config['1kGP_vcf_file_name'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
 
 rule download_gtf:
     output:
         "data/gtf/" + config['annotationFilename'] + ".gtf"
     shell:
-        "wget " + config['EnsemblFTP'] + "gtf/homo_sapiens/" + config['annotationFilename'] + ".gtf.gz -O {output}.gz && gunzip {output}.gz; "
+        "mkdir -p data/gtf ; "
+        "wget " + config['Ensembl_FTP_URL'] + "gtf/homo_sapiens/" + config['annotationFilename'] + ".gtf.gz -O {output}.gz && gunzip {output}.gz; "
+
+rule parse_gtf_whole:
+    input:
+        "data/gtf/" + config['annotationFilename'] + ".gtf"
+    output:
+        "data/gtf/" + config['annotationFilename'] + ".db"
+    shell:
+        "python3 src/parse_gtf.py -i {input} -o {output}"
+
+rule get_transcript_list:
+    input:
+        "data/gtf/" + config['annotationFilename'] + ".db"
+    output:
+        "data/included_transcripts.csv"
+    params:
+        biotypes=config['included_transcript_biotypes']
+    shell:
+        "python3 src/get_transcript_list.py -i {input} -bio {params.biotypes} -o {output}"
 
 rule download_cdnas_fasta:
     output:
         out1="data/fasta/Homo_sapiens.GRCh38.ncrna.fa",
         out2="data/fasta/Homo_sapiens.GRCh38.cdna.all.fa"
     shell:
-        "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/ncrna/Homo_sapiens.GRCh38.ncrna.fa.gz -O {output.out1}.gz && gunzip {output.out1}.gz; "
-        "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz -O {output.out2}.gz && gunzip {output.out2}.gz; "
+        "mkdir -p data/fasta ; "
+        "wget " + config['Ensembl_FTP_URL'] + "fasta/homo_sapiens/ncrna/Homo_sapiens.GRCh38.ncrna.fa.gz -O {output.out1}.gz && gunzip {output.out1}.gz; "
+        "wget " + config['Ensembl_FTP_URL'] + "fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz -O {output.out2}.gz && gunzip {output.out2}.gz; "
 
 rule merge_cdnas_fasta:
 	input:
@@ -47,7 +68,8 @@ rule download_reference_proteome:
     output:
         "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
     shell:
-        "wget " + config['EnsemblFTP'] + "fasta/homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz -O {output}.gz && gunzip {output}.gz; "
+        "mkdir -p data/fasta ; "
+        "wget " + config['Ensembl_FTP_URL'] + "fasta/homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz -O {output}.gz && gunzip {output}.gz; "
 
 rule reference_fix_headers:
     input:
@@ -76,7 +98,7 @@ rule contaminants_fix_headers:
     shell:
         "python3 src/fix_headers.py -i {input} -o {output} -t _cont"
 
-# filter the GTF so that only features on one chromosome are present:
+# filter the GTF so that only features on the desired chromosome are present
 rule split_gtf:
     input:
         "data/gtf/" + config['annotationFilename'] + ".gtf"
@@ -87,15 +109,14 @@ rule split_gtf:
         "grep \"^{wildcards.chr}\s\" {input} >> {output}"
 
 # create the DB files from GTF for each chromosome
-rule parse_gtf:
+rule parse_gtf_chromosome:
     input:
         "data/gtf/" + config['annotationFilename'] + "_chr{chr}.gtf"
     output:
-        db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts.txt"
+        db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db"
     conda: "envs/prohap.yaml"
     shell:
-        "python3 src/parse_gtf.py -i {input} -o {output.db} -noncoding 0 -transcript_list {output.tr}"
+        "python3 src/parse_gtf.py -i {input} -o {output.db}"
 
 # ------------------------------------ ProVar rules ------------------------------------
 
@@ -112,23 +133,23 @@ rule split_variant_vcf:
 rule compute_variants:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts_reference.txt",
+        tr=expand('{proxy}', proxy=[config['custom_transcript_list']] if len(config["custom_transcript_list"]) > 0 else ["data/included_transcripts.csv"]),
         fasta="data/fasta/total_cdnas.fa",
         flag="tmp/variants_{vcf}/ready",
     output:
-        tsv="results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.tsv",
-        fasta="results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.fa"
+        tsv=temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.tsv"),
+        fasta=temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.fa")
     params:
         input_vcf="tmp/variants_{vcf}/variants_chr{chr}.vcf",
         acc_prefix=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['fasta_accession_prefix'],
         min_af=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['min_af'],
         log_file="log/{vcf}_chr{chr}.log",
-        #log_file="log/221018_provar.log",
-        tmp_dir="tmp/transcript_{vcf}",
+        #log_file="log/provar.log",
+        tmp_dir="tmp/transcripts_{vcf}",
         require_start=config['var_require_start']
     conda: "envs/prohap.yaml"
     shell:
-        "mkdir -p {params.tmp_dir}; "
+        "mkdir -p {params.tmp_dir}; mkdir -p log; "
         "python3 src/provar.py "
         "-i {params.input_vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
         "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af {params.min_af} -require_start {params.require_start} "
@@ -190,15 +211,15 @@ rule var_fasta_remove_stop:
 rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
-        tr="data/chr{chr}_transcripts_reference.txt",
-        vcf=config['1kGP_vcf_file_name_30'],
+        tr=expand('{proxy}', proxy=[config['custom_transcript_list']] if len(config["custom_transcript_list"]) > 0 else ["data/included_transcripts.csv"]),
+        vcf=config['1kGP_vcf_file_name'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
     output:
         csv=temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv"),
         fasta=temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa"),
     params:
-        log_file="log/chr{chr}.log",
+        log_file="log/prohap_chr{chr}.log",
         tmp_dir="tmp/transcript_vcf_haplo",
         require_start=config['haplo_require_start'],
         ignore_UTR=config['haplo_ignore_UTR'],
@@ -206,7 +227,7 @@ rule compute_haplotypes:
     threads: config['max_cores']
     conda: "envs/prohap.yaml"
     shell:
-        "mkdir -p {params.tmp_dir}; "
+        "mkdir -p {params.tmp_dir}; mkdir -p log; "
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
         "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr}  -require_start {params.require_start} -ignore_UTR {params.ignore_UTR} "
@@ -243,19 +264,19 @@ rule haplo_fasta_remove_stop:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
 
 rule mix_with_reference_proteome:
-	input:
-		in1="data/fasta/ensembl_reference_proteinDB_clean.fa",
-                in2="data/fasta/crap_tagged.fa",
-		in3=expand('{proxy}', proxy=["results/variants_all_clean.fa"] if config["include_var"] else []),
-		in4=expand('{proxy}', proxy=["results/haplo_all_clean.fa"] if config["include_haplo"] else []),
-	output:
-		temp("results/ref_contam_vcf_haplo_all_clean.fa")		
-	run:
-		shell("cat {input.in1} {input.in2} > {output}; ")
-		if config["include_var"]:
-			shell("cat {input.in3} >> {output}")
-		if config["include_haplo"]:
-			shell("cat {input.in4} >> {output}")
+    input:
+        in1="data/fasta/ensembl_reference_proteinDB_clean.fa",
+        in2="data/fasta/crap_tagged.fa",
+        in3=expand('{proxy}', proxy=["results/variants_all_clean.fa"] if config["include_var"] else []),
+        in4=expand('{proxy}', proxy=["results/haplo_all_clean.fa"] if config["include_haplo"] else []),
+    output:
+        temp("results/ref_contam_vcf_haplo_all_clean.fa")		
+    run:
+        shell("cat {input.in1} {input.in2} > {output}; ")
+        if config["include_var"]:
+            shell("cat {input.in3} >> {output}")
+        if config["include_haplo"]:
+            shell("cat {input.in4} >> {output}")
 
 rule merge_duplicate_seq:
     input:
@@ -267,7 +288,7 @@ rule merge_duplicate_seq:
     shell:
         "python3 src/merge_duplicate_seq.py -i {input} -o {output} "
 
-# UTRs in ProHap are removed by default, but not in ProVar -> still check for UTRs here if desired
+# UTRs in ProHap are removed by default (can be changed), but not in ProVar -> make sure all UTRs are removed
 rule remove_UTR_seq:
     input:
         "results/ref_contam_vcf_haplo_all_nodupl.fa"
