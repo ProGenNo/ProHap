@@ -139,7 +139,7 @@ def get_affected_codons(cdna, allele_loc, allele_len, reading_frame, protein_sta
     bpTo = int(ceil((allele_loc + allele_len - max(reading_frame, 0)) / 3) * 3 + max(reading_frame, 0))
 
     if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
-        affected_codons = Seq(cdna[bpFrom:bpTo])
+        affected_codons = Seq(str(cdna[bpFrom:bpTo]))
         alleles_protein = [str(affected_codons.transcribe().translate())]
     else:
         alleles_protein = ['-']
@@ -151,7 +151,7 @@ def get_affected_codons(cdna, allele_loc, allele_len, reading_frame, protein_sta
             bpTo = int(ceil((allele_loc + allele_len - rf) / 3) * 3 + rf)
 
             if (bpTo-bpFrom > 2): # make sure we have at least 1 codon covered
-                affected_codons = Seq(cdna[bpFrom:bpTo])
+                affected_codons = Seq(str(cdna[bpFrom:bpTo]))
                 alleles_protein.append(str(affected_codons.transcribe().translate()))
             else:
                 alleles_protein.append('-')
