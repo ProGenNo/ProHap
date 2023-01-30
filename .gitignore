@@ -1,4 +1,6 @@
-data/
+data/fasta/
+data/gtf/
+data/vcf/
 results/
 test/
 tmp/
