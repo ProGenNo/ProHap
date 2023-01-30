@@ -212,7 +212,7 @@ rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr=expand('{proxy}', proxy=[config['custom_transcript_list']] if len(config["custom_transcript_list"]) > 0 else ["data/included_transcripts.csv"]),
-        vcf=config['1kGP_vcf_file_name'],
+        vcf="data/vcf/1kGP_phased/" +config['1kGP_vcf_file_name'],
         fasta="data/fasta/total_cdnas.fa",
         samples="igsr_samples.tsv"
     output:
