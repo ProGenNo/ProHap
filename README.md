@@ -29,7 +29,16 @@ psm_3 ISVGVAGDLNTVTMK prot_b40;prot_3c88;prot_9b74;prot_9cf6;prot_b882 15;4;15;4
 The annotation script can be used with the following parameters:
 
 ```
-python src/analysis/peptides_annotate_variation.py -i <input file of PSMs> -hap <table of haplotypes produced by ProHap, optional> -var <table of variants produced by ProVar, optional> -tr_id <transcript ID file> -g_id <gene ID file> -t <# threads> -f <optimized FASTA file provided by ProHap/ProVar> -o <output filename> -log <log file>
+python src/analysis/peptides_annotate_variation.py 
+    -i <input file of PSMs> 
+    -hap <table of haplotypes produced by ProHap, if haplotypes are included in the search database> 
+    -var <table of variants produced by ProVar, if individual variants are included in the search database> 
+    -f <optimized FASTA file provided by ProHap/ProVar> 
+    -tr_id <transcript ID file - provided in this repository> 
+    -g_id <gene ID file - provided in this repository> 
+    -t <# threads> 
+    -o <output filename> 
+    -log <log file>
 ```
 
 ## Output
