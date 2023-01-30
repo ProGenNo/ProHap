@@ -3,18 +3,18 @@ Proteogenomics database-generation tool for protein haplotypes and variants
 
 ## Input & Usage
 Required ingredients:
- - GTF annotation file (Ensembl)
- - cDNA FASTA file (Ensembl)
- - (optional) ncRNA FASTA file (Ensembl)
- - contaminant sequences FASTA (such as https://www.thegpm.org/crap/)
- - ProHap: VCF with phased genotpyes, one file per chromosome \(such as [1000 Genomes Project](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/)\)
- - ProVar: VCF, one file per chromosome
+ - GTF annotation file (Ensembl - downloaded automatically by Snakemake)
+ - cDNA FASTA file (Ensembl - downloaded automatically by Snakemake)
+ - (optional) ncRNA FASTA file (Ensembl - downloaded automatically by Snakemake)
+ - ProHap: VCF with phased genotpyes, one file per chromosome \(such as [1000 Genomes Project](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/) - downloaded automatically by Snakemake\)
+ - ProVar: VCF, single file per dataset
 
-Required software: snakemake & conda
+Required software: [Snakemake](https://snakemake.readthedocs.io/en/stable/) & [Conda](https://docs.conda.io/en/latest/)
 
 Usage:
- 1. create a configuration file called `config.yaml` based on the instructions in `config_file_example`
- 2. run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
+ 1. Create a configuration file called `config.yaml` based on the instructions in `config_file_example`
+ 2. Test Snakemake with a dry-run: `snakemake -c<# provided cores> -n -q`
+ 2. Run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
 
 ## Output
 ### FASTA protein database
