@@ -40,7 +40,7 @@ rule get_transcript_list:
     input:
         "data/gtf/" + config['annotationFilename'] + ".db"
     output:
-        "data/included_transcripts.csv"
+        temp("data/included_transcripts.csv")
     params:
         biotypes=config['included_transcript_biotypes']
     shell:
@@ -149,7 +149,7 @@ rule compute_variants:
         require_start=config['var_require_start']
     conda: "envs/prohap.yaml"
     shell:
-        "mkdir -p {params.tmp_dir}; mkdir -p log; "
+        "mkdir -p {params.tmp_dir}; mkdir -p log; mkdir -p results; "
         "python3 src/provar.py "
         "-i {params.input_vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
         "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af {params.min_af} -require_start {params.require_start} "
@@ -227,7 +227,7 @@ rule compute_haplotypes:
     threads: config['max_cores']
     conda: "envs/prohap.yaml"
     shell:
-        "mkdir -p {params.tmp_dir}; mkdir -p log; "
+        "mkdir -p {params.tmp_dir}; mkdir -p log; mkdir -p results; "
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
         "-chr {wildcards.chr} -af 0.01 -foo 0.01 -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr}  -require_start {params.require_start} -ignore_UTR {params.ignore_UTR} "

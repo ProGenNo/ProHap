@@ -46,7 +46,7 @@ for prot_idx,protein in enumerate(list(all_proteins.values())):
     print (prot_idx, '/', len(all_proteins), end='\r')
 
 
-df_data = [ [all_peptides[i], ';'.join(all_matching_proteins[i]), ';'.join(positions)] for i,positions in enumerate(all_peptide_positions) ]
+df_data = [ ['pep_' + hex(i)[2:], all_peptides[i], ';'.join(all_matching_proteins[i]), ';'.join(positions)] for i,positions in enumerate(all_peptide_positions) ]
 
 output_df = pd.DataFrame(data=df_data, columns=['Sequence', 'Proteins', 'Positions'])
 output_df.to_csv(args.output_file, header=True, index=False, sep='\t')

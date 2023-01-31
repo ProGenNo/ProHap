@@ -15,6 +15,9 @@ parser.add_argument("-i", dest="input_file", required=True,
 parser.add_argument("-o", dest="output_file", required=True,
                     help="output file")
 
+parser.add_argument("-id_col", dest="id_column", required=False,
+                    help="ID columns name, default: PSMId", default='PSMId')
+
 parser.add_argument("-hap", dest="haplo_db", required=False,
                     help="haplotypes tab-separated file (optional)", default=None)
 
@@ -78,7 +81,7 @@ log_file = open(args.log_file, 'a')
 log_file.write('------------' + '[' + datetime.now().strftime('%X %x') + '] file: ' + args.input_file + ':' + '------------\n')
 
 summary_data = []
-summary_columns = ['PSMId', 'psm_type1', 'psm_type2', 'covered_changes_protein', 'covered_changes_dna', 'matching_proteins', 'matching_transcripts', 'matching_genes', 'positions_in_proteins', 'reading_frames']
+summary_columns = [args.id_column, 'psm_type1', 'psm_type2', 'covered_changes_protein', 'covered_changes_dna', 'matching_proteins', 'matching_transcripts', 'matching_genes', 'positions_in_proteins', 'reading_frames']
 
 print ("Annotating PSMs:")
 
@@ -92,7 +95,7 @@ def process_row(index):
     # decoy match = all matching sequences are decoys
     is_decoy = all([ fastaID.endswith('REVERSED') for fastaID in fasta_accessions ])
     if is_decoy:
-        return [row['PSMId'], 'decoy', 'decoy', '', '', '', '', '', '', '']
+        return [row[args.id_column], 'decoy', 'decoy', '', '', '', '', '', '', '']
 
     # filter out matching decoy elements in fasta (in case there is an overlap between a decoy and target sequence), and remember only corresponding peptide positions
     fasta_peptide_starts = [ fasta_peptide_starts[i] for i,fastaID in enumerate(fasta_accessions) if not fastaID.endswith('REVERSED') ]
@@ -101,7 +104,7 @@ def process_row(index):
     # crap match = any matching sequence is a contaminant
     is_contaminant = any([ 'cont' in fasta_entries[fastaID]['tag'] for fastaID in fasta_accessions ])
     if is_contaminant:
-        return [row['PSMId'], 'contaminant', 'contaminant', '', '', '', '', '', '', '']
+        return [row[args.id_column], 'contaminant', 'contaminant', '', '', '', '', '', '', '']
 
     # concentrate all matching proteins (haplotype or stable protein ids)
     matching_proteins = []
@@ -151,7 +154,7 @@ def process_row(index):
         else:
             psm_type2 = 'multi-gene'
 
-        return [row['PSMId'], 'canonical', psm_type2, '', '', ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes),';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
+        return [row[args.id_column], 'canonical', psm_type2, '', '', ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes),';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
 
     # Here, the peptide doesn't match to any canonical (ENSP*) sequence -> annotate variation
     matching_protein_changes = []   # all unique matching changes in the protein
@@ -210,7 +213,7 @@ def process_row(index):
 
                 # Sanity check: have we found the alternative allele in the peptide?
                 if found_allele != alt_prot_allele:
-                    log_file.write('PSM ' + row['PSMId'] + ' variant:' +  protID + ' expected:' + alt_prot_allele + ' found:' + row['Sequence'][:change_pep_loc[0]] + ' ' + row['Sequence'][change_pep_loc[0]:change_pep_loc[1]] + '\n')
+                    log_file.write('PSM ' + row[args.id_column] + ' variant:' +  protID + ' expected:' + alt_prot_allele + ' found:' + row['Sequence'][:change_pep_loc[0]] + ' ' + row['Sequence'][change_pep_loc[0]:change_pep_loc[1]] + '\n')
                 else:
                 # All looks ok -> store this change as identified
                     matching_protein_changes.append(parent_transcript + ':' + protein_change)
@@ -272,7 +275,7 @@ def process_row(index):
 
                     # Sanity check: have we found the alternative allele in the peptide?
                     if found_allele != alt_prot_allele:
-                        log_file.write('PSM ' + row['PSMId'] + ' haplotype:' + protID + ' expected:' + alt_prot_allele + ' found:' + row['Sequence'][:change_pep_loc[0]] + ' ' + row['Sequence'][change_pep_loc[0]:])
+                        log_file.write('PSM ' + row[args.id_column] + ' haplotype:' + protID + ' expected:' + alt_prot_allele + ' found:' + row['Sequence'][:change_pep_loc[0]] + ' ' + row['Sequence'][change_pep_loc[0]:])
                     else:
                         # All looks ok -> store this change as identified
                         local_matching_changes_prot.append(ch)
@@ -308,17 +311,17 @@ def process_row(index):
         psm_type2 = 'multi-gene'
 
     if found_variant:
-        return [row['PSMId'], 'vcf-variant', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
+        return [row[args.id_column], 'vcf-variant', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
     if (min_changes_found > 1):
-        return [row['PSMId'], 'multi-variant', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
+        return [row[args.id_column], 'multi-variant', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
     elif (min_changes_found > 0):
-        return [row['PSMId'], 'single-variant', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
+        return [row[args.id_column], 'single-variant', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
     elif has_frameshift:
         # in some of the matching proteins, no changes were mapped to this peptide, but it occurs after a frameshift, so no canonical protein was matched
-        return [row['PSMId'], 'canonical-frameshift', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
+        return [row[args.id_column], 'canonical-frameshift', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
     else:   
         # looks like a translation of a canonical CDS sequence that doesn't have a canonical protein in Ensembl (e.g., alternative reading frame)
-        return [row['PSMId'], 'canonical-no-ref', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
+        return [row[args.id_column], 'canonical-no-ref', psm_type2, '|'.join(matching_protein_changes), '|'.join(matching_DNA_changes), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), ';'.join(reading_frames)]
 
 # store results
 with Pool(args.threads) as p:
