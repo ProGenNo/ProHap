@@ -24,6 +24,9 @@ included_transcript_biotypes: "protein_coding"                # Comma-separated 
 include_haplo: True # boolean value - True or False - whether or not to compute haplotypes. Default: True
 include_var: False  # boolean value - True or False - whether or not to compute individual variants. Default: False
 
+haplo_freq_threshold: 0.005   # minimal accepted value of a haplotype frequency. Default: 0.005
+1kGP_AF_threshold: 0.01       # minimal minor allele frequency (AF) threshold for 1000 Genomes Project variants. Default: 0.01
+
 # parameters
 var_require_start: 1    # Require annotation of canonical start codon for ProVar? 0 or 1 - default: 1
 haplo_require_start: 1  # Require annotation of canonical start codon for ProHap? 0 or 1 - default: 1
