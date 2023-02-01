@@ -122,7 +122,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             else:
                 alt_allele = Seq(vcf_row['ALT'])
 
-            var_ID = transcript_id + '_' + accession_prefix + str(vcf_row['ID']) + '_' + str(ref_allele) + ">" + str(alt_allele)
+            var_ID = 'var_chr' + chromosome + '_' + accession_prefix + str(vcf_row['ID']) + '_' + str(ref_allele) + ">" + str(alt_allele)
 
             DNA_change = str(vcf_row['POS']) + ':' + vcf_row['REF'] + '>' + vcf_row['ALT']
 

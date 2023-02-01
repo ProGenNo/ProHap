@@ -134,7 +134,7 @@ if (len(vcf_colnames) == 0):
         print(('Chr ' + args.chromosome + ':'), 'VCF file is empty, creating empty output files.')
         empty_output(args.output_file, args.output_fasta)
 else:
-        print (('Chr ' + args.chromosome + ':'), 'Computing co-occurence of alleles.')
+        print (('Chr ' + args.chromosome + ':'), 'Computing the co-occurrence of alleles.')
         # check co-occurence of alleles -> get the haplotypes for all transcripts
         gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_colnames, args.tmp_dir, args.log_file, args.threads, (args.chromosome == 'X'), args.x_par1_to, args.x_par2_from, male_samples)
 

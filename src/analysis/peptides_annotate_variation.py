@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from tqdm import tqdm
 from multiprocessing import Pool
-from modules.common import read_fasta
+from common import read_fasta
 
 parser = argparse.ArgumentParser(
 	description='Reads the PSM report file, creates a new file with information about covered SNPs for each PSM and protein')
