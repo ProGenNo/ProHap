@@ -47,6 +47,7 @@ while metadata != "":
     if ("*" in sequence) or (start_pos > 0):
 
         positions = [0] + [m.start() + 1 for m in re.finditer('\*', sequence)]  # remember the positions of stop codons
+        protein_fragments = []
 
         if start_pos > 0:
             protein_fragments = sequence[:start_pos].split('*')
@@ -59,31 +60,23 @@ while metadata != "":
 
             #protein_fragments = [ frag for frag in protein_fragments if len(frag) > 0 ]
 
-            for i,fragment in enumerate(protein_fragments):
-                if (len(fragment) >= args.min_len):
-                    
-                    new_acc = accession
-                    if (positions[i] < start_pos):
-                        new_acc += "_5UTR_" + str(i)
-                    elif (positions[i] > start_pos):
-                        new_acc += "_3UTR_" + str(i)
-
-                    args.output_file.write(tag + '|' + new_acc + '|' + "position_within_protein:" + str(positions[i]) + ' ' + description)
-                    if fragment.endswith('\n'): 
-                        args.output_file.write(fragment)    
-                    else:    
-                        args.output_file.write(fragment + '\n')
-
         else:
             protein_fragments = sequence.split('*')
+            
+        for i,fragment in enumerate(protein_fragments):
+            if (len(fragment) >= args.min_len):
+                
+                new_acc = accession
+                if (positions[i] < start_pos):
+                    new_acc += "_5UTR_" + str(i)
+                elif (positions[i] > start_pos):
+                    new_acc += "_3UTR_" + str(i)
 
-            for i,fragment in enumerate(protein_fragments):
-                if (len(fragment) >= args.min_len):
-                    args.output_file.write(tag + '|' + accession + '_' + str(i) + '|' + "position_within_protein:" + str(positions[i]) + ' ' + description)
-                    if fragment.endswith('\n'): 
-                        args.output_file.write(fragment)    
-                    else:    
-                        args.output_file.write(fragment + '\n')
+                args.output_file.write(tag + '|' + new_acc + '|' + "position_within_protein:" + str(positions[i]) + ' ' + description)
+                if fragment.endswith('\n'): 
+                    args.output_file.write(fragment)    
+                else:    
+                    args.output_file.write(fragment + '\n')
 
         #sequence = sequence.replace('*', '')   # remove the stop codons
         #metadata = metadata[:-1] + " stop:" + ".".join(str(x) for x in positions) + '\n'
