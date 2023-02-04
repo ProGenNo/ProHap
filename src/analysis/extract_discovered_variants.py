@@ -33,8 +33,8 @@ for index,row in df.iterrows():
 
             max_freq = -1
 
-            if (haplo_db):
-                max_freq = max([ haplo_db.loc[haploID]['frequency'] for haploID in row['matching_proteins'] if haploID.startswith(args.haplo_prefix) ])
+            if (haplo_db is not None):
+                max_freq = max([ haplo_db.loc[haploID]['frequency'] for haploID in row['matching_proteins'].split(';') if haploID.startswith(args.haplo_prefix) ])
             
             for change in re.split(r"[;|]", row['covered_changes_dna']):
                     if change in variants_data:
