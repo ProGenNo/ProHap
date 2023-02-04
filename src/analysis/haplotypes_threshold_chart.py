@@ -5,10 +5,16 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Reads a list of discoverable variants and a list of peptides, outputs a plot with number of variants and haplotypes per haplotype frequency.')
 
-parser.add_argument("-v", dest="variant_list", required=True,
+parser.add_argument("-v", dest="variant_list_1", required=True,
                     help="variant list (CSV)", metavar="FILENAME")
 
-parser.add_argument("-hap", dest="haplo_table", required=True,
+parser.add_argument("-v2", dest="variant_list_2", required=True,
+                    help="variant list (CSV)", metavar="FILENAME")
+
+parser.add_argument("-hap", dest="haplo_table_1", required=True,
+                    help="haplotype table (TSV)", metavar="FILENAME")
+
+parser.add_argument("-hap2", dest="haplo_table_2", required=True,
                     help="haplotype table (TSV)", metavar="FILENAME")
 
 parser.add_argument("-o", dest="output_file", required=True,
@@ -16,25 +22,40 @@ parser.add_argument("-o", dest="output_file", required=True,
 
 args = parser.parse_args()
 
-print ('Reading', args.variant_list)
-variants_df = pd.read_csv(args.variant_list)
+print ('Reading', args.variant_list_1)
+variants_df_1 = pd.read_csv(args.variant_list_1)
 
-print ('Reading', args.haplo_table)
-haplo_df = pd.read_table(args.haplo_table)
+print ('Reading', args.variant_list_2)
+variants_df_2 = pd.read_csv(args.variant_list_2)
+
+print ('Reading', args.haplo_table_1)
+haplo_df_1 = pd.read_table(args.haplo_table_1)
+
+print ('Reading', args.haplo_table_2)
+haplo_df_2 = pd.read_table(args.haplo_table_2)
 
 print ('Aggregating data')
 x = np.linspace(0, 0.05, 150)
-y_var = []
-y_hap = []
+max_varcount = max(len(variants_df_1), len(variants_df_2))
+max_hapcount = max(len(haplo_df_1), len(haplo_df_2))
+y_var_1 = []
+y_hap_1 = []
+
+y_var_2 = []
+y_hap_2 = []
 
 for freq in x:
-    y_var.append((len(variants_df[variants_df['max_haplotype_frequency'] >= freq]) / len(variants_df)) * 100)
-    y_hap.append((len(haplo_df[haplo_df['frequency'] >= freq]) / len(haplo_df)) * 100)
+    y_var_1.append((len(variants_df_1[variants_df_1['max_haplotype_frequency'] >= freq]) / max_varcount) * 100)
+    y_hap_1.append((len(haplo_df_1[haplo_df_1['frequency'] >= freq]) / max_hapcount) * 100)
+    y_var_2.append((len(variants_df_2[variants_df_2['max_haplotype_frequency'] >= freq]) / max_varcount) * 100)
+    y_hap_2.append((len(haplo_df_2[haplo_df_1['frequency'] >= freq]) / max_hapcount) * 100)
 
 print ('Creating the plot')
 plt.figure()
-plt.plot(x, y_var, label='variants')
-plt.plot(x, y_hap, color='red', label='haplotypes')
+plt.plot(x, y_var_1, label='variants')
+plt.plot(x, y_var_2, label='variants (UTRs ignored)', linestyle='--')
+plt.plot(x, y_hap_1, color='red', label='haplotypes')
+plt.plot(x, y_hap_2, color='red', label='haplotypes (UTRs ignored)', linestyle='--')
 
 plt.xlabel("Haploptype Frequency Threshold")
 plt.ylabel('% of included variants / haplotypes')
