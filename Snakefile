@@ -223,7 +223,7 @@ rule compute_haplotypes:
         tmp_dir="tmp/transcript_vcf_haplo",
         require_start=config['haplo_require_start'],
         ignore_UTR=config['haplo_ignore_UTR'],
-        skip_start_lost=config['haplo_skip_start_lost']
+        skip_start_lost=config['haplo_skip_start_lost'],
         AF_threshold=config['1kGP_min_af'],
         freq_threshold=config['haplo_min_freq'],
         count_threshold=config['haplo_min_count'],
