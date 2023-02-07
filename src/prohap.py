@@ -64,23 +64,26 @@ parser.add_argument("-chr", dest="chromosome", required=True,
 parser.add_argument("-threads", dest="threads", required=False, type=int,
                     help="number of threads to use; default: 4", default=4)
 
-parser.add_argument("-foo", dest="min_foo", required=False, type=float,
-                    help="Minimum FoO of a haplotype to be reported in the fasta", default=0)
+parser.add_argument("-hap_foo", dest="min_foo", required=False, type=float,
+                    help="Minimum frequency of a haplotype to be reported in the result (specify -1 to use count threshold instead); default: -1", default=-1)
+
+parser.add_argument("-min_hap_count", dest="min_hap_count", required=False, type=int,
+                    help="Minimum count of occurrences of a haplotype to be reported in the result (used only if frequency threshold is not specified); default: 0", default=0)
                     
 parser.add_argument("-tag", dest="fasta_tag", required=False,
                     help="tag for FASTa file entries", default='generic_enshap')
 
 parser.add_argument("-id_prefix", dest="haplo_id_prefix", required=False,
-                    help="prefix for the haplotype identifier", default='haplo_')
+                    help="prefix for the haplotype identifier; default: haplo_", default='haplo_')
 
 parser.add_argument("-acc_prefix", dest="accession_prefix", required=False,
-                    help="prefix for FASTA file entries accession", default='enshap')
+                    help="prefix for FASTA file entries accession; default: enshap", default='enshap')
 
 parser.add_argument("-log", dest="log_file", required=False,
-                    help="output log file", default="prohap.log")
+                    help="output log file; default: prohap.log", default="prohap.log")
 
 parser.add_argument("-tmp_dir", dest="tmp_dir", required=False,
-                    help="directory for temporary files", default="tmp")
+                    help="directory for temporary files; default: tmp", default="tmp")
 
 parser.add_argument("-output_csv", dest="output_file", required=True,
                     help="output CSV file")
@@ -151,7 +154,7 @@ else:
 
         # align the variant coordinates to transcript, translate into the protein database
         print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
-        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, args.min_foo, args.ignore_UTR)
+        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, args.min_foo, args.min_hap_count, args.ignore_UTR)
         result_data = haplo_results[0]
         result_sequences = haplo_results[1]
 

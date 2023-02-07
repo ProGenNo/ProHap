@@ -225,6 +225,7 @@ rule compute_haplotypes:
         ignore_UTR=config['haplo_ignore_UTR'],
         AF_threshold=config['1kGP_min_af'],
         freq_threshold=config['haplo_min_freq'],
+        count_threshold=config['haplo_min_count'],
         max_cores=config['max_cores']
     threads: config['max_cores']
     conda: "envs/prohap.yaml"
@@ -232,7 +233,8 @@ rule compute_haplotypes:
         "mkdir -p {params.tmp_dir}; mkdir -p log; mkdir -p results; "
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
-        "-chr {wildcards.chr} -af {params.AF_threshold} -foo {params.freq_threshold} -acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr}  -require_start {params.require_start} -ignore_UTR {params.ignore_UTR} "
+        "-chr {wildcards.chr} -af {params.AF_threshold} -foo {params.freq_threshold} -min_hap_count {params.count_threshold} "
+        "-acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} -require_start {params.require_start} -ignore_UTR {params.ignore_UTR} "
         "-threads {params.max_cores} -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_haplo_tables:

@@ -9,7 +9,11 @@ working_dir_name_var: variants_tmp      # directory for temp. files where indivi
 
 # The variant_vcf parameter contains a dictionary of objects describing different data sources of variants not to be included in the haplotype computation. Give an empty object if not included.
 # Dictionary is structured as follows:
-# <dataset_name> : { file: <VCF filename>, fasta_accession_prefix: <accession prefix for these variants in the resulting fasta file>, min_af: <minimal required minor allele frequency> }
+# <dataset_name> : { 
+#   file: <VCF filename>, 
+#   fasta_accession_prefix: <accession prefix for these variants in the resulting fasta file>, 
+#   min_af: <minimal required minor allele frequency> #   
+# }
 #
 # Example of usage:
 # variant_vcf:
@@ -24,7 +28,8 @@ included_transcript_biotypes: "protein_coding"                # Comma-separated 
 include_haplo: True # boolean value - True or False - whether or not to compute haplotypes. Default: True
 include_var: False  # boolean value - True or False - whether or not to compute individual variants. Default: False
 
-haplo_min_freq: 0.005   # minimal accepted value of a haplotype frequency. Default: 0.005
+haplo_min_freq: -1      # minimal accepted value of haplotype frequency (haplotypes below threshold will be discarded), specify -1 to use haplotype count instead. Default: -1
+haplo_min_count: 10     # minimal accepted count of occurrences for haplotypes (haplotypes below threshold will be discarded). Default: 10
 1kGP_min_af: 0.01       # minimal minor allele frequency (AF) threshold for 1000 Genomes Project variants. Default: 0.01
 
 # parameters

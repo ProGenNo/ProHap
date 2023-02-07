@@ -44,7 +44,7 @@ def check_protein_allele(change, start, stop):
     alt_len = len(change.split(':')[2])
     return (loc >= start) and (loc + alt_len <= stop)
 
-def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_db, chromosome, id_prefix, force_rf, threads, min_foo, ignore_UTR = True):
+def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_db, chromosome, id_prefix, force_rf, threads, min_foo = -1, min_count = 0, ignore_UTR = True):
     result_data = []
     
     global process_transcript_haplotypes
@@ -377,7 +377,12 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 
         # filter haplotypes by frequency
         # filtering is done at the and since some haplotypes could have been merged
-        result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-1] >= min_foo) ]
+        result_table = []
+        if (min_foo != -1):
+            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-1] >= min_foo) ]
+        else:
+            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-2] >= min_count) ]
+
         included_haplotype_ids = [ haplotype[3] for haplotype in result_table ]
 
         # remove haplotypes below threshold from the FASTA header data 
