@@ -64,7 +64,7 @@ parser.add_argument("-chr", dest="chromosome", required=True,
 parser.add_argument("-threads", dest="threads", required=False, type=int,
                     help="number of threads to use; default: 4", default=4)
 
-parser.add_argument("-hap_foo", dest="min_foo", required=False, type=float,
+parser.add_argument("-min_hap_foo", dest="min_foo", required=False, type=float,
                     help="Minimum frequency of a haplotype to be reported in the result (specify -1 to use count threshold instead); default: -1", default=-1)
 
 parser.add_argument("-min_hap_count", dest="min_hap_count", required=False, type=int,

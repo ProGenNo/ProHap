@@ -233,7 +233,7 @@ rule compute_haplotypes:
         "mkdir -p {params.tmp_dir}; mkdir -p log; mkdir -p results; "
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
-        "-chr {wildcards.chr} -af {params.AF_threshold} -foo {params.freq_threshold} -min_hap_count {params.count_threshold} "
+        "-chr {wildcards.chr} -af {params.AF_threshold} -min_hap_foo {params.freq_threshold} -min_hap_count {params.count_threshold} "
         "-acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} -require_start {params.require_start} -ignore_UTR {params.ignore_UTR} "
         "-threads {params.max_cores} -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
 
