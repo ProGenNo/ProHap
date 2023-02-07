@@ -48,6 +48,9 @@ parser.add_argument("-require_start", dest="require_start", required=False, type
 
 parser.add_argument("-ignore_UTR", dest="ignore_UTR", required=False, type=int,
                     help="flag: ignore variation in the UTR sequences, do not add UTR translation to proteins; default: 1", default=1)
+                    
+parser.add_argument("-skip_start_lost", dest="skip_start_lost", required=False, type=int,
+                    help="flag: ignore haplotypes where the start codon is lost; default: 1", default=1)
 
 parser.add_argument("-force_rf", dest="force_rf", required=False,
                     help="Force the most likely reading frame when start codon is not annotated or lost due to mutation, set to 0 to disable; default: 1", default=1)

@@ -44,7 +44,7 @@ def check_protein_allele(change, start, stop):
     alt_len = len(change.split(':')[2])
     return (loc >= start) and (loc + alt_len <= stop)
 
-def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_db, chromosome, id_prefix, force_rf, threads, min_foo = -1, min_count = 0, ignore_UTR = True):
+def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_db, chromosome, id_prefix, force_rf, threads, min_foo = -1, min_count = 0, ignore_UTR = True, skip_start_loss = True):
     result_data = []
     
     global process_transcript_haplotypes
@@ -172,6 +172,11 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 if (current_transcript['start_codon'] is not None) and (reading_frame > -1):
                     start_loc, reading_frame = check_start_change(start_loc, reading_frame, rna_location, ref_len, alt_len, force_rf)
                     if (start_loc == -1):
+                        # if we wish to skip haplotypes where the start codon is lost, continue to another haplotype
+                        if (skip_start_loss):
+                            validity_check = False
+                            break
+
                         start_loc = 0
                         protein_start = 0
                         start_lost = True
@@ -182,6 +187,9 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 rna_locations.append(rna_location)
                 ref_alleles.append(ref_allele)
                 alt_alleles.append(alt_allele)
+            
+            if (not validity_check):
+                continue
 
             # iterate through mutations second time, construct mutated cdna
             for ch_idx,change in enumerate(all_changes):
