@@ -127,6 +127,7 @@ rule split_variant_vcf:
         temp("tmp/variants_{vcf}/ready")
     params:
         output_prefix="tmp/variants_{vcf}/variants"
+    conda: "envs/prohap.yaml"
     shell:
         "python src/fragment_variant_vcf.py -i {input} -o {params.output_prefix} ; touch {output}"
 
