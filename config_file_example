@@ -33,10 +33,11 @@ haplo_min_count: 10     # minimal accepted count of occurrences for haplotypes (
 1kGP_min_af: 0.01       # minimal minor allele frequency (AF) threshold for 1000 Genomes Project variants. Default: 0.01
 
 # parameters
-var_require_start: 1    # Require annotation of canonical start codon for ProVar? 0 or 1 - default: 1
-haplo_require_start: 1  # Require annotation of canonical start codon for ProHap? 0 or 1 - default: 1
-haplo_ignore_UTR: 1     # Ignore variation in UTRs in ProHap? 0 or 1. If 0, UTR sequences are still removed in the final optimized database, but retained in the haplotypes FASTA. - default: 1 
-max_cores: 3            # Maximum number of cores used per chromosome, default: 3
+var_require_start: 1      # Require annotation of canonical start codon for ProVar? 0 or 1 - default: 1
+haplo_require_start: 1    # Require annotation of canonical start codon for ProHap? 0 or 1 - default: 1
+haplo_ignore_UTR: 1       # Ignore variation in UTRs in ProHap? 0 or 1. If 0, UTR sequences are still removed in the final optimized database, but retained in the haplotypes FASTA. - default: 1
+haplo_skip_start_lost: 1  # Ignore haplotypes where the start codon is lost? 0 or 1. If 0, haplotype cDNA sequences are translated in 3 reading frames including UTR sequences. - default: 1
+max_cores: 3              # Maximum number of cores used per chromosome, default: 3
 
 # output files
 final_fasta_file: <resulting fasta filename>

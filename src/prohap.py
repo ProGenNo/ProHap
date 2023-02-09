@@ -47,10 +47,10 @@ parser.add_argument("-require_start", dest="require_start", required=False, type
                     help="flag: require annotation of the start codon, set to 0 to disable; default: 1", default=1)
 
 parser.add_argument("-ignore_UTR", dest="ignore_UTR", required=False, type=int,
-                    help="flag: ignore variation in the UTR sequences, do not add UTR translation to proteins; default: 1", default=1)
+                    help="flag (0 or 1): ignore variation in the UTR sequences, do not add UTR translation to proteins; default: 1", default=1)
                     
 parser.add_argument("-skip_start_lost", dest="skip_start_lost", required=False, type=int,
-                    help="flag: ignore haplotypes where the start codon is lost; default: 1", default=1)
+                    help="flag (0 or 1): ignore haplotypes where the start codon is lost; default: 1", default=1)
 
 parser.add_argument("-force_rf", dest="force_rf", required=False,
                     help="Force the most likely reading frame when start codon is not annotated or lost due to mutation, set to 0 to disable; default: 1", default=1)
@@ -157,7 +157,7 @@ else:
 
         # align the variant coordinates to transcript, translate into the protein database
         print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
-        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, args.min_foo, args.min_hap_count, args.ignore_UTR)
+        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, args.min_foo, args.min_hap_count, args.ignore_UTR, args.skip_start_lost)
         result_data = haplo_results[0]
         result_sequences = haplo_results[1]
 
