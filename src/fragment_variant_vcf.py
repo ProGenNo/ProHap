@@ -19,10 +19,20 @@ infile = open(args.input_file, 'r')
 vcf_reader = vcf.Reader(infile)
 vcf_data = []
 
-def fill_missing(val):
-	if (not re.match(r'[CGTA]', str(val))):
-		return '-'
-	return val
+def fill_missing_seq(alt):
+    try:
+        if (not re.match(r'[CGTA]', str(alt.sequence))):
+            return '-'
+        else:
+            return alt.sequence
+    except:
+        return '-'
+
+def fill_missing_str(allele):
+    if (not re.match(r'[CGTA]', str(allele))):
+            return '-'
+    else:
+        return allele
 
 for record in vcf_reader:
     for i,alt in enumerate(record.ALT):        
@@ -36,7 +46,7 @@ for record in vcf_reader:
         if record.ID is not None:
             ID = record.ID
 
-        vcf_data.append([record.CHROM.replace('chr', ''), record.POS, ID, fill_missing(record.REF), fill_missing(alt.sequence), 'MAF=' + str(MAF)])
+        vcf_data.append([record.CHROM.replace('chr', ''), record.POS, ID, fill_missing_str(record.REF), fill_missing_seq(alt), 'MAF=' + str(MAF)])
 
 df = pd.DataFrame(data=vcf_data, columns=['#CHROM','POS','ID','REF','ALT','INFO'])
 CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X', 'Y']
