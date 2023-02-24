@@ -46,7 +46,7 @@ while metadata != "":
 
     if ("*" in sequence) or (start_pos > 0):
 
-        positions = [0] + [m.start() + 1 for m in re.finditer('\*', sequence)]  # remember the positions of stop codons
+        positions = [0] + [m.start() + 1 for m in re.finditer('\*', sequence) if ((m.start() + 1) < len(sequence))]  # remember the positions of stop codons, but ignore if the stop codon is the last letter in the sequence
         protein_fragments = []
 
         if start_pos > 0:

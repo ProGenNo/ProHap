@@ -40,4 +40,4 @@ df['INFO'] = '.'
 df['QUAL'] = '.'
 df['FILTER'] = '.'
 
-df.to_csv(args.output_file, sep='\t', header=True, index=False)
+df[['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO']].sort_values(by=['#CHROM', 'POS']).to_csv(args.output_file, sep='\t', header=True, index=False)
