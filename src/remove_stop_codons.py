@@ -49,24 +49,36 @@ while metadata != "":
         positions = [0] + [m.start() + 1 for m in re.finditer('\*', sequence) if ((m.start() + 1) < len(sequence))]  # remember the positions of stop codons, but ignore if the stop codon is the last letter in the sequence
         protein_fragments = []
 
+        # start codon position available -> split into 5'UTR, 3'UTR and mORF
         if start_pos > 0:
-            protein_fragments = sequence[:start_pos].split('*')
-            main_protein = sequence[start_pos:].split('*', 1)[0]
+            protein_fragments = sequence[:start_pos].split('*')  # add all parts of the 5'UTR translation
+            main_protein = sequence[start_pos:].split('*', 1)[0] # add the main protein sequence
+
+            # add all parts of the 3'UTR translation, if any
             if (start_pos+len(main_protein)+1 < len(sequence)):
-                protein_fragments.extend(sequence[start_pos+len(main_protein)+1:].split('*')) 
+                UTR_sequences = sequence[start_pos+len(main_protein)+1:].split('*')
+
+                # if the protein ends with a stop codon sign, don't add the last empty sequence
+                if len(UTR_sequences[-1]) == 0:
+                    UTR_sequences = UTR_sequences[:-1]
+                protein_fragments.extend(UTR_sequences)
 
             positions.append(start_pos)
             protein_fragments.append(main_protein)
 
-            #protein_fragments = [ frag for frag in protein_fragments if len(frag) > 0 ]
-
+        # start codon position unknown or 0 -> assume the sequence until the first stop codon is the mORF, mark everything else as UTR
         else:
             protein_fragments = sequence.split('*')
-            
+
+            # if the protein ends with a stop codon sign, don't add the last empty sequence
+            if len(protein_fragments[-1]) == 0:
+                protein_fragments = protein_fragments[:-1]
+
+        # write all the subsequences as separate fasta entries
         for i,fragment in enumerate(protein_fragments):
             if (len(fragment) >= args.min_len):
-                
                 new_acc = accession
+
                 if (positions[i] < start_pos):
                     new_acc += "_5UTR_" + str(i)
                 elif (positions[i] > start_pos):
@@ -81,6 +93,7 @@ while metadata != "":
         #sequence = sequence.replace('*', '')   # remove the stop codons
         #metadata = metadata[:-1] + " stop:" + ".".join(str(x) for x in positions) + '\n'
 
+    # no stop codon in the sequence, start codon at position 0 -> do nothing
     elif len(sequence) >= args.min_len:
         args.output_file.write(tag + '|' + accession + '|position_within_protein:0 ' + description)    # if non-empty, write the metadata line
 
