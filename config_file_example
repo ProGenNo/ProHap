@@ -12,13 +12,13 @@ working_dir_name_var: variants_tmp      # directory for temp. files where indivi
 # <dataset_name> : { 
 #   file: <filename, expecting VCF format>, 
 #   fasta_accession_prefix: <accession prefix for these variants in the resulting fasta file>, 
-#   min_af: <minimal required minor allele frequency> #   
+#   min_af: <minimal required minor allele frequency, specify -1 to include alleles without AF information>   
 # }
 #
 # Example of usage:
 # variant_vcf:
 #   EnsemblVar: { file: "data/ensembl_vcf/homo_sapiens_incl_consequences.vcf", fasta_accession_prefix: "ensvar_", min_af: 0.01 }
-#   RareVar: { file: "data/inhouse_vcf/inhouse_variation.vcf", fasta_accession_prefix: "rarevar_", min_af: 0 }
+#   RareVar: { file: "data/inhouse_vcf/inhouse_variation.vcf", fasta_accession_prefix: "rarevar_", min_af: -1 }
 
 variant_vcf: {}
 
