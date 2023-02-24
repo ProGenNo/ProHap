@@ -16,7 +16,7 @@ all_proteins = read_fasta(args.input_file)
 outfile = open(args.output_file, 'w')
 
 for protein in all_proteins.values():
-	proteinIDs = protein['description'].split('protein_IDs:', 1)[1].split(maxsplit=1)[0].split(',')
+	proteinIDs = protein['description'].split('protein_IDs:', 1)[1].split(maxsplit=1)[0].split(';')
 	is_UTR = all([ 'UTR' in id for id in proteinIDs ])
 	if not is_UTR:
 		outfile.write('>' + protein['tag'] + '|' + protein['accession'] + '|' + protein['description'] + '\n')
