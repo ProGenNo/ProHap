@@ -23,10 +23,10 @@ Below is an example of the `config.yaml` file to run ProHap on the 1000 Genomes 
  - Haplotype frequency threshold: 0.005
  - Ensembl version: 108
  - Include only transcripts specified in `data/transcripts_reference_108.csv`
- - Ignore transcripts without mORF annotation for 1kGP and custom VCF files
+ - Ignore transcripts without mORF annotation for 1kGP and custom VCF files (i.e., require annotation of the start codon)
  - Keep UTR variants when computing the list of haplotypes, but remove the UTR sequences from the final database
- - Ignore haplotypes where the start codon is lost
- - Use 3 CPU cores per variant
+ - Ignore haplotypes where the start codon is lost due to a mutation
+ - Use 3 CPU cores per chromosome
  
 ```
 1kGP_FTP_URL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/
