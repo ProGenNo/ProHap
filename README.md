@@ -25,6 +25,7 @@ Below is an example of the `config.yaml` file to run ProHap on the 1000 Genomes 
  - Include only transcripts specified in `data/transcripts_reference_108.csv`
  - Ignore transcripts without mORF annotation for 1kGP and custom VCF files
  - Keep UTR variants when computing the list of haplotypes, but remove the UTR sequences from the final database
+ - Ignore haplotypes where the start codon is lost
  - Use 3 CPU cores per variant
  
 ```
@@ -39,7 +40,7 @@ working_dir_name_var: variants_tmp
 
 variant_vcf:
    RareVar: { file: "data/clinvar_vcf/selected_clinvar.vcf", fasta_accession_prefix: "clinvar_", min_af: 0 }
-   InhouseVar: { file: "data/inhouse_vcf/inhouse_variation.csv", fasta_accession_prefix: "rarevar_", min_af: 0 }
+   InhouseVar: { file: "data/inhouse_vcf/inhouse_variation.csv", fasta_accession_prefix: "inhouse_", min_af: 0 }
 
 custom_transcript_list: "data/transcripts_reference_108.csv"
 included_transcript_biotypes: "all"
