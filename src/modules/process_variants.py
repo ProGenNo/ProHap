@@ -11,6 +11,7 @@ result_columns = [
     'chromosome',
     'transcript_biotype',
     'variantID',
+    'vcfID',
     'DNA_change', 
     'cDNA_change', 
     'protein_change',
@@ -122,7 +123,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             else:
                 alt_allele = Seq(vcf_row['ALT'])
 
-            var_ID = 'var_chr' + chromosome + '_' + accession_prefix + str(vcf_row['ID']) + '_' + str(ref_allele) + ">" + str(alt_allele)
+            var_ID = transcript_id + '_chr' + chromosome + '_' + accession_prefix + hex(index)[2:]
 
             DNA_change = str(vcf_row['POS']) + ':' + vcf_row['REF'] + '>' + vcf_row['ALT']
 
@@ -198,6 +199,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                 chromosome,
                 current_transcript['biotype'],
                 var_ID,
+                vcf_row['ID'],
                 DNA_change,
                 cDNA_change,
                 protein_change,
