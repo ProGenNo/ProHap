@@ -94,8 +94,10 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
             all_protein_changes = []    # list of changes in the protein sequence including synonymous mutations
             protein_changes = []        # list of changes in the protein sequence
             reading_frame = -1          # reading frame (0, 1 or 2), if known (inferred from the start codon position)
+            reading_frame_ref = -1      # reading frame (0, 1 or 2) in the reference protein, if known (inferred from the start codon position) - can differ from the haplotype if there are indels in the UTR
             start_loc = 0               # location of the first nucleotide of the start codon with respect to the transcript start (0 if unknown)
             protein_start = 0           # length of the prefix (5'UTR) in protein
+            protein_start_ref = 0       # length of the prefix (5'UTR) in the reference protein (can differ if there are indels in the UTR)
             spl_junctions_affected = [] # list of splicing junctions where a change takes place (identified by order, where 1 is the junction between the 1. and 2. exon), empty if none affected
             frameshifts = []            # boolean for every change whether it does or does not introduce a frameshift
 
@@ -107,6 +109,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
 
                 reading_frame = start_loc % 3
                 protein_start = int((start_loc - reading_frame) / 3)
+                protein_start_ref = protein_start
 
             # Alternatively, use the stop codon in the same way, assume start at codon 0
             elif ((current_transcript['stop_codon'] is not None) and force_rf):
@@ -115,6 +118,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     stop_loc = len(cdna_sequence) - stop_loc - 3  
 
                 reading_frame = stop_loc % 3
+                reading_frame_ref = reading_frame
 
             all_changes = row['Changes'].split(';')
             all_AFs = row['AlleleFrequencies'].split(';')
@@ -239,7 +243,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 rf_changes = []     # residues directly affected (ignoring prossible frameshift), stored in a list for all three reading frames
                 is_synonymous = []
                 
-                ref_alleles_protein, protein_location_ref = get_affected_codons(cdna_sequence, rna_location, ref_len, reading_frame, protein_start)
+                ref_alleles_protein, protein_location_ref = get_affected_codons(cdna_sequence, rna_location, ref_len, reading_frame_ref, protein_start_ref)
 
                 # need to readjust the position in the mutated sequence in case there were indels before
                 rna_location += sequence_length_diff     
