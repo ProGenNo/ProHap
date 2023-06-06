@@ -140,7 +140,7 @@ def get_protein_name_dict(fasta_file):
 
 # returns a list of tryptic peptides, allowed number of missed cleavages provided in argument
 # peptide length threshold in argument
-def digest(seq, missed_c, min_length, max_length):
+def digest(seq, missed_c, min_length, max_length, cleavage_pattern):
     buffer = ""
     queue = []          # queue of tryptic peptides of any length
     position_queue = [] # starting positions of these peptides within given sequence
@@ -151,9 +151,16 @@ def digest(seq, missed_c, min_length, max_length):
     prev_cleavage = 0
 
     for aa_idx in range(len(seq)-1):
-        buffer += seq[aa_idx]
+        # check if there's a residue preventing cleavage
+        if (seq[aa_idx+1] in cleavage_pattern['restrictionAfter']) or ((aa_idx > 0) and (seq[aa_idx-1] in cleavage_pattern['restrictionBefore'])):
+            buffer += seq[aa_idx]
+            continue
 
-        if ((seq[aa_idx] == 'K' or seq[aa_idx] == 'R') and seq[aa_idx+1] != 'P'):
+        # check whether we shouldn't cleave before adding the current residue
+        if not (seq[aa_idx] in cleavage_pattern['aminoAcidAfter']):
+            buffer += seq[aa_idx]
+
+        if (seq[aa_idx] in cleavage_pattern['aminoAcidBefore']) or (seq[aa_idx] in cleavage_pattern['aminoAcidAfter']):
             queue.append(buffer)
             position_queue.append(prev_cleavage)
 
@@ -172,8 +179,8 @@ def digest(seq, missed_c, min_length, max_length):
                         peptides.append(pep_missed)
                         positions.append(position_queue[-(no_missed+1)])
 
-            buffer = ""
-            prev_cleavage = aa_idx+1
+            buffer = "" if not (seq[aa_idx] in cleavage_pattern['aminoAcidAfter']) else seq[aa_idx]
+            prev_cleavage = aa_idx+1 if not (seq[aa_idx] in cleavage_pattern['aminoAcidAfter']) else aa_idx
 
     # store the remaining peptide on the c-terminal
     buffer += seq[-1]

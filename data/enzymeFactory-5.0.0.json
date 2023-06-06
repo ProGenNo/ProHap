@@ -1,0 +1,264 @@
+{
+  "enzymes": {
+    "Lys-N": {
+      "name": "Lys-N",
+      "aminoAcidBefore": [],
+      "aminoAcidAfter": [
+        "K"
+      ],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "id": 0
+    },
+    "Trypsin (no P rule)": {
+      "name": "Trypsin (no P rule)",
+      "aminoAcidBefore": [
+        "R",
+        "K"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001313",
+        "name": "Trypsin/P",
+        "id": 0
+      },
+      "id": 0
+    },
+    "CNBr": {
+      "name": "CNBr",
+      "aminoAcidBefore": [
+        "M"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001307",
+        "name": "CNBr",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Arg-C": {
+      "name": "Arg-C",
+      "aminoAcidBefore": [
+        "R"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [
+        "P"
+      ],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001303",
+        "name": "Arg-C",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Pepsin A": {
+      "name": "Pepsin A",
+      "aminoAcidBefore": [
+        "L",
+        "F"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001311",
+        "name": "Pepsin A",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Thermolysin": {
+      "name": "Thermolysin",
+      "aminoAcidBefore": [],
+      "aminoAcidAfter": [
+        "A",
+        "I",
+        "L",
+        "M",
+        "F",
+        "V"
+      ],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "id": 0
+    },
+    "Lys-C (no P rule)": {
+      "name": "Lys-C (no P rule)",
+      "aminoAcidBefore": [
+        "K"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001310",
+        "name": "Lys-C/P",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Chymotrypsin": {
+      "name": "Chymotrypsin",
+      "aminoAcidBefore": [
+        "Y",
+        "L",
+        "F",
+        "W"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [
+        "P"
+      ],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001306",
+        "name": "Chymotrypsin",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Trypsin": {
+      "name": "Trypsin",
+      "aminoAcidBefore": [
+        "R",
+        "K"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [
+        "P"
+      ],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001251",
+        "name": "Trypsin",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Arg-C (no P rule)": {
+      "name": "Arg-C (no P rule)",
+      "aminoAcidBefore": [
+        "R"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "id": 0
+    },
+    "Chymotrypsin (no P rule)": {
+      "name": "Chymotrypsin (no P rule)",
+      "aminoAcidBefore": [
+        "Y",
+        "L",
+        "F",
+        "W"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "id": 0
+    },
+    "Asp-N (ambic)": {
+      "name": "Asp-N (ambic)",
+      "aminoAcidBefore": [],
+      "aminoAcidAfter": [
+        "D",
+        "E"
+      ],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001305",
+        "name": "Asp-N_ambic",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Asp-N": {
+      "name": "Asp-N",
+      "aminoAcidBefore": [],
+      "aminoAcidAfter": [
+        "D"
+      ],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001304",
+        "name": "Asp-N",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Lys-C": {
+      "name": "Lys-C",
+      "aminoAcidBefore": [
+        "K"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [
+        "P"
+      ],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001309",
+        "name": "Lys-C",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Glu-C": {
+      "name": "Glu-C",
+      "aminoAcidBefore": [
+        "E"
+      ],
+      "aminoAcidAfter": [],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "cvTerm": {
+        "ontology": "PSI-MS",
+        "accession": "MS:1001917",
+        "name": "glutamyl endopeptidase",
+        "id": 0
+      },
+      "id": 0
+    },
+    "Arg-N": {
+      "name": "Arg-N",
+      "aminoAcidBefore": [],
+      "aminoAcidAfter": [
+        "R"
+      ],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "id": 0
+    },
+    "LysargiNase": {
+      "name": "LysargiNase",
+      "aminoAcidBefore": [],
+      "aminoAcidAfter": [
+        "R",
+        "K"
+      ],
+      "restrictionBefore": [],
+      "restrictionAfter": [],
+      "id": 0
+    }
+  }
+}
