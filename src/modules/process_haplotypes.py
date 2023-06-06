@@ -183,6 +183,8 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
 
                         start_loc = 0
                         protein_start = 0
+                        protein_start_ref = 0
+                        reading_frame_ref = -1
                         start_lost = True
                     else:
                         protein_start = int((start_loc - reading_frame) / 3)
