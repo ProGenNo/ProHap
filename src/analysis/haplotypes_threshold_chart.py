@@ -48,18 +48,20 @@ for freq in x:
     y_var_1.append((len(variants_df_1[variants_df_1['max_haplotype_frequency'] >= freq]) / max_varcount) * 100)
     y_hap_1.append((len(haplo_df_1[haplo_df_1['frequency'] >= freq]) / max_hapcount) * 100)
     y_var_2.append((len(variants_df_2[variants_df_2['max_haplotype_frequency'] >= freq]) / max_varcount) * 100)
-    y_hap_2.append((len(haplo_df_2[haplo_df_1['frequency'] >= freq]) / max_hapcount) * 100)
+    y_hap_2.append((len(haplo_df_2[haplo_df_2['frequency'] >= freq]) / max_hapcount) * 100)
 
 print ('Creating the plot')
 plt.figure()
-plt.plot(x, y_var_1, label='variants')
-plt.plot(x, y_var_2, label='variants (UTRs ignored)', linestyle='--')
+plt.plot(x, y_var_1, color='navy', label='variants')
+plt.plot(x, y_var_2, color='navy', label='variants (UTRs ignored)', linestyle='--')
 plt.plot(x, y_hap_1, color='red', label='haplotypes')
 plt.plot(x, y_hap_2, color='red', label='haplotypes (UTRs ignored)', linestyle='--')
 
 plt.xlabel("Haploptype Frequency Threshold")
 plt.ylabel('% of included variants / haplotypes')
+plt.xticks([0,0.005,0.01,0.015,0.02,0.03,0.04,0.05], rotation=30)
 plt.grid()
 plt.legend()
+plt.tight_layout()
 
 plt.savefig(args.output_file, dpi=300)

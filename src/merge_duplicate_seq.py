@@ -71,8 +71,12 @@ for i,protein in enumerate(result_proteins):
 		tag += 'var'
 	elif ('generic_manual' in protein['tags']):		# in case some sequences were added to the fasta manually
 		tag += 'manual'
-	else:
+	elif ('generic_enshap' in protein['tags']):
 		tag += 'enshap'
+	elif ('generic_decoyvar' in protein['tags']):
+		tag += 'decoyvar'
+	else:
+		tag += 'other'
 
 	outfile.write('>' + tag + '|prot_' + hex(i)[2:] + '|' + description.replace('\n', '') + '\n')
 	outfile.write(protein['sequence'] + '\n')

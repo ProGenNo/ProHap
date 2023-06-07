@@ -34,9 +34,9 @@ all_proteins = read_fasta(args.input_file)
 
 json_file = open(args.enzyme_json, 'r')
 enzyme_patterns = json.load(json_file)
-if (args.enzyme not in enzyme_patterns):
+if (args.enzyme not in enzyme_patterns['enzymes']):
     raise Exception("Cleavage pattern for the enzyme " + args.enzyme + " not found in the provided JSON: " + args.enzyme_json)
-cleavage_pattern = enzyme_patterns[args.enzyme]
+cleavage_pattern = enzyme_patterns['enzymes'][args.enzyme]
 json_file.close()
 
 all_peptides = []
@@ -62,5 +62,5 @@ for prot_idx,protein in enumerate(list(all_proteins.values())):
 
 df_data = [ ['pep_' + hex(i)[2:], all_peptides[i], ';'.join(all_matching_proteins[i]), ';'.join(positions)] for i,positions in enumerate(all_peptide_positions) ]
 
-output_df = pd.DataFrame(data=df_data, columns=['Sequence', 'Proteins', 'Positions'])
+output_df = pd.DataFrame(data=df_data, columns=['ID', 'Sequence', 'Proteins', 'Positions'])
 output_df.to_csv(args.output_file, header=True, index=False, sep='\t')

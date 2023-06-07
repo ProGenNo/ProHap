@@ -104,6 +104,19 @@ def get_rna_position_simple(transcript_id,dna_location, exons):
 
     return rna_location
 
+def rna_to_dna_loc(rna_location, exons):
+    rna_loc_accum = 0
+
+    # find the corresponding exon - see how many nucleotides were there before
+    for exon in exons:
+        exon_len = exon.end - exon.start + 1
+
+        if (rna_location < (rna_loc_accum + exon_len)):
+            return exon.start + rna_location - rna_loc_accum
+
+        rna_loc_accum += exon_len
+
+    return -1
 
 # check if we have an alteration of the start codon (either inframe indel before it, or stop loss)
 # return new start location, -1 if start lost

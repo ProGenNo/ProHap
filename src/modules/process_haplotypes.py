@@ -108,6 +108,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     start_loc = len(cdna_sequence) - start_loc - 3  
 
                 reading_frame = start_loc % 3
+                reading_frame_ref = reading_frame
                 protein_start = int((start_loc - reading_frame) / 3)
                 protein_start_ref = protein_start
 
@@ -334,7 +335,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                         ';'.join(protein_changes),
                         reading_frame,
                         protein_start,
-                        current_transcript['start_codon'] is not None,
+                        current_transcript['start_codon'] is None,
                         start_lost,
                         spl_junctions_affected_str,
                         row['Count'],
@@ -382,7 +383,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     ';'.join(protein_changes),
                     reading_frame,
                     protein_start,
-                    current_transcript['start_codon'] is not None,
+                    current_transcript['start_codon'] is None,
                     start_lost,
                     spl_junctions_affected_str,
                     row['Count'],
