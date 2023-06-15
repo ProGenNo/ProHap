@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Documentation for the ProHap tool">
+    <meta name="author" content="Jakub Vasicek">
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+</head>
+
+<body class="bg-light">
+    <div class="container">
+    <div class="py-5 text-left">
+        <h2>Create your config.yaml file</h2>        
+    </div>
+    <div class="row">
+        <div class="col">
+            <form id="form-general-params">
+                <h3 class="mb-4">General parameters</h3>                
+                <hr class="mb-1">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="ensembl-release">Ensembl release</label>
+                        <input type="text" class="form-control very-short-input" name="ensembl-release" value="108" id="ensembl-release" required="required" aria-required="true">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <hr class="mb-1">
+                        <legend class="col-form-label col-sm-2 pt-0">Select transcripts</legend>
+                        <div class="d-block my-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-1" value="default" checked>
+                                <label class="form-check-label" for="transcript-radio-1">Use the default set of transcripts</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-2" value="biotype">
+                                <label class="form-check-label" for="transcript-radio-2">Select transcripts by biotype (provide below)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-3" value="custom">
+                                <label class="form-check-label" for="transcript-radio-3">User-defined list of transcripts (provide below)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="d-block my-1">
+                            <label for="transcript-biptypes">
+                                Transcript biotypes to be included
+                                <span class="text-muted">(Comma-separated list, use biotypes from <a href="https://www.gencodegenes.org/pages/biotypes.html">Gencode</a>)</span>
+                            </label>
+                            <input type="text" class="form-control" name="transcript-biotypes" value="protein_coding" id="transcript-biotypes" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="d-block my-1">
+                            <label for="transcript-file-path">
+                                Path to the custom transcript list
+                                <span class="text-muted">(CSV file, see data/transcripts_reference_108.csv)</span>
+                            </label>
+                            <input type="text" class="form-control" name="transcript-file-path" value="" id="transcript-file-path" disabled>
+                        </div>
+                        <hr class="mb-1">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="d-block my-1">
+                            <label for="final-fasta-path">
+                                Path to the final FASTA file
+                            </label>
+                            <input type="text" class="form-control" name="final-fasta-path" value="" id="final-fasta-path" required="required" aria-required="true" placeholder="e.g. results/final_database.fa">
+                        </div>
+                    </div>
+                </div>
+                <hr class="mb-1">
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col col-md-6">
+            <form id="form-provar-params">
+                <h3 class="mb-4 text-center">ProVar</h3>
+                <hr class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="provar-switch" checked>
+                    <label class="form-check-label" for="provar-switch">Use ProVar <span class="text-muted">(Include individual variants in the final FASTA file)</span></label>
+                </div>
+                <hr class="mb-1">
+                <h5 class="mb-3 text-left">Add your VCF files:</h5>    
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="VCF-name-1">Dataset name</label>
+                        <input type="text" class="form-control" name="VCF-name-1" value="" id="VCF-name-1" required="required" aria-required="true" placeholder="e.g. RareVariants">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="VCF-path-1">VCF file path</label>
+                        <input type="text" class="form-control" name="VCF-path-1" value="" id="VCF-path-1" required="required" aria-required="true" placeholder="e.g. data/inhouse.vcf">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="VCF-MAF-1">
+                            MAF threshold
+                        </label>
+                        <input type="text" class="form-control short-input" name="VCF-MAF-1" value="0" id="VCF-MAF-1" required="required" aria-required="true">
+                        <small class="form-text text-muted">Specify 0 to skip thresholding</small>
+                    </div>
+                </div>
+                <hr class="mb-1">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="var_require_start" checked>
+                    <label class="form-check-label" for="var_require_start">Require annotation of the start codon in transcripts</label>
+                </div>
+                <hr class="mb-1">
+                <label for="var_fasta_file">
+                    Path to the variant FASTA file
+                </label>
+                <input type="text" class="form-control" name="var_fasta_file" value="" id="var_fasta_file" required="required" aria-required="true" placeholder="e.g. results/variants.fa">
+                <div class="mb-1"></div>
+                <label for="var_table_file">
+                    Path to the variant metadata table
+                </label>
+                <input type="text" class="form-control" name="var_table_file" value="" id="var_table_file" required="required" aria-required="true" placeholder="e.g. results/variants.tsv">
+            </form>
+        </div>
+        <div class="col col-md-6">
+            <form id="form-prohap-params">
+                <h3 class="mb-4 text-center">ProHap</h3>  
+                <hr class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="prohap-switch" checked>
+                    <label class="form-check-label" for="prohap-switch">Use ProHap <span class="text-muted">(Include protein haplotypes in the final FASTA file)</span></label>
+                </div>
+                <hr class="mb-1">
+                <label for="phased-vcf-url">URL of the data set of phased genotpyes</label>
+                <input type="text" class="form-control" name="phased-vcf-url" value="http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/" id="phased-vcf-url" required="required" aria-required="true">
+                <small class="form-text text-muted">Default: 1000 Genomes Project on GRCh38</small>
+                <div class="mb-1"></div>
+                <label for="phased-vcf-filename">Name of the VCF files
+                </label>
+                <input type="text" class="form-control" name="phased-vcf-filename" value="ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf" id="phased-vcf-filename" required="required" aria-required="true">
+                <small class="form-text text-muted">VCFs are expected per chromosome, replace the chromosome number with "{chr}"</small>
+                <hr class="mb-1">
+                <legend class="col-form-label col-md-4 pt-0">Threshold haplotypes by</legend>
+                <div class="d-block my-1">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="haplo-threshold-by" id="haplo-threshold-by-1" value="default" checked>
+                        <label class="form-check-label" for="haplo-threshold-by-1">Haplotype frequency</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="haplo-threshold-by" id="haplo-threshold-by-2" value="biotype">
+                        <label class="form-check-label" for="haplo-threshold-by-2">Haplotype occurrence count</label>
+                    </div>
+                </div>
+                <label for="haplo-threshold">
+                    Threshold value
+                </label>
+                <input type="text" class="form-control very-short-input" name="haplo-threshold" value="0" id="haplo-threshold" required="required" aria-required="true">
+                <small class="form-text text-muted">Specify 0 to skip haplotype thresholding</small>
+                <hr class="mb-1">
+                <label for="phased-min-af">
+                    MAF threshold
+                </label>
+                <input type="text" class="form-control very-short-input" name="phased-min-af" value="0.01" id="phased-min-af" required="required" aria-required="true">
+                <small class="form-text text-muted">Variants under this threshold will not be included in haplotypes</small>
+                <hr class="mb-1">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="haplo_require_start" checked>
+                    <label class="form-check-label" for="haplo_require_start">Require annotation of the start codon in transcripts</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="haplo_ignore_UTR" checked>
+                    <label class="form-check-label" for="haplo_ignore_UTR">Ignore variation in UTR regions</label><br>
+                    <small class="form-text text-muted">If disabled, UTR sequences are still removed in the final optimized database, but retained in the haplotypes FASTA.</small>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="haplo_skip_start_lost" checked>
+                    <label class="form-check-label" for="haplo_skip_start_lost">Skip haplotypes where the start codon is lost</label><br>
+                    <small class="form-text text-muted">If disabled, these haplotype cDNA sequences are translated in 3 reading frames, including UTR sequences.</small>
+                </div>
+                <hr class="mb-1">
+                <label for="haplo_fasta_file">
+                    Path to the haplotype FASTA file
+                </label>
+                <input type="text" class="form-control" name="haplo_fasta_file" value="" id="haplo_fasta_file" required="required" aria-required="true" placeholder="e.g. results/haplotypes.fa">
+                <div class="mb-1"></div>
+                <label for="haplo_table_file">
+                    Path to the haplotype metadata table
+                </label>
+                <input type="text" class="form-control" name="haplo_table_file" value="" id="haplo_table_file" required="required" aria-required="true" placeholder="e.g. results/haplotypes.tsv">
+            </form>
+        </div>
+    </div>
+    <hr class="mb-3">
+    <h5 class="mb-3">Copy the content below to your config.yaml file:</h5>
+    <div class="row">
+        <div class="col-md-8" id="config-content">            
+        </div>
+    </div>
+</div>
+
+<footer class="my-5 pt-5 text-muted text-center">
+    <p class="mb-1">2023 University of Bergen</p>
+</footer>
+
+<style>
+    .container {
+        margin-top: 5vh;
+    }
+    .short-input {
+        width: 35%;
+    }
+    .very-short-input {
+        width: 15%;
+    }
+    #config-content {
+        background: #bbb;
+    }
+</style>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+
+<script lang="ts">
+    d3.select('#form-general-params').on('change', (evt) => {
+        d3.select('#config-content').html('Content changed!')
+    })
+
+</script>
+</body>
+</html>
