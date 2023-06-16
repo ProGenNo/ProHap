@@ -88,28 +88,32 @@
                 <h3 class="mb-4 text-center">ProVar</h3>
                 <hr class="mb-3">
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="provar-switch" checked>
+                    <input class="form-check-input" type="checkbox" id="provar-switch">
                     <label class="form-check-label" for="provar-switch">Use ProVar <span class="text-muted">(Include individual variants in the final FASTA file)</span></label>
                 </div>
                 <hr class="mb-1">
-                <h5 class="mb-3 text-left">Add your VCF files:</h5>    
-                <div class="row">
-                    <div class="col-md-3">
-                        <label for="VCF-name-1">Dataset name</label>
-                        <input type="text" class="form-control" name="VCF-name-1" value="" id="VCF-name-1" required="required" aria-required="true" placeholder="e.g. RareVariants">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="VCF-path-1">VCF file path</label>
-                        <input type="text" class="form-control" name="VCF-path-1" value="" id="VCF-path-1" required="required" aria-required="true" placeholder="e.g. data/inhouse.vcf">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="VCF-MAF-1">
-                            MAF threshold
-                        </label>
-                        <input type="text" class="form-control short-input" name="VCF-MAF-1" value="0" id="VCF-MAF-1" required="required" aria-required="true">
-                        <small class="form-text text-muted">Specify 0 to skip thresholding</small>
+                <h5 class="mb-3 text-left">Add your VCF files:</h5>  
+                <div id="vcf-file-specs">  
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="VCF-name-1">Dataset name</label>
+                            <input type="text" class="form-control" name="VCF-name-1" value="" id="VCF-name-1" required="required" aria-required="true" placeholder="e.g. RareVariants">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="VCF-path-1">VCF file path</label>
+                            <input type="text" class="form-control" name="VCF-path-1" value="" id="VCF-path-1" required="required" aria-required="true" placeholder="e.g. data/inhouse.vcf">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="VCF-MAF-1">
+                                MAF threshold
+                            </label>
+                            <input type="text" class="form-control short-input" name="VCF-MAF-1" value="0" id="VCF-MAF-1" required="required" aria-required="true">
+                            <small class="form-text text-muted">Specify 0 to skip thresholding</small>
+                        </div>
                     </div>
                 </div>
+                <div class="mb-1"></div>
+                <button type="button" class="btn btn-outline-primary" id="add-vcf-file">Add</button>
                 <hr class="mb-1">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="var_require_start" checked>
@@ -198,7 +202,7 @@
     <hr class="mb-3">
     <h5 class="mb-3">Copy the content below to your config.yaml file:</h5>
     <div class="row">
-        <div class="col-md-8" id="config-content">            
+        <div class="col" id="config-content">            
         </div>
     </div>
 </div>
@@ -224,12 +228,148 @@
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+<script src="configBuilder.js"></script>
 
 <script lang="ts">
+    let general_config_html = setGeneralParams("108", "data/transcripts_reference_108.csv", "", "")
+    let provar_config_html = setProVarParams(false, [], true, '', '')
+    let prohap_config_html = setProHapParams( 
+        true, 
+        "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/", 
+        "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf", 
+        "-1", "0", "0.01", true, true, true, "", ""
+    )
+
+    function update_config_text() {
+        d3.select('#config-content').html(general_config_html + provar_config_html + prohap_config_html)
+    }
+
+    update_config_text()
+
     d3.select('#form-general-params').on('change', (evt) => {
-        d3.select('#config-content').html('Content changed!')
+        const ensembl_release = evt.currentTarget[0].value
+
+        let custom_tr_list = ""
+        let transcript_biotypes = ""
+        if (evt.currentTarget[1].checked) {
+            custom_tr_list = "data/transcripts_reference_108.csv"
+            d3.select('#transcript-biotypes').attr('disabled', true)
+            d3.select('#transcript-file-path').attr('disabled', true)
+        } else if (evt.currentTarget[2].checked) {
+            transcript_biotypes = evt.currentTarget[4].value
+            d3.select('#transcript-biotypes').attr('disabled', null)
+            d3.select('#transcript-file-path').attr('disabled', true)
+        } else if (evt.currentTarget[3].checked) {
+            custom_tr_list = evt.currentTarget[5].value
+            d3.select('#transcript-biotypes').attr('disabled', true)
+            d3.select('#transcript-file-path').attr('disabled', null)
+        }
+
+        const final_fasta_path = evt.currentTarget[6].value
+
+        general_config_html = setGeneralParams(ensembl_release, custom_tr_list, transcript_biotypes, final_fasta_path)
+        update_config_text()
     })
 
+    d3.select('#form-provar-params').on('change', (evt) => {
+
+        const include_variants = evt.currentTarget[0].checked
+
+        let VCF_data = []
+
+        let VCFname = ""
+        let VCFpath = ""
+
+        let vcf_form_elements = 0   // counter for the VCF attribute elements in the form
+
+        for (let element_idx in evt.currentTarget) {
+            const element = evt.currentTarget[parseInt(element_idx)]
+
+            if (element && element.id.startsWith('VCF')) {
+                vcf_form_elements += 1
+
+                if (element.id.includes('name')) {
+                    VCFname = element.value
+                } else if (element.id.includes('path')) {
+                    VCFpath = element.value
+                } else if (element.id.includes('MAF')) {
+                    if ((VCFname !== "") && (VCFpath !== "")) {
+                        VCF_data.push([VCFname, VCFpath, element.value.length === 0 ? "0" : element.value])
+                    }
+
+                    VCFname = ""
+                    VCFpath = ""
+                }
+            }
+        }
+
+        const var_require_start = evt.currentTarget[2 + vcf_form_elements].checked
+
+        const var_fasta_file = evt.currentTarget[3 + vcf_form_elements].value
+        const var_table_file = evt.currentTarget[4 + vcf_form_elements].value
+
+        provar_config_html = setProVarParams(include_variants, VCF_data, var_require_start, var_fasta_file, var_table_file)
+        update_config_text()
+    })
+
+    d3.select('#form-prohap-params').on('change', (evt) => {
+        const include_haplotypes = evt.currentTarget[0].checked
+        const dataset_url = evt.currentTarget[1].value
+        const vcf_filename = evt.currentTarget[2].value
+
+        let freq_threshold = "-1"
+        let count_threshold = "0"
+
+        if (evt.currentTarget[3].checked) {
+            freq_threshold = evt.currentTarget[5].value
+        } else {
+            count_threshold = evt.currentTarget[5].value
+        }
+
+        const MAF_threshold = evt.currentTarget[6].value
+
+        const haplo_require_start = evt.currentTarget[7].checked
+        const haplo_ignore_UTR = evt.currentTarget[8].checked
+        const haplo_skip_start_lost = evt.currentTarget[9].checked
+
+        const haplo_fasta_file = evt.currentTarget[10].value
+        const haplo_table_file = evt.currentTarget[11].value
+
+        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, vcf_filename, freq_threshold, count_threshold, MAF_threshold, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
+        update_config_text()
+    })
+
+    let variant_vcf_input_count = 1
+
+    d3.select('#add-vcf-file').on('click', (evt) => {
+        variant_vcf_input_count += 1
+        d3.select('#vcf-file-specs').html(
+            d3.select('#vcf-file-specs').html() + 
+            "<div class=\"mb-1\"></div>" +
+            "\
+            <div class=\"row\" id=\"vcf-input-row-"+ variant_vcf_input_count +"\">\
+                <div class=\"col-md-3\">\
+                    <input type=\"text\" class=\"form-control\" name=\"VCF-name-"+ variant_vcf_input_count +"\" value=\"\" id=\"VCF-name-"+ variant_vcf_input_count +"\" required=\"required\" aria-required=\"true\" placeholder=\"e.g. RareVariants\">\
+                </div>\
+                <div class=\"col-md-4\">\
+                    <input type=\"text\" class=\"form-control\" name=\"VCF-path-"+ variant_vcf_input_count +"\" value=\"\" id=\"VCF-path-"+ variant_vcf_input_count +"\" required=\"required\" aria-required=\"true\" placeholder=\"e.g. data/inhouse.vcf\">\
+                </div>\
+                <div class=\"col-md-4\">\
+                    <input type=\"text\" class=\"form-control short-input\" name=\"VCF-MAF-"+ variant_vcf_input_count +"\" value=\"0\" id=\"VCF-MAF-"+ variant_vcf_input_count +"\" required=\"required\" aria-required=\"true\">\
+                </div>\
+                <div class=\"col-sm-1\">\
+                    <button type=\"button\" class=\"btn btn-outline-danger\" id=\"VCF-row-rm-"+ variant_vcf_input_count +"\">X</button>\
+                </div>\
+            </div>\
+            "
+        )
+
+        for (let rownr=2; rownr <= variant_vcf_input_count; rownr++) {
+            d3.select("#VCF-row-rm-"+ rownr).on('click', evt => {
+                d3.select("#vcf-input-row-"+ rownr).remove()
+            })
+        }
+    })
 </script>
 </body>
 </html>
