@@ -209,11 +209,21 @@ rule var_fasta_remove_stop:
 
 # ------------------------------------ ProHap rules ------------------------------------
 
+rule filter_phased_vcf:
+    input:
+        vcf="data/vcf/1kGP_phased/" +config['1kGP_vcf_file_name']
+    output:
+        "data/vcf/1kGP_phased/chr{chr}_phased_filtered.vcf"
+    params:
+        AF_threshold=config['1kGP_min_af'],
+    shell:
+        "python3 src/vcf_filter_fix.py -i {input} -af {params.AF_threshold} -o {output} "
+
 rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr=expand('{proxy}', proxy=[config['custom_transcript_list']] if len(config["custom_transcript_list"]) > 0 else ["data/included_transcripts.csv"]),
-        vcf="data/vcf/1kGP_phased/" +config['1kGP_vcf_file_name'],
+        vcf="data/vcf/1kGP_phased/chr{chr}_phased_filtered.vcf",
         fasta="data/fasta/total_cdnas_" + str(config['ensembl_release']) + ".fa",
         samples="igsr_samples.tsv"
     output:
