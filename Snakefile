@@ -60,7 +60,7 @@ rule merge_cdnas_fasta:
 		in1="data/fasta/Homo_sapiens.GRCh38.ncrna.fa",
 		in2="data/fasta/Homo_sapiens.GRCh38.cdna.all.fa"
 	output:
-		"data/fasta/total_cdnas_" + config['ensembl_release'] + ".fa"
+		"data/fasta/total_cdnas_" + str(config['ensembl_release']) + ".fa"
 	shell:
 		"cat {input.in1} > {output}; cat {input.in2} >> {output}"
 
@@ -75,16 +75,16 @@ rule reference_fix_headers:
     input:
         "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
     output:
-        "data/fasta/ensembl_reference_proteinDB_" + config['ensembl_release'] + "_tagged.fa"
+        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/fix_headers.py -i {input} -o {output} -t _ensref "
 
 rule reference_remove_stop:
     input:
-        "data/fasta/ensembl_reference_proteinDB_" + config['ensembl_release'] + "_tagged.fa"
+        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"
     output:
-        temp("data/fasta/ensembl_reference_proteinDB_" + config['ensembl_release'] + "_clean.fa")
+        temp("data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa")
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
@@ -135,7 +135,7 @@ rule compute_variants:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr=expand('{proxy}', proxy=[config['custom_transcript_list']] if len(config["custom_transcript_list"]) > 0 else ["data/included_transcripts.csv"]),
-        fasta="data/fasta/total_cdnas_" + config['ensembl_release'] + ".fa",
+        fasta="data/fasta/total_cdnas_" + str(config['ensembl_release']) + ".fa",
         flag="tmp/variants_{vcf}/ready",
     output:
         tsv=temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.tsv"),
@@ -214,7 +214,7 @@ rule compute_haplotypes:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr=expand('{proxy}', proxy=[config['custom_transcript_list']] if len(config["custom_transcript_list"]) > 0 else ["data/included_transcripts.csv"]),
         vcf="data/vcf/1kGP_phased/" +config['1kGP_vcf_file_name'],
-        fasta="data/fasta/total_cdnas_" + config['ensembl_release'] + ".fa",
+        fasta="data/fasta/total_cdnas_" + str(config['ensembl_release']) + ".fa",
         samples="igsr_samples.tsv"
     output:
         csv=temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv"),
@@ -273,7 +273,7 @@ rule haplo_fasta_remove_stop:
 
 rule mix_with_reference_proteome:
     input:
-        in1="data/fasta/ensembl_reference_proteinDB_" + config['ensembl_release'] + "_clean.fa",
+        in1="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa",
         in2="data/fasta/crap_tagged.fa",
         in3=expand('{proxy}', proxy=["results/variants_all_clean.fa"] if config["include_var"] else []),
         in4=expand('{proxy}', proxy=["results/haplo_all_clean.fa"] if config["include_haplo"] else []),
