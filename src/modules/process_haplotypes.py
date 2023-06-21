@@ -16,6 +16,7 @@ result_columns = [
     'allele_frequencies',       # list of minor allele frequencies for corresponding variants
     'cDNA_changes',             # list of changes mapped to the cDNA sequence
     'all_protein_changes',      # list of changes mapped to the protein sequence, including synonymous mutations
+    'variant_types',            # type of variant (SAV, inframe-indel, synonymous, ...) for every change on the protein level
     'protein_changes',          # list of changes mapped to the protein sequence, excluding synonymous mutations
     'reading_frame',            # canonical reading frame for this transcript (-1 if unknown)
     'protein_prefix_length',    # length of the 5' UTR (in codons)    
@@ -100,6 +101,8 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
             protein_start_ref = 0       # length of the prefix (5'UTR) in the reference protein (can differ if there are indels in the UTR)
             spl_junctions_affected = [] # list of splicing junctions where a change takes place (identified by order, where 1 is the junction between the 1. and 2. exon), empty if none affected
             frameshifts = []            # boolean for every change whether it does or does not introduce a frameshift
+            dna_var_types = []          # type of variant (SNP, indel, ...) for every change on the cDNA level
+            prot_var_types = []         # type of variant (SAV, inframe-indel, ...) for every change on the protein level
 
             # Get the reading frame from the length between the start of the transcript and the start codon
             if (current_transcript['start_codon'] is not None):
@@ -166,6 +169,14 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 # boolean - does this introduce a frameshift?
                 frameshifts.append((abs(ref_len - alt_len) % 3) != 0)
 
+                # get the general variant type
+                if (mutation_intersects_intron is not None):
+                    dna_var_types.append('splice')
+                elif (ref_len == alt_len):
+                    dna_var_types.append('SNP')
+                else:
+                    dna_var_types.append('indel')                
+
                 # if we are on a reverse strand, we need to complement the reference and alternative sequence to match the cDNA
                 # we also need to count the position from the end
                 if reverse_strand:
@@ -182,6 +193,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                             validity_check = False
                             break
 
+                        dna_var_types[-1] = 'start_lost'    # replace the variant consequence
                         start_loc = 0
                         protein_start = 0
                         protein_start_ref = 0
@@ -244,6 +256,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 rna_location = rna_locations[ch_idx]
 
                 rf_changes = []     # residues directly affected (ignoring prossible frameshift), stored in a list for all three reading frames
+                rf_conseq = []      # protein consequence in each of the reading frames (e.g., SAV, frameshift, synonymous, etc.)
                 is_synonymous = []
                 
                 ref_alleles_protein, protein_location_ref = get_affected_codons(cdna_sequence, rna_location, ref_len, reading_frame_ref, protein_start_ref)
@@ -260,6 +273,24 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     loc_ref = protein_location_ref[i]
                     loc_alt = protein_location_alt[i]
 
+                    if (dna_var_types[ch_idx] == 'splice'):
+                        rf_conseq.append('splice_variant')
+                    elif (dna_var_types[ch_idx] == 'start_lost'):
+                        rf_conseq.append('start_lost')
+                    elif (ref_allele_protein == alt_allele_protein):
+                        rf_conseq.append('synonymous')
+                    elif ('*' in ref_allele_protein) and not ('*' in alt_allele_protein):
+                        rf_conseq.append('stop_lost') 
+                    elif not ('*' in ref_allele_protein) and ('*' in alt_allele_protein):
+                        rf_conseq.append('stop_gained')
+                    elif (dna_var_types[ch_idx] == 'SNP'):
+                        rf_conseq.append('SAV')
+                    elif (dna_var_types[ch_idx] == 'indel'):
+                        if (frameshifts[ch_idx]):
+                            rf_conseq.append('frameshift')
+                        else:
+                            rf_conseq.append('inframe_indel')
+
                     is_synonymous.append(ref_allele_protein == alt_allele_protein)
 
                     protein_change = str(loc_ref) + ':' + ref_allele_protein + '>' + str(loc_alt) + ':' + alt_allele_protein
@@ -267,12 +298,14 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                         protein_change += "(+fs)"
                     elif (has_frameshift):
                         protein_change += "(fs)"
+                        rf_conseq[-1] += '_after_fs'
 
                     rf_changes.append(protein_change)
 
                 if not all(is_synonymous):
                     protein_changes.append("|".join(rf_changes))
                 all_protein_changes.append("|".join(rf_changes))
+                prot_var_types.append('|'.join(rf_conseq))
 
                 has_frameshift = has_frameshift or frameshifts[ch_idx]
                 sequence_length_diff += alt_len - ref_len
@@ -304,6 +337,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     all_AFs = [ af for idx,af in enumerate(all_AFs) if variant_filter[idx] ]
                     cDNA_changes = [ ch for idx,ch in enumerate(cDNA_changes) if variant_filter[idx] ]
                     all_protein_changes = [ ch for idx,ch in enumerate(all_protein_changes) if variant_filter[idx] ]
+                    prot_var_types = [ t for idx,t in enumerate(prot_var_types) if variant_filter[idx] ]
                     protein_changes = [ ch for ch in protein_changes if check_protein_allele(ch, protein_start, first_stop) ]   # filter the only-non-synonymous variants separately as they are not indexed the same way
 
                     # skip this haplotype if no non-synonymous variants are left
@@ -332,6 +366,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                         ";".join(all_AFs),
                         ';'.join(cDNA_changes),
                         ';'.join(all_protein_changes),    
+                        ';'.join(prot_var_types),
                         ';'.join(protein_changes),
                         reading_frame,
                         protein_start,
@@ -379,7 +414,8 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     ";".join(all_changes),      
                     ";".join(all_AFs),
                     ';'.join(cDNA_changes),
-                    ';'.join(all_protein_changes),    
+                    ';'.join(all_protein_changes),  
+                    ';'.join(prot_var_types),  
                     ';'.join(protein_changes),
                     reading_frame,
                     protein_start,
