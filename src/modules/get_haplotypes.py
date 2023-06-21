@@ -101,7 +101,7 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
             # sanity check - correct separator between paternal / maternal chromosome
             err_rows = ','.join([ str(i) for i,elem in enumerate(vals) if '|' not in elem ])
             if (len(err_rows) > 1):
-                print('Incorrect formatting!', 'indivudial:', indiv, 'rows:', err_rows, 'transcript:', transcriptID)
+                print('Incorrect formatting!', 'individual:', indiv, 'rows:', err_rows, 'transcript:', transcriptID)
 
             hap1 = ','.join([ str(i) for i,elem in enumerate(vals) if elem.startswith('1|') ])
             hap2 = None
