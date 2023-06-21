@@ -353,8 +353,8 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 
                 # if found, merge these two (increase the sample count and frequency)
                 if haplo_hash in local_result_data:
-                    local_result_data[haplo_hash][15] += row['Count']
-                    local_result_data[haplo_hash][16] += row['Frequency']
+                    local_result_data[haplo_hash][16] += row['Count']
+                    local_result_data[haplo_hash][17] += row['Frequency']
                 else:
                     local_result_data[haplo_hash] = [
                         row['TranscriptID'],

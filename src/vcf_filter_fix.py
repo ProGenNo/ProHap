@@ -9,6 +9,9 @@ parser.add_argument("-i", dest="input_file", required=True,
 parser.add_argument("-af", dest="min_af", required=False, type=float,
                     help="Allele Frequency (AF) lower threshold - default 0", default=0)
 
+parser.add_argument("-chr", dest="chromosome", required=True,
+                    help="chromosome being processed (e.g., 1, 12 or X)")
+
 parser.add_argument("-o", dest="output_file", required=True,
                     help="output VCF")
 
@@ -45,12 +48,17 @@ outfile.write(VCF_header)
 if (line == ''):
     outfile.close()
     vcf_file.close()
+    print('VCF file is empty!')
     exit()
+
+total_VCF_entries = 0
+valid_VCF_entries = 0
 
 while (line != ""):
     ALT = line.split(maxsplit=5)[4]
     INFO = line.split(maxsplit=8)[7]
     MAF = get_MAF(INFO)
+    total_VCF_entries += 1
 
     if (',' in ALT):
         CHR = line.split(maxsplit=1)[0]
@@ -62,7 +70,7 @@ while (line != ""):
             allele_maf = float(MAF.split(',')[i])
 
             if (allele_maf >= args.min_af):
-                invalid_gts = [1,2,3]
+                invalid_gts = list(range(1,100))
                 invalid_gts.remove(i+1)
                 GTs = line.split(maxsplit=9)[-1]
                 for gt_id in invalid_gts:
@@ -74,13 +82,18 @@ while (line != ""):
 
                 outfile.write('\t'.join(line.split(maxsplit=4)[:-1] + [allele] + line.split(maxsplit=7)[5:-1]))
                 outfile.write('\tMAF=' + str(allele_maf) + '\tGT\t' + GTs)
+                valid_VCF_entries += 1
 
     else:
         allele_maf = float(MAF)
         if (allele_maf >= args.min_af):
             outfile.write(line)
+            valid_VCF_entries +=1
 
     line = vcf_file.readline()
 
 vcf_file.close()
 outfile.close()
+
+print(('Chr ' + args.chromosome + ':'), 'Original VCF:', total_VCF_entries, 'lines')
+print(('Chr ' + args.chromosome + ':'), 'Filtered VCF:', valid_VCF_entries, 'lines')
