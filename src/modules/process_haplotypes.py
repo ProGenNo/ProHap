@@ -60,7 +60,11 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
         exons = [ exon for exon in annotations_db.children(transcript_feature, featuretype='exon', order_by='start') ]
         start_codons = [ sc for sc in annotations_db.children(transcript_feature, featuretype='start_codon', order_by='start') ]    # there should be only one, but just in case...
         stop_codons = [ sc for sc in annotations_db.children(transcript_feature, featuretype='stop_codon', order_by='start') ]      # not in use currently
-        biotype = transcript_feature['transcript_biotype'][0]
+        biotype = ""
+        try:
+            biotype = transcript_feature['transcript_biotype'][0]
+        except:
+            biotype = '-'
 
         # Some transcripts are classified as not coding -> start and stop codon positions are not given
         start_codon = None
