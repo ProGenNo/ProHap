@@ -12,10 +12,10 @@ Required ingredients:
 Required software: [Snakemake](https://snakemake.readthedocs.io/en/stable/) & [Conda](https://docs.conda.io/en/latest/)
 
 Usage:
- 1. Create a configuration file called `config.yaml` based on the instructions in `config_file_example`, or using https://progenno.github.io/ProHap/
- 2. Test Snakemake with a dry-run: `snakemake -c<# provided cores> -n -q`
- 3. Run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
-
+ 1. Clone this repository: `git clone https://github.com/ProGenNo/ProHap.git; cd ProHap/;`
+ 2. Create a configuration file called `config.yaml` based on the instructions in `config_file_example`, or using https://progenno.github.io/ProHap/
+ 3. Test Snakemake with a dry-run: `snakemake -c<# provided cores> -n -q`
+ 4. Run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
 
 ## Analyzing the peptide-spectrum matches
 Once you obtain a list of peptide-spectrum matches (PSMs), you can use a script provided in this repository \([peptides_annotate_variation.py](https://github.com/ProGenNo/ProHap/blob/main/src/analysis/peptides_annotate_variation.py)\) to map the peptides back to the respective protein haplotype / variant sequences, and map the identified variants back to their genetic origin. An example of the required input file (tab-separated):
@@ -46,7 +46,7 @@ python src/analysis/peptides_annotate_variation.py
 ### FASTA protein database
 The protein sequences are first split into sub-sequences by start and stop codon positions, and then duplicate sequences are aggregated into one FASTA entry. The resulting file has the following format:
 ```
->tag|accession|<positions_within_protein> <protein_IDs> <protein_starts> <matching_proteins> <reading_frames>
+>tag|accession|<positions_within_protein> <protein_starts> <matching_proteins> <reading_frames>
 PROTEINSEQUENCE
 ```
 Possible tag values are:
