@@ -16,57 +16,6 @@ Usage:
  2. Test Snakemake with a dry-run: `snakemake -c<# provided cores> -n -q`
  3. Run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
 
-### Example of the configuration file:
-You can create a configuration file in an interactive GUI here: https://progenno.github.io/ProHap/
-
-Below is an example of the `config.yaml` file to run ProHap on the 1000 Genomes Project on GRCh38 (1kGP) data set and two custom VCF files with the following parameters:
- - Minor allele frequency (MAF) threshold for 1kGP variants: 0.01
- - MAF threshold for custom VCF files: 0 (i.e. no threshold)
- - Haplotype frequency threshold: 0.005
- - Ensembl version: 108
- - Include only transcripts specified in `data/transcripts_reference_108.csv`
- - Ignore transcripts without mORF annotation for 1kGP and custom VCF files (i.e., require annotation of the start codon)
- - Keep UTR variants when computing the list of haplotypes, but remove the UTR sequences from the final database
- - Ignore haplotypes where the start codon is lost due to a mutation
- - Use 3 CPU cores per chromosome
- 
-```
-1kGP_FTP_URL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/
-1kGP_vcf_file_name: "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
-
-Ensembl_FTP_URL: ftp.ensembl.org/pub/release-108/
-annotationFilename: Homo_sapiens.GRCh38.108.chr_patch_hapl_scaff
-
-working_dir_name_haplo: haplotypes_tmp
-working_dir_name_var: variants_tmp
-
-variant_vcf:
-   RareVar: { file: "data/clinvar_vcf/selected_clinvar.vcf", fasta_accession_prefix: "clinvar_", min_af: 0 }
-   InhouseVar: { file: "data/inhouse_vcf/inhouse_variation.csv", fasta_accession_prefix: "inhouse_", min_af: 0 }
-
-custom_transcript_list: "data/transcripts_reference_108.csv"
-included_transcript_biotypes: "all"
-
-include_haplo: True
-include_var: False
-
-haplo_min_freq: 0.005
-haplo_min_count: 0
-1kGP_min_af: 0.01
-
-var_require_start: 1
-haplo_require_start: 1
-haplo_ignore_UTR: 0
-haplo_skip_start_lost: 1
-
-max_cores: 3
-
-final_fasta_file: "results/final_db.fa"
-haplo_fasta_file: "results/haplotypes.fa"
-var_fasta_file: "results/vcf_variants.fa"
-haplo_table_file: "results/haplotypes.tsv"
-var_table_file: "results/vcf_variants.tsv"
-```
 
 ## Analyzing the peptide-spectrum matches
 Once you obtain a list of peptide-spectrum matches (PSMs), you can use a script provided in this repository \([peptides_annotate_variation.py](https://github.com/ProGenNo/ProHap/blob/main/src/analysis/peptides_annotate_variation.py)\) to map the peptides back to the respective protein haplotype / variant sequences, and map the identified variants back to their genetic origin. An example of the required input file (tab-separated):
