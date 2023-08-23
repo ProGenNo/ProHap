@@ -58,7 +58,7 @@ Possible tag values are:
 The tag values for haplotypes and variants are customizable in the config file. 
 
 The fields included in the description of the FASTA elements are the following:
- - `positions_within_protein`: position of matching sub-sequences within the whole protein sequence, delimited by semicolon
+ - `positions_within_protein`: position of this sub-sequence within the whole protein sequences (often matches multiple proteins), delimited by semicolon
  - `protein_starts`: positions of the start residue (usually M) within the whole protein, if known (0 otherwise)
  - `matching_proteins`: IDs of the whole protein sequences matching to this sub-sequence. Variant and haplotype IDs can be mapped to the metadata table provided.
  - `reading_frames`: Reading frames in which the matching proteins are translated, if known.
