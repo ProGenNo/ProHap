@@ -80,6 +80,14 @@ rule reference_fix_headers:
     shell:
         "python3 src/fix_headers.py -i {input} -o {output} -t _ensref "
 
+rule default_transcript_list:
+    input:
+        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"
+    output:
+        "data/transcripts_reference_" + str(config['ensembl_release']) + ".csv"
+    shell:
+        "python3 src/get_reference_ENST.py -i {input} -o {output}"
+
 rule reference_remove_stop:
     input:
         "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"

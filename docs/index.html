@@ -252,7 +252,7 @@
         let custom_tr_list = ""
         let transcript_biotypes = ""
         if (evt.currentTarget[1].checked) {
-            custom_tr_list = "data/transcripts_reference_108.csv"
+            custom_tr_list = "data/transcripts_reference_" + ensembl_release + ".csv"
             d3.select('#transcript-biotypes').attr('disabled', true)
             d3.select('#transcript-file-path').attr('disabled', true)
         } else if (evt.currentTarget[2].checked) {
