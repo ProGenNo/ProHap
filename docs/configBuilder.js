@@ -4,6 +4,7 @@ function setGeneralParams(ensemblRelease, custom_tr_list, transcript_biotypes, f
         # ---------------- Global parameters ----------------<br>" +
         "Ensembl_FTP_URL: ftp.ensembl.org/pub/release-" + ensemblRelease + "/<br>" +
         "annotationFilename: Homo_sapiens.GRCh38." + ensemblRelease + ".chr_patch_hapl_scaff<br>" +
+        "ensembl_release: " + ensemblRelease + "<br>" +
         "<br>" +
         "custom_transcript_list: \"" + custom_tr_list + "\"<br>"+
         "included_transcript_biotypes: \"" + transcript_biotypes + "\"<br>" +
