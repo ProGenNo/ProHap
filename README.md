@@ -6,17 +6,19 @@ Required ingredients:
  - GTF annotation file (Ensembl - downloaded automatically by Snakemake)
  - cDNA FASTA file (Ensembl - downloaded automatically by Snakemake)
  - (optional) ncRNA FASTA file (Ensembl - downloaded automatically by Snakemake)
- - ProHap: VCF with phased genotpyes, one file per chromosome \(such as [1000 Genomes Project](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/) - downloaded automatically by Snakemake\)
- - ProVar: VCF, single file per dataset
+ - For ProHap: VCF with phased genotpyes, one file per chromosome \(such as [1000 Genomes Project](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/) - downloaded automatically by Snakemake\)
+ - For ProVar: VCF, single file per dataset
 
 Required software: [Snakemake](https://snakemake.readthedocs.io/en/stable/) & [Conda](https://docs.conda.io/en/latest/)
 
 Usage:
- 1. Create a configuration file called `config.yaml` based on the instructions in `config_file_example`
+ 1. Create a configuration file called `config.yaml` based on the instructions in `config_file_example`, or using https://progenno.github.io/ProHap/
  2. Test Snakemake with a dry-run: `snakemake -c<# provided cores> -n -q`
- 2. Run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
+ 3. Run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
 
 ### Example of the configuration file:
+You can create a configuration file in an interactive GUI here: https://progenno.github.io/ProHap/
+
 Below is an example of the `config.yaml` file to run ProHap on the 1000 Genomes Project on GRCh38 (1kGP) data set and two custom VCF files with the following parameters:
  - Minor allele frequency (MAF) threshold for 1kGP variants: 0.01
  - MAF threshold for custom VCF files: 0 (i.e. no threshold)
@@ -108,13 +110,12 @@ The tag values for haplotypes and variants are customizable in the config file.
 
 The fields included in the description of the FASTA elements are the following:
  - `positions_within_protein`: position of matching sub-sequences within the whole protein sequence, delimited by semicolon
- - `protein_IDs`: IDs of the sub-sequences after splitting the whole protein (redundant)
  - `protein_starts`: positions of the start residue (usually M) within the whole protein, if known (0 otherwise)
  - `matching_proteins`: IDs of the whole protein sequences matching to this sub-sequence. Variant and haplotype IDs can be mapped to the metadata table provided.
  - `reading_frames`: Reading frames in which the matching proteins are translated, if known.
 
 ### Metadata table
-Metadata file provided in a tab-separated text-file format. The columns are:
+Metadata file provided in a tab-separated text-file format. The columns in the ProHap table are:
  - `chromosome`
  - `TranscriptID`
  - `transcript_biotype`: Biotype of the matching transcript in Ensembl.
@@ -124,9 +125,12 @@ Metadata file provided in a tab-separated text-file format. The columns are:
  - `allele_frequencies`: List of allele vrequencies of the variants in cluded in this haplotype
  - `cDNA_changes`: List of changes in the format POS:REF>ALT, mapped to the coordinates within the cDNA of this transcript
  - `all_protein_changes`: List of changes in the format POS:REF>ALT, mapped to the coordinates within the protein sequence. The start codon is at position 0, so if a change happens in the 5' untranslated region (UTR), its coordinates within the protein are negative.
+ - `variant_types`: Type of variant (e.g., SAV, inframe-indel, synonymous, ...) for every variant on the protein level
  - `protein_changes`: List of changes in the protein excluding synonymous mutations.
  - `reading_frame`: Canonical reading frame for this transcript, if known.
  - `protein_prefix_length`: Number of codons in the 5' UTR
+ - `start_missing`: Boolean - is the canonical annotation of the start codon missing for this transcript?
+ - `start_lost`: Boolean - does one of the variants cause a loss of the start codon?
  - `splice_sites_affected`: List of splice sites affected by a mutation, if any. (Splice site 0 happens between exon 1 and 2)
  - `occurrence_count`: Number of occurrences of this haplotype within the participants of the 1000 Genomes project (or within the individuals provided in the phased genotype VCF)
  - `frequency`: Frequency of this haplotype within the participants of the 1000 Genomes project (or within the individuals provided in the phased genotype VCF)
