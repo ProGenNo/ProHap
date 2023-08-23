@@ -26,4 +26,5 @@ for prot in ref_proteins.values():
         result_data.append([chr,trID])
 
 result_df = pd.DataFrame(data=result_data, columns=['chromosome', 'transcriptID'])
+result_df.sort_values(by='chromosome', inplace=True)
 result_df.to_csv(args.output_file, index=False)
