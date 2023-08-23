@@ -16,14 +16,14 @@ rule all:
 
 rule download_vcf:
     output:
-        "data/vcf/1kGP_phased/" + config['1kGP_vcf_file_name']
+        temp("data/vcf/1kGP_phased/" + config['1kGP_vcf_file_name'])
     shell:
         "mkdir -p data/vcf/1kGP_phased ; "
         "wget " + config['1kGP_FTP_URL'] + config['1kGP_vcf_file_name'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
 
 rule download_gtf:
     output:
-        "data/gtf/" + config['annotationFilename'] + ".gtf"
+        temp("data/gtf/" + config['annotationFilename'] + ".gtf")
     shell:
         "mkdir -p data/gtf ; "
         "wget " + config['Ensembl_FTP_URL'] + "gtf/homo_sapiens/" + config['annotationFilename'] + ".gtf.gz -O {output}.gz && gunzip {output}.gz; "
@@ -48,8 +48,8 @@ rule get_transcript_list:
 
 rule download_cdnas_fasta:
     output:
-        out1="data/fasta/Homo_sapiens.GRCh38.ncrna.fa",
-        out2="data/fasta/Homo_sapiens.GRCh38.cdna.all.fa"
+        out1=temp("data/fasta/Homo_sapiens.GRCh38.ncrna.fa"),
+        out2=temp("data/fasta/Homo_sapiens.GRCh38.cdna.all.fa")
     shell:
         "mkdir -p data/fasta ; "
         "wget " + config['Ensembl_FTP_URL'] + "fasta/homo_sapiens/ncrna/Homo_sapiens.GRCh38.ncrna.fa.gz -O {output.out1}.gz && gunzip {output.out1}.gz; "
@@ -87,7 +87,7 @@ rule reference_remove_stop:
         temp("data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa")
     conda: "envs/prohap.yaml"
     shell:
-        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
+        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 6 "
 
 rule contaminants_fix_headers:
     input:
@@ -205,7 +205,7 @@ rule var_fasta_remove_stop:
         temp("results/variants_all_clean.fa")
     conda: "envs/prohap.yaml"
     shell:
-        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
+        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 6 "
 
 # ------------------------------------ ProHap rules ------------------------------------
 
@@ -217,7 +217,7 @@ rule filter_phased_vcf:
     params:
         AF_threshold=config['1kGP_min_af'],
     shell:
-        "python3 src/vcf_filter_fix.py -i {input} -af {params.AF_threshold} -o {output} "
+        "python3 src/vcf_filter_fix.py -i {input} -chr {wildcards.chr} -af {params.AF_threshold} -o {output} "
 
 rule compute_haplotypes:
     input:
@@ -277,7 +277,7 @@ rule haplo_fasta_remove_stop:
         temp("results/haplo_all_clean.fa")
     conda: "envs/prohap.yaml"
     shell:
-        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 8 "
+        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 6 "
 
 # ------------------------------------ post-processing rules ------------------------------------
 
