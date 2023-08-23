@@ -154,7 +154,7 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
                     changelist.append([row['POS'], row['REF'], row['ALT']])
                     changes.append(str(row['POS']) + ':' + row['REF'] + '>' + row['ALT'])
                     if 'AF' in row['INFO']:
-                        AFs.append(row['INFO'].split('AF=')[1].split(';')[0])
+                        AFs.append(row['INFO'].split('AF=')[1].split(';')[0].split(maxsplit=1)[0])
                     else:
                         AFs.append('-1')
 

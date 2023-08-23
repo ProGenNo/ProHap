@@ -46,19 +46,19 @@ for protein in all_proteins.values():
 	if (len(result_proteins) > nearest_idx and result_proteins[nearest_idx]['hash'] == seq_hash):
 		result_proteins[nearest_idx]['matching_proteins'].append(matching_proteins)
 		result_proteins[nearest_idx]['rfs'].append(rfs)
-		result_proteins[nearest_idx]['proteinIDs'].append(protein['accession'])
+		#result_proteins[nearest_idx]['proteinIDs'].append(protein['accession'])
 		result_proteins[nearest_idx]['tags'].append(protein['tag'])
 		result_proteins[nearest_idx]['start'].append(protein_start)
 		result_proteins[nearest_idx]['seq_position'].append(seq_position)
 	else:
-		result_proteins.insert(nearest_idx, {'hash': seq_hash, 'matching_proteins': [matching_proteins], 'tags': [protein['tag']], 'proteinIDs': [protein['accession']], 'sequence': seq, 'start': [protein_start], 'seq_position': [seq_position], 'rfs': [rfs]})
+		result_proteins.insert(nearest_idx, {'hash': seq_hash, 'matching_proteins': [matching_proteins], 'tags': [protein['tag']], 'sequence': seq, 'start': [protein_start], 'seq_position': [seq_position], 'rfs': [rfs]})
 
 outfile = open(args.output_file, 'w')
 
 for i,protein in enumerate(result_proteins):
 	matching_proteins = [ ','.join(plist) for plist in protein['matching_proteins'] ]
 	rfs = [ ','.join(rflist) for rflist in protein['rfs'] ]
-	description = 'position_within_protein:' + ';'.join(protein['seq_position']) + ' protein_IDs:' + ';'.join(protein['proteinIDs']) + ' start:' + ';'.join(protein['start']) + ' matching_proteins:' + ';'.join(matching_proteins) + ' reading_frame:' + ';'.join(rfs)
+	description = 'position_within_protein:' + ';'.join(protein['seq_position']) + ' start:' + ';'.join(protein['start']) + ' matching_proteins:' + ';'.join(matching_proteins) + ' reading_frame:' + ';'.join(rfs)
 
 	tag = 'generic_'
 	if ('generic_cont' in protein['tags']) or ('generic_sp' in protein['tags']):
