@@ -16,10 +16,10 @@ rule all:
 
 rule download_vcf:
     output:
-        temp("data/vcf/1kGP_phased/" + config['1kGP_vcf_file_name'])
+        temp("data/vcf/phased/" + config['phased_vcf_file_name'])
     shell:
-        "mkdir -p data/vcf/1kGP_phased ; "
-        "wget " + config['1kGP_FTP_URL'] + config['1kGP_vcf_file_name'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
+        "mkdir -p data/vcf/phased ; "
+        "wget " + config['phased_FTP_URL'] + config['phased_vcf_file_name'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
 
 rule download_gtf:
     output:
@@ -219,19 +219,20 @@ rule var_fasta_remove_stop:
 
 rule filter_phased_vcf:
     input:
-        vcf="data/vcf/1kGP_phased/" +config['1kGP_vcf_file_name']
+        vcf="data/vcf/phased/" +config['phased_vcf_file_name']
     output:
-        "data/vcf/1kGP_phased/chr{chr}_phased_filtered.vcf"
+        "data/vcf/phased/chr{chr}_phased_filtered.vcf"
     params:
-        AF_threshold=config['1kGP_min_af'],
+        AF_threshold=config['phased_min_af'],
+        AF_field=config['phased_af_field']
     shell:
-        "python3 src/vcf_filter_fix.py -i {input} -chr {wildcards.chr} -af {params.AF_threshold} -o {output} "
+        "python3 src/vcf_filter_fix.py -i {input} -chr {wildcards.chr} -af {params.AF_threshold} -af_field {params.AF_field} -o {output} "
 
 rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr=expand('{proxy}', proxy=[config['custom_transcript_list']] if len(config["custom_transcript_list"]) > 0 else ["data/included_transcripts.csv"]),
-        vcf="data/vcf/1kGP_phased/chr{chr}_phased_filtered.vcf",
+        vcf="data/vcf/phased/chr{chr}_phased_filtered.vcf",
         fasta="data/fasta/total_cdnas_" + str(config['ensembl_release']) + ".fa",
         samples="igsr_samples.tsv"
     output:
@@ -243,7 +244,6 @@ rule compute_haplotypes:
         require_start=config['haplo_require_start'],
         ignore_UTR=config['haplo_ignore_UTR'],
         skip_start_lost=config['haplo_skip_start_lost'],
-        AF_threshold=config['1kGP_min_af'],
         freq_threshold=config['haplo_min_freq'],
         count_threshold=config['haplo_min_count'],
         max_cores=config['max_cores']
@@ -253,7 +253,7 @@ rule compute_haplotypes:
         "mkdir -p {params.tmp_dir}; mkdir -p log; mkdir -p results; "
         "python3 src/prohap.py "
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
-        "-chr {wildcards.chr} -af {params.AF_threshold} -min_hap_foo {params.freq_threshold} -min_hap_count {params.count_threshold} "
+        "-chr {wildcards.chr} -min_hap_foo {params.freq_threshold} -min_hap_count {params.count_threshold} "
         "-acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} -require_start {params.require_start} -ignore_UTR {params.ignore_UTR} -skip_start_lost {params.skip_start_lost} "
         "-threads {params.max_cores} -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
 

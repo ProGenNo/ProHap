@@ -6,6 +6,9 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-i", dest="input_file", required=True,
                     help="input VCF")
 
+parser.add_argument("-af_field", dest="af_field", required=False, type=str,
+                    help="Allele Frequency (AF) field name - default \"AF\"", default="AF")
+
 parser.add_argument("-af", dest="min_af", required=False, type=float,
                     help="Allele Frequency (AF) lower threshold - default 0", default=0)
 
@@ -18,14 +21,10 @@ parser.add_argument("-o", dest="output_file", required=True,
 args = parser.parse_args()
 
 def get_MAF(info):
-    if ';AF=' in info:
-        return info.split(';AF=')[1].split(';')[0]
-    elif ';MAF=' in info:
-        return info.split(';MAF=')[1].split(';')[0]
-    elif '\tAF=' in info:
-        return info.split('\tAF=')[1].split(';')[0]
-    elif '\tMAF=' in info:
-        return info.split('\tMAF=')[1].split(';')[0]
+    if ';' + args.af_field + '=' in info:
+        return info.split(';' + args.af_field + '=')[1].split(';')[0]
+    elif '\t' + args.af_field + '=' in info:
+        return info.split('\t' + args.af_field + '=')[1].split(';')[0]
 
     return "-1"
 

@@ -172,6 +172,12 @@
                 <input type="text" class="form-control very-short-input" name="phased-min-af" value="0.01" id="phased-min-af" required="required" aria-required="true">
                 <small class="form-text text-muted">Variants under this threshold will not be included in haplotypes</small>
                 <hr class="mb-1">
+                <label for="phased-af-field">
+                    MAF field name
+                </label>
+                <input type="text" class="form-control very-short-input" name="phased-af-field" value="AF" id="phased-af-field" required="required" aria-required="true">
+                <small class="form-text text-muted">NAme of the AF column in the VCF file ("AF" by default). Change if you want to use the frequency in a specific population within 1000 Genomes, or according to your own file </small>
+                <hr class="mb-1">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="haplo_require_start" checked>
                     <label class="form-check-label" for="haplo_require_start">Require annotation of the start codon in transcripts</label>
@@ -327,15 +333,16 @@
         }
 
         const MAF_threshold = evt.currentTarget[6].value
+        const MAF_field = evt.currentTarget[7].value
 
-        const haplo_require_start = evt.currentTarget[7].checked
-        const haplo_ignore_UTR = evt.currentTarget[8].checked
-        const haplo_skip_start_lost = evt.currentTarget[9].checked
+        const haplo_require_start = evt.currentTarget[8].checked
+        const haplo_ignore_UTR = evt.currentTarget[9].checked
+        const haplo_skip_start_lost = evt.currentTarget[10].checked
 
-        const haplo_fasta_file = evt.currentTarget[10].value
-        const haplo_table_file = evt.currentTarget[11].value
+        const haplo_fasta_file = evt.currentTarget[11].value
+        const haplo_table_file = evt.currentTarget[12].value
 
-        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, vcf_filename, freq_threshold, count_threshold, MAF_threshold, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
+        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, vcf_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
         update_config_text()
     })
 
@@ -367,6 +374,7 @@
         for (let rownr=2; rownr <= variant_vcf_input_count; rownr++) {
             d3.select("#VCF-row-rm-"+ rownr).on('click', evt => {
                 d3.select("#vcf-input-row-"+ rownr).remove()
+                d3.select('#form-provar-params').change()
             })
         }
     })
