@@ -75,10 +75,10 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
 
     # number of samples in each population
     pop_counts = sample_info[['Population code', 'Sample name']].groupby('Population code').count()
-    pop_counts_male = sample_info[sample_info['Seq'] == 'male'][['Population code', 'Sample name']].groupby('Population code').count()
+    pop_counts_male = sample_info[sample_info['Sex'] == 'male'][['Population code', 'Sample name']].groupby('Population code').count()
     
     superpop_counts = sample_info[['Superpopulation code', 'Sample name']].groupby('Superpopulation code').count()
-    superpop_counts_male = sample_info[sample_info['Seq'] == 'male'][['Superpopulation code', 'Sample name']].groupby('Superpopulation code').count()
+    superpop_counts_male = sample_info[sample_info['Sex'] == 'male'][['Superpopulation code', 'Sample name']].groupby('Superpopulation code').count()
 
     sample_info.set_index('Sample name', inplace=True)
 
