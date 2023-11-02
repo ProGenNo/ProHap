@@ -245,7 +245,7 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
             if (pop_code in populations):
                 populations[pop_code] += 1
             else:
-                pop_code[pop_code] = 1
+                populations[pop_code] = 1
         
         id = row['TranscriptID']
         result = []
