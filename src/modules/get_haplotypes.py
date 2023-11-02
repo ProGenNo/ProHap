@@ -239,6 +239,9 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
     def count_freq_pop(row):
         populations = {}
 
+        if (row['Samples'] == 'all'):
+            return '-'
+
         for s in row['Samples'].split(';'):
             pop_code = sample_info.loc[s.split(':',1)[0]]['Population code']
 
@@ -270,6 +273,9 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
     def count_freq_superpop(row):
         superpop = {}
 
+        if (row['Samples'] == 'all'):
+            return '-'
+        
         for s in row['Samples'].split(';'):
             superpop_code = sample_info.loc[s.split(':',1)[0]]['Superpopulation code']
 
