@@ -111,7 +111,8 @@ transcript_list = transcript_df[transcript_df['chromosome'] == args.chromosome][
 print (('Chr ' + args.chromosome + ':'), 'Reading', args.samples_filename)
 # get sample IDs of males from the metadata file
 samples_df = pd.read_csv(args.samples_filename, sep='\t')
-male_samples = samples_df[samples_df['Sex'] == 'male']['Sample name'].tolist()
+#samples_df.set_index('Sample_name', inplace=True)
+#male_samples = samples_df[samples_df['Sex'] == 'male']['Sample name'].tolist()
 
 print (('Chr ' + args.chromosome + ':'), 'Assigning annotations to transcripts.')
 
@@ -142,7 +143,7 @@ if (len(vcf_colnames) == 0):
 else:
         print (('Chr ' + args.chromosome + ':'), 'Computing the co-occurrence of alleles.')
         # check co-occurence of alleles -> get the haplotypes for all transcripts
-        gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_colnames, args.tmp_dir, args.log_file, args.threads, (args.chromosome == 'X'), args.x_par1_to, args.x_par2_from, male_samples)
+        gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_colnames, args.tmp_dir, args.log_file, args.threads, (args.chromosome == 'X'), args.x_par1_to, args.x_par2_from, samples_df)
 
         # remove the temporary files
         for transcript_id in transcript_list:

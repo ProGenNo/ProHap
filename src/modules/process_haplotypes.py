@@ -25,7 +25,9 @@ result_columns = [
     'splice_sites_affected',    # list of splice sites affected (1 means splice site between exon 1 annd 2, '-' if none)
 #    'removed_DNA_changes',     # conflicting variants that have been removed - not used, transcripts where variants conflict are removed completely
     'occurrence_count',         # number of occurrences among the samples present in the VCF
-    'frequency',                # frequency of occurrence among the samples present in the VCF
+    'frequency',                # frequency of occurrence among all samples present in the VCF
+    'frequency_population',     # frequency of occurrence among the populations in the data set
+    'frequency_superpopulation',# frequency of occurrence among the superpopulations in the data set
 #    'samples'                   # samples containing this haplotype (in the format SAMPLE_ID:1 for maternal copy, SAMPLE_ID:2 for paternal copy) - not used currently, too large
 ]
 
@@ -379,6 +381,8 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                         spl_junctions_affected_str,
                         row['Count'],
                         row['Frequency'],
+                        row['Frequency_population'],
+                        row['Frequency_superpopulation'],
                     ]
 
                     # compute the sequence hash -> check if it already is in the list
@@ -428,6 +432,8 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     spl_junctions_affected_str,
                     row['Count'],
                     row['Frequency'],
+                    row['Frequency_population'],
+                    row['Frequency_superpopulation'],
                 ]
                 
         # filter haplotypes by frequency

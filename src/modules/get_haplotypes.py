@@ -58,19 +58,31 @@ def remove_conflicting_mutations(changes, AFs):
 
 # Creates a list of observed haplotypes from VCF files (individual file for each transcript, with phased genotypes). 
 # Returns a dataframe, haplotypes described by DNA location, reference and alternative allele.
-def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, threads, is_X_chrom, PAR1_to, PAR2_from, male_samples):
+def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, threads, is_X_chrom, PAR1_to, PAR2_from, sample_info):
 
     result_data = []
     removed_samples = {}        # Dict giving the list of removed samples by transcript (samples are removed if there are conflicting mutations found)
     indiv_count = 0             # number of individuals in the dataset
-    autosomal_transcripts = []  # list of transcripts in the pseudo-autosomal region (PAR), only applicable for X chromosome
+    x_autosomal_transcripts = []  # list of transcripts in the pseudo-autosomal region (PAR), only applicable for X chromosome
 
     # the VCF dataframes all have the same columns -> store the IDs (colnames) of included infividuals:
     column_offset = vcf_colnames.index('FORMAT') + 1
     indiv_ids = vcf_colnames[column_offset:]
     indiv_count = len(indiv_ids)
 
-    male_samples = [ sampleID for sampleID in male_samples if sampleID in indiv_ids ]
+    # keep the sample metadata only for the samples that are in the VCF file - important for frequencies
+    sample_info = sample_info[sample_info['Sample name'].isin(indiv_ids)]
+
+    # number of samples in each population
+    pop_counts = sample_info[['Population code', 'Sample name']].groupby('Population code').count()
+    pop_counts_male = sample_info[sample_info['Seq'] == 'male'][['Population code', 'Sample name']].groupby('Population code').count()
+    
+    superpop_counts = sample_info[['Superpopulation code', 'Sample name']].groupby('Superpopulation code').count()
+    superpop_counts_male = sample_info[sample_info['Seq'] == 'male'][['Superpopulation code', 'Sample name']].groupby('Superpopulation code').count()
+
+    sample_info.set_index('Sample name', inplace=True)
+
+    male_samples = [ sampleID for sampleID in indiv_ids if (sample_info.loc[sampleID]['Sex'] == 'male') ]
 
     global get_haplotypes
     # check haplotypes for every transcript in the DB -> return the ID, payload of the dataframe, and list of samples removed because of conflicting mutations
@@ -202,30 +214,95 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
             removed_samples[elem['id']] = elem['removed_samples']
 
             if (is_X_chrom and elem['autosomal']):
-                autosomal_transcripts.append(elem['id'])
+                x_autosomal_transcripts.append(elem['id'])
 
     result_df = pd.DataFrame(columns=result_columns, data=result_data)
 
     # count frequencies taking into account the number of removed samples in the transcript, and sex in case of X chromosome
     def count_freq(row):
         id = row['TranscriptID']
-        removed_count = len(removed_samples[id])
+        # removed_count = len(removed_samples[id])
         total_count = 0
 
-        if (is_X_chrom and (id not in autosomal_transcripts)):
+        if (is_X_chrom and (id not in x_autosomal_transcripts)):
             male_count = len(male_samples)
-            total_count = male_count + ((indiv_count - male_count) * 2) - removed_count
+            total_count = male_count + ((indiv_count - male_count) * 2) # - removed_count
         else:
-            total_count = (indiv_count * 2) - removed_count
+            total_count = (indiv_count * 2) # - removed_count
 
         if (total_count == 0):
             return 0
 
         return (row['Count'] / total_count)
 
-    result_df['Frequency'] = result_df.apply(count_freq, axis=1)
-    #result_df.sort_values(by=['TranscriptID', 'Frequency'], ascending=[True, False], inplace=True)
+    # count the occurrences of this haplotype within populations and superpopulations
+    def count_freq_pop(row):
+        populations = {}
 
+        for s in row['Samples'].split(';'):
+            pop_code = sample_info.loc[s.split(':',1)[0]]['Population code']
+
+            if (pop_code in populations):
+                populations[pop_code] += 1
+            else:
+                pop_code[pop_code] = 1
+        
+        id = row['TranscriptID']
+        result = []
+
+        for pop_code in populations:
+            pop_indiv_count = pop_counts.loc[pop_code]['Sample name']
+            pop_total_count = 0
+            pop_freq = 0
+
+            if (is_X_chrom and (id not in x_autosomal_transcripts)):
+                pop_male_count = pop_counts_male.loc[pop_code]['Sample name']
+                pop_total_count = pop_male_count + ((pop_indiv_count - pop_male_count) * 2)
+            else:
+                pop_total_count = pop_indiv_count * 2
+
+            if (pop_total_count > 0):    
+                pop_freq = populations[pop_code] / pop_total_count
+                result.append(pop_code + ':{:.5f}'.format(pop_freq))
+
+        return ';'.join(result)
+
+    def count_freq_superpop(row):
+        superpop = {}
+
+        for s in row['Samples'].split(';'):
+            superpop_code = sample_info.loc[s.split(':',1)[0]]['Superpopulation code']
+
+            if (superpop_code in superpop):
+                superpop[superpop_code] += 1
+            else:
+                superpop[superpop_code] = 1
+
+        id = row['TranscriptID']        
+        result = []
+
+        for pop_code in superpop:
+            pop_indiv_count = superpop_counts.loc[pop_code]['Sample name']
+            pop_total_count = 0
+            pop_freq = 0
+
+            if (is_X_chrom and (id not in x_autosomal_transcripts)):
+                pop_male_count = superpop_counts_male.loc[pop_code]['Sample name']
+                pop_total_count = pop_male_count + ((pop_indiv_count - pop_male_count) * 2)
+            else:
+                pop_total_count = pop_indiv_count * 2
+
+            if (pop_total_count > 0):    
+                pop_freq = superpop[pop_code] / pop_total_count
+                result.append(pop_code + ':{:.5f}'.format(pop_freq))
+
+        return ';'.join(result)
+
+    result_df['Frequency'] = result_df.apply(count_freq, axis=1)
+    result_df['Frequency_population'] = result_df.apply(count_freq_pop, axis=1)
+    result_df['Frequency_superpopulation'] = result_df.apply(count_freq_superpop, axis=1)
+    #result_df.sort_values(by=['TranscriptID', 'Frequency'], ascending=[True, False], inplace=True)
+    
     # write info about the removed samples into the log file
     log_file_handle = open(log_file, 'w')
     log_file_handle.write('TranscriptID\t#Removed\tRemovedSamples\n')
