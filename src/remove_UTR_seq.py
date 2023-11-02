@@ -19,10 +19,10 @@ for protein in all_proteins.values():
 	splitIDs = protein['description'].split('split_sequences:', 1)[1].split(maxsplit=1)[0].split(';')
 
 	# remove information for proteins that contain only their UTR region in this sequence
-	proteinIDs = [ x for x,i in enumerate(protein['description'].split('matching_proteins:', 1)[1].split(maxsplit=1)[0].split(';')) if ('UTR' not in splitIDs[i]) ]
-	proteinPos = [ x for x,i in enumerate(protein['description'].split('position_within_protein:', 1)[1].split(maxsplit=1)[0].split(';')) if ('UTR' not in splitIDs[i]) ]
-	proteinStart = [ x for x,i in enumerate(protein['description'].split('start:', 1)[1].split(maxsplit=1)[0].split(';')) if ('UTR' not in splitIDs[i]) ]
-	proteinRF = [ x for x,i in enumerate(protein['description'].split('reading_frame:', 1)[1].split(maxsplit=1)[0].split(';')) if ('UTR' not in splitIDs[i]) ]
+	proteinIDs = [ x for i,x in enumerate(protein['description'].split('matching_proteins:', 1)[1].split(maxsplit=1)[0].split(';')) if ('UTR' not in splitIDs[i]) ]
+	proteinPos = [ x for i,x in enumerate(protein['description'].split('position_within_protein:', 1)[1].split(maxsplit=1)[0].split(';')) if ('UTR' not in splitIDs[i]) ]
+	proteinStart = [ x for i,x in enumerate(protein['description'].split('start:', 1)[1].split(maxsplit=1)[0].split(';')) if ('UTR' not in splitIDs[i]) ]
+	proteinRF = [ x for i,x in enumerate(protein['description'].split('reading_frame:', 1)[1].split(maxsplit=1)[0].split(';')) if ('UTR' not in splitIDs[i]) ]
 
 	if (len(proteinIDs) > 0):
 		# remove the split sequence IDs from the description - they are redundant for the search and PSM annotation
