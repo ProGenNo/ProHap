@@ -440,9 +440,9 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
         # filtering is done at the and since some haplotypes could have been merged
         result_table = []
         if (min_foo != -1):
-            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-1] >= min_foo) ]
+            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-3] >= min_foo) ]
         else:
-            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-2] >= min_count) ]
+            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-4] >= min_count) ]
 
         included_haplotype_ids = [ haplotype[3] for haplotype in result_table ]
 
