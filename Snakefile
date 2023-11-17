@@ -219,13 +219,14 @@ rule var_fasta_remove_stop:
 
 rule filter_phased_vcf:
     input:
-        vcf="data/vcf/phased/" +config['phased_vcf_file_name']
+        vcf=expand('{proxy}', proxy=[config['phased_local_path'] + config['phased_vcf_file_name']] if len(config["phased_local_path"]) > 0 else ["data/vcf/phased/" + config['phased_vcf_file_name']])
     output:
         "data/vcf/phased/chr{chr}_phased_filtered.vcf"
     params:
         AF_threshold=config['phased_min_af'],
         AF_field=config['phased_af_field']
     shell:
+        "mkdir -p data/vcf/phased ; "
         "python3 src/vcf_filter_fix.py -i {input} -chr {wildcards.chr} -af {params.AF_threshold} -af_field {params.AF_field} -o {output} "
 
 rule compute_haplotypes:

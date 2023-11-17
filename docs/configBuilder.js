@@ -37,13 +37,18 @@ function setProVarParams(include_variants, VCF_data, var_require_start, var_fast
     return provar_config_html
 }
 
-function setProHapParams(include_haplotypes, dataset_url, vcf_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file) {
+function setProHapParams(include_haplotypes, dataset_url, dataset_path, vcf_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file) {
+    if ((dataset_path.length > 0) && !dataset_path.endsWith('/')) {
+        dataset_path = dataset_path + '/'
+    }
+    
     const prohap_config_html = "<p>\
     # ---------------- ProHap parameters ----------------<br>" +
     "include_haplo: " + (include_haplotypes ? "True" : "False") + '<br>' +
     "<br>" +
-    "phased_FTP_URL: " + dataset_url + '<br>' +
-    "phased_vcf_file_name: " + vcf_filename + '<br>' +
+    "phased_FTP_URL: " + (dataset_url.length == 0 ? "\"\"" :  "\"" + dataset_url + "\"") + '<br>' +
+    "phased_local_path: " + (dataset_path.length == 0 ? "\"\"" :  "\"" + dataset_path + "\"") + '<br>' +
+    "phased_vcf_file_name: " + (vcf_filename.length == 0 ? "MISSING" :  "\"" + vcf_filename + "\"") + '<br>' +
     "<br>" +
     "working_dir_name_haplo: haplotypes_tmp<br><br>" +
     "haplo_min_freq: " + freq_threshold + "<br>" +

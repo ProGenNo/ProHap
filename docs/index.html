@@ -12,7 +12,7 @@
 <body class="bg-light">
     <div class="container">
     <div class="py-5 text-left">
-        <h2>Create your config.yaml file</h2>        
+        <h2>Create your config.yaml file for <a href="https://github.com/ProGenNo/ProHap">ProHap</a></h2>        
     </div>
     <div class="row">
         <div class="col">
@@ -140,9 +140,24 @@
                     <label class="form-check-label" for="prohap-switch">Use ProHap <span class="text-muted">(Include protein haplotypes in the final FASTA file)</span></label>
                 </div>
                 <hr class="mb-1">
+                <legend class="col-form-label col-md-2 pt-0">Data source:</legend>
+                <div class="d-block my-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="prohap-source-radio" id="prohap-source-radio-1" value="url" checked>
+                        <label class="form-check-label" for="prohap-source-radio-1">Download VCF files from an online resource</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="prohap-source-radio" id="prohap-source-radio-2" value="local">
+                        <label class="form-check-label" for="prohap-source-radio-2">Provide VCF files locally</label>
+                    </div>
+                </div>
+                <hr class="mb-1">
                 <label for="phased-vcf-url">URL of the data set of phased genotpyes</label>
                 <input type="text" class="form-control" name="phased-vcf-url" value="http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/" id="phased-vcf-url" required="required" aria-required="true">
                 <small class="form-text text-muted">Default: 1000 Genomes Project on GRCh38</small>
+                <div class="mb-1"></div>
+                <label for="phased-vcf-url">Path to the directory containing phased VCF files</label>
+                <input type="text" class="form-control" name="phased-vcf-path" placeholder="e.g. /mnt/c/data/my_VCF_dataset/" value="" id="phased-vcf-path" required="required" aria-required="true" disabled>
                 <div class="mb-1"></div>
                 <label for="phased-vcf-filename">Name of the VCF files
                 </label>
@@ -242,8 +257,9 @@
     let prohap_config_html = setProHapParams( 
         true, 
         "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/", 
+        "",
         "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf", 
-        "-1", "0", "0.01", true, true, true, "", ""
+        "-1", "0", "0.01", "AF", true, true, true, "", ""
     )
 
     function update_config_text() {
@@ -320,29 +336,42 @@
 
     d3.select('#form-prohap-params').on('change', (evt) => {
         const include_haplotypes = evt.currentTarget[0].checked
-        const dataset_url = evt.currentTarget[1].value
-        const vcf_filename = evt.currentTarget[2].value
+        
+        let dataset_url = ""
+        let dataset_path = ""
+        
+        if (evt.currentTarget[1].checked) {
+            d3.select('#phased-vcf-url').attr('disabled', null)
+            d3.select('#phased-vcf-path').attr('disabled', true)
+            dataset_url = evt.currentTarget[3].value
+        } else if (evt.currentTarget[2].checked) {
+            d3.select('#phased-vcf-url').attr('disabled', true)
+            d3.select('#phased-vcf-path').attr('disabled', null)
+            dataset_path = evt.currentTarget[4].value
+        } 
+
+        const vcf_filename = evt.currentTarget[5].value
 
         let freq_threshold = "-1"
         let count_threshold = "0"
 
-        if (evt.currentTarget[3].checked) {
-            freq_threshold = evt.currentTarget[5].value
+        if (evt.currentTarget[6].checked) {
+            freq_threshold = evt.currentTarget[8].value
         } else {
-            count_threshold = evt.currentTarget[5].value
+            count_threshold = evt.currentTarget[8].value
         }
 
-        const MAF_threshold = evt.currentTarget[6].value
-        const MAF_field = evt.currentTarget[7].value
+        const MAF_threshold = evt.currentTarget[9].value
+        const MAF_field = evt.currentTarget[10].value
 
-        const haplo_require_start = evt.currentTarget[8].checked
-        const haplo_ignore_UTR = evt.currentTarget[9].checked
-        const haplo_skip_start_lost = evt.currentTarget[10].checked
+        const haplo_require_start = evt.currentTarget[11].checked
+        const haplo_ignore_UTR = evt.currentTarget[12].checked
+        const haplo_skip_start_lost = evt.currentTarget[13].checked
 
-        const haplo_fasta_file = evt.currentTarget[11].value
-        const haplo_table_file = evt.currentTarget[12].value
+        const haplo_fasta_file = evt.currentTarget[14].value
+        const haplo_table_file = evt.currentTarget[15].value
 
-        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, vcf_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
+        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, dataset_path, vcf_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
         update_config_text()
     })
 
