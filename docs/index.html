@@ -115,6 +115,19 @@
                 </label>
                 <input type="text" class="form-control" name="phased-vcf-filename" value="ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf" id="phased-vcf-filename" required="required" aria-required="true">
                 <small class="form-text text-muted">VCFs are expected per chromosome, replace the chromosome number with "{chr}"</small>
+                
+                <hr class="mb-1">
+                <label for="phased-min-af">
+                    MAF threshold
+                </label>
+                <input type="text" class="form-control very-short-input" name="phased-min-af" value="0.01" id="phased-min-af" required="required" aria-required="true">
+                <small class="form-text text-muted">Variants under this threshold will not be included in haplotypes</small>
+                <hr class="mb-1">
+                <label for="phased-af-field">
+                    MAF field name
+                </label>
+                <input type="text" class="form-control very-short-input" name="phased-af-field" value="AF" id="phased-af-field" required="required" aria-required="true">
+                <small class="form-text text-muted">Name of the AF column in the VCF file ("AF" by default). Change if you want to use the frequency in a specific population within 1000 Genomes, or according to your own file </small>
                 <hr class="mb-1">
                 <legend class="col-form-label col-md-4 pt-0">Threshold haplotypes by</legend>
                 <div class="d-block my-1">
@@ -132,18 +145,6 @@
                 </label>
                 <input type="text" class="form-control very-short-input" name="haplo-threshold" value="0" id="haplo-threshold" required="required" aria-required="true">
                 <small class="form-text text-muted">Specify 0 to skip haplotype thresholding</small>
-                <hr class="mb-1">
-                <label for="phased-min-af">
-                    MAF threshold
-                </label>
-                <input type="text" class="form-control very-short-input" name="phased-min-af" value="0.01" id="phased-min-af" required="required" aria-required="true">
-                <small class="form-text text-muted">Variants under this threshold will not be included in haplotypes</small>
-                <hr class="mb-1">
-                <label for="phased-af-field">
-                    MAF field name
-                </label>
-                <input type="text" class="form-control very-short-input" name="phased-af-field" value="AF" id="phased-af-field" required="required" aria-required="true">
-                <small class="form-text text-muted">Name of the AF column in the VCF file ("AF" by default). Change if you want to use the frequency in a specific population within 1000 Genomes, or according to your own file </small>
                 <hr class="mb-1">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="haplo_require_start" checked>
@@ -352,17 +353,17 @@
 
         const vcf_filename = evt.currentTarget[5].value
 
+        const MAF_threshold = evt.currentTarget[6].value
+        const MAF_field = evt.currentTarget[7].value
+
         let freq_threshold = "-1"
         let count_threshold = "0"
 
-        if (evt.currentTarget[6].checked) {
-            freq_threshold = evt.currentTarget[8].value
+        if (evt.currentTarget[8].checked) {
+            freq_threshold = evt.currentTarget[10].value
         } else {
-            count_threshold = evt.currentTarget[8].value
+            count_threshold = evt.currentTarget[10].value
         }
-
-        const MAF_threshold = evt.currentTarget[9].value
-        const MAF_field = evt.currentTarget[10].value
 
         const haplo_require_start = evt.currentTarget[11].checked
         const haplo_ignore_UTR = evt.currentTarget[12].checked

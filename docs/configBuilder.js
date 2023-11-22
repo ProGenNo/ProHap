@@ -30,8 +30,8 @@ function setProVarParams(include_variants, VCF_data, var_require_start, var_fast
         "working_dir_name_var: variants_tmp<br><br>" +
         "var_require_start: " + (var_require_start ? "1" : "0") + '<br>' +
         "<br>" +
-        "var_fasta_file: " + (var_fasta_file.length == 0 ? "MISSING" :  "\"" + var_fasta_file + "\"") + "<br>" +
-        "var_table_file: " + (var_table_file.length == 0 ? "MISSING" :  "\"" + var_table_file + "\"") + "<br>" +
+        "var_fasta_file: " + ((var_fasta_file.length == 0 && include_variants) ? "MISSING" :  "\"" + var_fasta_file + "\"") + "<br>" +
+        "var_table_file: " + ((var_table_file.length == 0 && include_variants) ? "MISSING" :  "\"" + var_table_file + "\"") + "<br>" +
         "</p>"
 
     return provar_config_html
@@ -51,18 +51,18 @@ function setProHapParams(include_haplotypes, dataset_url, dataset_path, vcf_file
     "phased_vcf_file_name: " + (vcf_filename.length == 0 ? "MISSING" :  "\"" + vcf_filename + "\"") + '<br>' +
     "<br>" +
     "working_dir_name_haplo: haplotypes_tmp<br><br>" +
-    "haplo_min_freq: " + freq_threshold + "<br>" +
-    "haplo_min_count: " + count_threshold + "<br>" +
     "phased_min_af: " + MAF_threshold + "<br>" +
     "phased_af_field: " + MAF_field + "<br>" +
+    "haplo_min_freq: " + freq_threshold + "<br>" +
+    "haplo_min_count: " + count_threshold + "<br>" +
     "<br>" +
     "haplo_require_start: " + (haplo_require_start ? "1" : "0") + "<br>" +
     "haplo_ignore_UTR: " + (haplo_ignore_UTR ? "1" : "0") + "<br>" +
     "haplo_skip_start_lost: " + (haplo_skip_start_lost ? "1" : "0") + "<br>" +
     "max_cores: 3<br>" +
     "<br>" +
-    "haplo_fasta_file: " + (haplo_fasta_file.length == 0 ? "MISSING" :  "\"" + haplo_fasta_file + "\"") + "<br>" +
-    "haplo_table_file: " + (haplo_table_file.length == 0 ? "MISSING" :  "\"" + haplo_table_file + "\"") + "<br>" +
+    "haplo_fasta_file: " + ((haplo_fasta_file.length == 0 && include_haplotypes) ? "MISSING" :  "\"" + haplo_fasta_file + "\"") + "<br>" +
+    "haplo_table_file: " + ((haplo_table_file.length == 0 && include_haplotypes) ? "MISSING" :  "\"" + haplo_table_file + "\"") + "<br>" +
     "</p>"
 
     return prohap_config_html
