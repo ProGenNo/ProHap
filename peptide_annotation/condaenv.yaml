@@ -1,4 +1,4 @@
-name: ProHap
+name: ProHap-PeptideAnnot
 channels:
   - bioconda
   - conda-forge
@@ -6,10 +6,10 @@ channels:
 dependencies:
   - python=3.10
   - numpy
-  - biopython
   - gffutils
   - pip
   - pip:
     - pandas
     - argparse
-    - pyvcf3
+    - tqdm
+    - datetime

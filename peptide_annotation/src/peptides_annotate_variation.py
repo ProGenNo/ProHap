@@ -479,6 +479,6 @@ with Pool(args.threads) as p:
     p.close()
     p.join()
     summary_df = pd.DataFrame(columns=summary_columns, data=summary_data)
-    summary_df.to_csv(args.output_file, header=True, index=False)
+    summary_df.to_csv(args.output_file, header=True, index=False, sep='\t')
 
 log_file.close()

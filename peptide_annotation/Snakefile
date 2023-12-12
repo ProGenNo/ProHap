@@ -1,4 +1,5 @@
-configfile: ""
+# Specify the configuration file below:
+configfile: "config_example.yaml"
 
 Ensembl_FTP_URL = "ftp.ensembl.org/pub/release-" + str(config['ensembl_release']) + "/"
 annotationFilename = "Homo_sapiens.GRCh38." + str(config['ensembl_release']) + ".chr_patch_hapl_scaff"
@@ -50,8 +51,8 @@ rule annotate_peptides:
     output:
             config['output_file']
     params:
-            variant_prefix=config['variant_protein_prefix'],
-            haplotype_prefix=config['haplotype_protein_prefix'],
+            variant_prefix="var_",
+            haplotype_prefix="haplo_",
             max_cores=config['max_cores'],
             log_file="annotation_log.txt"
     threads: config['max_cores']
