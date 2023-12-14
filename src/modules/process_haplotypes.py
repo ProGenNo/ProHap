@@ -307,13 +307,14 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                         rf_conseq[-1] += '_after_fs'
 
                     rf_changes.append(protein_change)
+                    
+                    has_frameshift = has_frameshift or (frameshifts[ch_idx] and (loc_ref >= 0))
 
                 if not all(is_synonymous):
                     protein_changes.append("|".join(rf_changes))
                 all_protein_changes.append("|".join(rf_changes))
                 prot_var_types.append('|'.join(rf_conseq))
 
-                has_frameshift = has_frameshift or frameshifts[ch_idx]
                 sequence_length_diff += alt_len - ref_len
             
             spl_junctions_affected_str = ';'.join([str(x) for x in spl_junctions_affected])
