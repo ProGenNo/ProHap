@@ -2,6 +2,8 @@
 Proteogenomics database-generation tool for protein haplotypes and variants 
 
 ## Input & Usage
+Below is a brief overview, for details on input file format and configuration, please refer to the [Wiki page](https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage).
+
 Required ingredients:
  - GTF annotation file (Ensembl - downloaded automatically by Snakemake)
  - cDNA FASTA file (Ensembl - downloaded automatically by Snakemake)
@@ -10,6 +12,8 @@ Required ingredients:
  - For ProVar: VCF, single file per dataset
 
 Required software: [Snakemake](https://snakemake.readthedocs.io/en/stable/) & [Conda](https://docs.conda.io/en/latest/)
+
+Using ProHap with the 1000 Genomes Project data set (as per default) requires about 1TB disk space!
 
 Usage:
  1. Clone this repository: `git clone https://github.com/ProGenNo/ProHap.git; cd ProHap/;`
