@@ -58,7 +58,7 @@ rule annotate_peptides:
     threads: config['max_cores']
     conda: "condaenv.yaml"
     shell:
-            "python src/peptides_annotate_variation.py -i {input.report} " +
+            "python src/peptides_annotate_variation.py -i {input.pep} " +
             ("-var_tsv {input.var_db} -var_prefix {params.variant_prefix} " if (len(config["var_db_table"]) > 0) else "") +
             ("-hap_tsv {input.haplo_db} -hap_prefix {params.haplotype_prefix} " if (len(config["haplo_db_table"]) > 0) else "") +
             "-log {params.log_file} -ens_annot {input.annot_db} -f {input.fasta_file} -ref_fa {input.ref_fasta} -t {params.max_cores} -o {output}; "
