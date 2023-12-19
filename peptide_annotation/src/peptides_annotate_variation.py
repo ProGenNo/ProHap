@@ -428,6 +428,7 @@ def process_row(index):
             all_preceding_indels.append(preceding_indels)
 
             # if two variants affect the same codon, the change will be shown twice -> remove the duplicate
+            local_matching_changes_pep = list(dict.fromkeys(local_matching_changes_pep))
             local_matching_changes_prot = list(dict.fromkeys(local_matching_changes_prot))
 
             if (len(local_matching_changes_prot) > 0):
