@@ -46,7 +46,7 @@ for record in vcf_reader:
         if record.ID is not None:
             ID = record.ID
 
-        vcf_data.append([record.CHROM.replace('chr', ''), record.POS, ID, fill_missing_str(record.REF), fill_missing_seq(alt), 'MAF=' + str(MAF)])
+        vcf_data.append([record.CHROM.replace('chr', ''), record.POS, ID, fill_missing_str(record.REF), fill_missing_seq(alt), ('MAF=' + str(MAF)) if MAF >= 0 else "."])
 
 df = pd.DataFrame(data=vcf_data, columns=['#CHROM','POS','ID','REF','ALT','INFO'])
 CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X', 'Y']
