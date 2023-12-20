@@ -47,6 +47,28 @@ def check_protein_allele(change, start, stop):
     alt_len = len(change.split(':')[2])
     return (loc >= start) and (loc + alt_len <= stop)
 
+def add_population_freqs(left, right):
+    left_pops = {}
+    right_pops = {}
+    result = []
+
+    for elem in left.split(';'):
+        left_pops[elem.split(':')[0]] = float(elem.split(':')[1])
+    for elem in right.split(';'):
+        right_pops[elem.split(':')[0]] = float(elem.split(':')[1])
+
+    for pop_code in list(dict.fromkeys(list(left_pops.keys()) + list(right_pops.keys()))):
+        total_freq = 0
+
+        if (pop_code in left_pops):
+            total_freq += left_pops[pop_code]
+        if (pop_code in right_pops):
+            total_freq += right_pops[pop_code]
+        
+        result.append(pop_code + ':{:.5f}'.format(total_freq))
+
+    return ';'.join(result)
+
 def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_db, chromosome, id_prefix, force_rf, threads, min_foo = -1, min_count = 0, ignore_UTR = True, skip_start_loss = True):
     result_data = []
     
@@ -362,6 +384,8 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 if haplo_hash in local_result_data:
                     local_result_data[haplo_hash][16] += row['Count']
                     local_result_data[haplo_hash][17] += row['Frequency']
+                    local_result_data[haplo_hash][18] = add_population_freqs(local_result_data[haplo_hash][18], row['Frequency_population'])
+                    local_result_data[haplo_hash][19] = add_population_freqs(local_result_data[haplo_hash][19], row['Frequency_superpopulation'])
                 else:
                     local_result_data[haplo_hash] = [
                         row['TranscriptID'],
