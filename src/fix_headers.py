@@ -20,6 +20,9 @@ parser.add_argument("-o", dest="output_file", required=True,
 parser.add_argument("-t", dest="tag", required=False, default="",
 		    help="custom tag for protein identification")
 
+parser.add_argument("-use_ENST", dest="use_ENST", required=False, default=0,
+		    help="replace the current protein accession with the ENST identifier")
+
 args = parser.parse_args()
 
 print('')
@@ -50,19 +53,29 @@ while metadata != "":
 
         if len(metadata_parsed) == 2:					# accession and description are potentially merged -> separate them
             if " " in metadata_parsed[1]:
-                accession = metadata_parsed[1].split(' ')[0]
                 description = metadata_parsed[1].split(' ', 1)[1]
+                if (not args.use_ENST) or ('ENST' not in description):
+                    accession = metadata_parsed[1].split(' ')[0]
+                else:
+                    accession = 'ENST' + description.split('ENST',1)[1].split(maxsplit=1)[0].split('.',1)[0]
             else:
                 accession = metadata_parsed[1]				# no description -> keep accession as it is
         elif len(metadata_parsed) == 3:					# descripton and accesson already separated -> keep
-            accession = metadata_parsed[1]
             description = metadata_parsed[2]
+
+            if (not args.use_ENST) or ('ENST' not in description):
+                accession = metadata_parsed[1]
+            else:
+                accession = 'ENST' + description.split('ENST',1)[1].split(maxsplit=1)[0].split('.',1)[0]
 
     else:						# the header is not formated
         tag = 'generic' + args.tag					# add the keyword "generic" and a custom tag (empty if not provided)
         accession = metadata[1:-1].split()[0]
+        
         if " " in metadata:
             description = metadata[:-1].split(" ", 1)[1]
+            if (args.use_ENST) and ('ENST' in description):
+                accession = 'ENST' + description.split('ENST',1)[1].split(maxsplit=1)[0].split('.',1)[0]
 
     if 'matching_proteins:' not in description:
         description = description + ' matching_proteins:' + accession + '\n'

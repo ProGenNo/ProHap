@@ -78,7 +78,7 @@ rule reference_fix_headers:
         "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"
     conda: "envs/prohap.yaml"
     shell:
-        "python3 src/fix_headers.py -i {input} -o {output} -t _ensref "
+        "python3 src/fix_headers.py -i {input} -o {output} -t _ensref -use_ENST 1 "
 
 rule default_transcript_list:
     input:
