@@ -15,13 +15,41 @@ Required ingredients:
 
 Required software: [Snakemake](https://snakemake.readthedocs.io/en/stable/) & [Conda](https://docs.conda.io/en/latest/)
 
-Using ProHap with the 1000 Genomes Project data set (as per default) requires about 1TB disk space!
+Using ProHap with the full 1000 Genomes Project data set (as per default) requires about 1TB disk space!
 
 Usage:
  1. Clone this repository: `git clone https://github.com/ProGenNo/ProHap.git; cd ProHap/;`
  2. Create a configuration file called `config.yaml` based on the instructions in `config_file_example`, or using https://progenno.github.io/ProHap/
  3. Test Snakemake with a dry-run: `snakemake -c<# provided cores> -n -q`
  4. Run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
+
+### Example: ProHap on 1000 Genomes
+In the first usage example, we provide a small example dataset taken from the 1000 Genomes Project on GRCh38. We will ProHap to create a database of protein haplotypes aligned with Ensembl v.111 (January 2024).
+
+This example was tested with Ubuntu 22.04.3 LTS. Windows users are encouraged to use the [Windows Subsystem for Linux](https://ubuntu.com/desktop/wsl) to run the ProHap / ProVar pipeline. 
+
+Requirements: Install Conda / Mamba and Snakemake using [this guide](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba). Hardware requirements: 4 CPU cores, ~5 GB disk space, < 5 GB RAM.
+  
+Use the following commands to run this example:
+
+```
+# Clone this repository:
+git clone https://github.com/ProGenNo/ProHap.git ;
+cd ProHap;
+
+# Unpack the sample dataset
+cd sample_data ;
+gunzip sample_1kGP_common_global.tar.gz ;
+tar xf sample_1kGP_common_global.tar ;
+cd .. ;
+
+# Copy the configuration to config.yaml
+cp config_example1.yaml config.yaml ;
+
+# Activate the snakemake conda environment and run the pipeline
+conda activate snakemake ;
+snakemake --cores 4 -p --use-conda ;
+```
 
 ## Using the database for proteomic searches
 Once you obtain a list of peptide-spectrum matches (PSMs), you can use a pipeline provided in this repository \([peptide_annotation](https://github.com/ProGenNo/ProHap/tree/main/peptide_annotation)\) to map the peptides back to the respective protein haplotype / variant sequences, and map the identified variants back to their genetic origin. For the usage and details, please refer to the following [wiki page](https://github.com/ProGenNo/ProHap/wiki/Using-the-database-for-proteomic-searches).
