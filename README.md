@@ -26,7 +26,7 @@ Usage:
 ### Example: ProHap on 1000 Genomes
 In the first usage example, we provide a small example dataset taken from the 1000 Genomes Project on GRCh38. We will ProHap to create a database of protein haplotypes aligned with Ensembl v.111 (January 2024).
 
-This example was tested with Ubuntu 22.04.3 LTS. Windows users are encouraged to use the [Windows Subsystem for Linux](https://ubuntu.com/desktop/wsl). Expected runtime using 4 CPU cores: ~20 hours. Expected runtime using 40 CPU cores: ~4 hours.
+This example was tested with Ubuntu 22.04.3 LTS. Windows users are encouraged to use the [Windows Subsystem for Linux](https://ubuntu.com/desktop/wsl). Expected runtime using 4 CPU cores: ~6 hours. Expected runtime using 40 CPU cores: ~1.5 hours.
 
 Requirements: Install Conda / Mamba and Snakemake using [this guide](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba). Minimum hardware requirements: 4 CPU cores, ~5 GB disk space, 5 GB RAM.
   
