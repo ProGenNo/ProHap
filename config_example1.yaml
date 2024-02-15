@@ -1,0 +1,43 @@
+ # ---------------- Global parameters ----------------
+Ensembl_FTP_URL: ftp.ensembl.org/pub/release-111/
+annotationFilename: Homo_sapiens.GRCh38.111.chr_patch_hapl_scaff
+ensembl_release: 111
+
+custom_transcript_list: "data/transcripts_reference_111.csv"
+included_transcript_biotypes: ""
+
+final_fasta_file: "results/example1_concatenated_database.fa"
+
+# ---------------- ProHap parameters ----------------
+include_haplo: True
+
+phased_FTP_URL: ""
+phased_local_path: "sample_data/"
+phased_vcf_file_name: "sample_chr{chr}_1kGP_GRCh38_phased.vcf"
+
+working_dir_name_haplo: haplotypes_tmp
+
+phased_min_af: 0.01
+phased_af_field: AF
+haplo_min_freq: 0
+haplo_min_count: 0
+
+haplo_require_start: 1
+haplo_ignore_UTR: 1
+haplo_skip_start_lost: 1
+max_cores: 1
+
+haplo_fasta_file: "results/example1_haplotype_translations.fa"
+haplo_table_file: "results/example1_haplotypes.tsv"
+
+# ---------------- ProVar parameters ----------------
+include_var: False
+variant_vcf: {}
+
+working_dir_name_var: variants_tmp
+
+var_require_start: 1
+
+var_fasta_file: ""
+var_table_file: ""
+
