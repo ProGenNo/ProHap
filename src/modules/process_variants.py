@@ -148,9 +148,29 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
 
             # check if what we expected to find is in fact in the cDNA
             if (str(ref_allele) != mutated_cdna[rna_location:rna_location+ref_len]):
-                print('Ref allele not matching the cDNA sequence, skipping!')
-                log_file.write('[' + datetime.now().strftime('%X %x') + '] Ref allele not matching the cDNA sequence: ' + transcript_id + ' (reverse strand: ' + str(reverse_strand) + ') ID:' + vcf_row['ID'] + ' expected: ' + str(ref_allele) + ' found in cDNA: ' +  str(mutated_cdna[rna_location-10:rna_location]) + ' ' + str(mutated_cdna[rna_location:rna_location+ref_len]) + ' ' + str(mutated_cdna[rna_location+ref_len:rna_location+ref_len+10]) + '\n')
-                continue
+
+                # if mismatched, check if shifring one base to the right will help
+                dna_location += 1
+                rna_location, ref_allele, ref_len, alt_allele, alt_len, spl_junction_affected = get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, current_transcript['exons'])
+                if reverse_strand:
+                    ref_allele = ref_allele.reverse_complement()
+                    alt_allele = alt_allele.reverse_complement()
+                    rna_location = len(cdna_sequence) - rna_location - ref_len
+
+                if (str(ref_allele) != mutated_cdna[rna_location:rna_location+ref_len]):
+
+                    # if still mismatched, try one base to the left                    
+                    dna_location -= 2
+                    rna_location, ref_allele, ref_len, alt_allele, alt_len, spl_junction_affected = get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, current_transcript['exons'])
+                    if reverse_strand:
+                        ref_allele = ref_allele.reverse_complement()
+                        alt_allele = alt_allele.reverse_complement()
+                        rna_location = len(cdna_sequence) - rna_location - ref_len
+
+                    if (str(ref_allele) != mutated_cdna[rna_location:rna_location+ref_len]):
+                        print('Ref allele not matching the cDNA sequence, skipping!')
+                        log_file.write('[' + datetime.now().strftime('%X %x') + '] Ref allele not matching the cDNA sequence: ' + transcript_id + ' (reverse strand: ' + str(reverse_strand) + ') ID:' + vcf_row['ID'] + ' expected: ' + str(ref_allele) + ' found in cDNA: ' +  str(mutated_cdna[rna_location-10:rna_location]) + ' ' + str(mutated_cdna[rna_location:rna_location+ref_len]) + ' ' + str(mutated_cdna[rna_location+ref_len:rna_location+ref_len+10]) + '\n')
+                        continue
             
             # apply the change to the cDNA
             mutated_cdna = mutated_cdna[:rna_location] + alt_allele + mutated_cdna[rna_location+ref_len:]
