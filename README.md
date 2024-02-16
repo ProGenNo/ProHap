@@ -13,7 +13,7 @@ Required ingredients:
  - For ProHap: VCF with phased genotypes, one file per chromosome \(such as [1000 Genomes Project](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/) - downloaded automatically by Snakemake\)
  - For ProVar: VCF, single file per dataset
 
-Required software: [Snakemake](https://snakemake.readthedocs.io/en/stable/) & [Conda](https://docs.conda.io/en/latest/)
+Required software: [Snakemake](https://snakemake.readthedocs.io/en/stable/) & [Conda](https://docs.conda.io/en/latest/). ProHap was tested with Ubuntu 22.04.3 LTS. Windows users are encouraged to use the [Windows Subsystem for Linux](https://ubuntu.com/desktop/wsl).
 
 Using ProHap with the full 1000 Genomes Project data set (as per default) requires about 1TB disk space!
 
@@ -26,7 +26,7 @@ Usage:
 ### Example: ProHap on 1000 Genomes
 In the first usage example, we provide a small example dataset taken from the 1000 Genomes Project on GRCh38. We will ProHap to create a database of protein haplotypes aligned with Ensembl v.111 (January 2024).
 
-This example was tested with Ubuntu 22.04.3 LTS. Windows users are encouraged to use the [Windows Subsystem for Linux](https://ubuntu.com/desktop/wsl). Expected runtime using 4 CPU cores: ~6 hours. Expected runtime using 40 CPU cores: ~1.5 hours.
+Expected runtime using 4 CPU cores: ~4 hours. Expected runtime using 23 CPU cores: ~1.5 hours.
 
 Requirements: Install Conda / Mamba and Snakemake using [this guide](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba). Minimum hardware requirements: 4 CPU cores, ~5 GB disk space, 5 GB RAM.
   
