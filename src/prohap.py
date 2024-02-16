@@ -134,7 +134,9 @@ transcript_list = [ feature.id for feature in all_transcripts ]
 print (('Chr ' + args.chromosome + ':'), 'Assigning variants to transcripts.')
 # parse the VCF file, get a dataframe of variants for each transcript
 vcf_colnames = parse_vcf(all_transcripts, args.input_vcf, annotations_db, args.min_af, args.tmp_dir)
-#vcf_colnames = list(pd.read_csv(args.tmp_dir + '/' + transcript_list[0] + '.tsv', sep='\t').columns.values)
+
+# keep only the samples that are in the metadata table
+sample_ids = [sample for sample in vcf_colnames if (sample in samples_df['Sample name'].tolist())]
 
 # check if the vcf file was empty
 if (len(vcf_colnames) == 0):
@@ -143,7 +145,7 @@ if (len(vcf_colnames) == 0):
 else:
         print (('Chr ' + args.chromosome + ':'), 'Computing the co-occurrence of alleles.')
         # check co-occurence of alleles -> get the haplotypes for all transcripts
-        gene_haplo_df = get_gene_haplotypes(all_transcripts, vcf_colnames, args.tmp_dir, args.log_file, args.threads, (args.chromosome == 'X'), args.x_par1_to, args.x_par2_from, samples_df)
+        gene_haplo_df = get_gene_haplotypes(all_transcripts, sample_ids, args.tmp_dir, args.log_file, args.threads, (args.chromosome == 'X'), args.x_par1_to, args.x_par2_from, samples_df)
 
         # remove the temporary files
         for transcript_id in transcript_list:

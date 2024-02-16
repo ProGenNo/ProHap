@@ -58,7 +58,7 @@ def remove_conflicting_mutations(changes, AFs):
 
 # Creates a list of observed haplotypes from VCF files (individual file for each transcript, with phased genotypes). 
 # Returns a dataframe, haplotypes described by DNA location, reference and alternative allele.
-def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, threads, is_X_chrom, PAR1_to, PAR2_from, sample_info):
+def get_gene_haplotypes(all_transcripts, indiv_ids, tmp_dir, log_file, threads, is_X_chrom, PAR1_to, PAR2_from, sample_info):
 
     result_data = []
     removed_samples = {}        # Dict giving the list of removed samples by transcript (samples are removed if there are conflicting mutations found)
@@ -66,8 +66,6 @@ def get_gene_haplotypes(all_transcripts, vcf_colnames, tmp_dir, log_file, thread
     x_autosomal_transcripts = []  # list of transcripts in the pseudo-autosomal region (PAR), only applicable for X chromosome
 
     # the VCF dataframes all have the same columns -> store the IDs (colnames) of included infividuals:
-    column_offset = vcf_colnames.index('FORMAT') + 1
-    indiv_ids = vcf_colnames[column_offset:]
     indiv_count = len(indiv_ids)
 
     # keep the sample metadata only for the samples that are in the VCF file - important for frequencies
