@@ -9,7 +9,7 @@ included_transcript_biotypes: ""
 final_fasta_file: "results/example1_concatenated_database.fa"
 
 # ---------------- ProHap parameters ----------------
-include_haplo: True
+use_ProHap: True
 
 phased_FTP_URL: ""
 phased_local_path: "sample_data/"
@@ -41,3 +41,5 @@ var_require_start: 1
 var_fasta_file: ""
 var_table_file: ""
 
+add_existing_haplo: False
+haplo_added_fasta: ""

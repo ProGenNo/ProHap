@@ -22,7 +22,7 @@
                 <div class="row">
                     <div class="col-md-4">
                         <label for="ensembl-release">Ensembl release</label>
-                        <input type="text" class="form-control very-short-input" name="ensembl-release" value="108" id="ensembl-release" required="required" aria-required="true">
+                        <input type="text" class="form-control very-short-input" name="ensembl-release" value="110" id="ensembl-release" required="required" aria-required="true">
                     </div>
                 </div>
                 <div class="row">
@@ -218,6 +218,16 @@
                     Path to the variant metadata table
                 </label>
                 <input type="text" class="form-control" name="var_table_file" value="" id="var_table_file" required="required" aria-required="true" placeholder="e.g. results/variants.tsv">
+                <hr class="mb-1">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="add_existing_haplo">
+                    <label class="form-check-label" for="add_existing_haplo">Merge with an existing protein haplotype database</label>
+                </div>
+                <div class="mb-1"></div>
+                <label for="haplo_added_fasta">
+                    Path to additional haplotype FASTA tile (e.g., one of the F3 files in the <a href="https://doi.org/10.5281/zenodo.10149278">Zenodo repository</a>)
+                </label>
+                <input type="text" class="form-control" name="haplo_added_fasta" value="" id="haplo_added_fasta" aria-required="false" placeholder="e.g. data/F3_231220_1kGP_GRCh38_haplo.fa">
             </form>
         </div>
     </div>
@@ -254,7 +264,7 @@
 
 <script lang="ts">
     let general_config_html = setGeneralParams("108", "data/transcripts_reference_108.csv", "", "")
-    let provar_config_html = setProVarParams(false, [], true, '', '')
+    let provar_config_html = setProVarParams(false, [], true, '', '', false, '')
     let prohap_config_html = setProHapParams( 
         true, 
         "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/", 
@@ -331,7 +341,10 @@
         const var_fasta_file = evt.currentTarget[3 + vcf_form_elements].value
         const var_table_file = evt.currentTarget[4 + vcf_form_elements].value
 
-        provar_config_html = setProVarParams(include_variants, VCF_data, var_require_start, var_fasta_file, var_table_file)
+        const add_existing_haplo = evt.currentTarget[5 + vcf_form_elements].checked
+        const haplo_added_fasta = evt.currentTarget[6 + vcf_form_elements].value
+
+        provar_config_html = setProVarParams(include_variants, VCF_data, var_require_start, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_fasta)
         update_config_text()
     })
 

@@ -36,6 +36,10 @@ var_require_start: 1      # Require annotation of canonical start codon for ProV
 var_fasta_file: <filename - fasta with variant sequences, before any downstream optimization>
 var_table_file: <filename - supplementary table for variants>
 
+# Option to add existing haplotype database to the output of ProVar
+add_existing_haplo: False # boolean value - True or False
+haplo_added_fasta: <path to the fasta file (one of the F3 in the Zenodo repository)> 
+
 # ---------------- ProHap parameters ----------------
 
 phased_FTP_URL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/

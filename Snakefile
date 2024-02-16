@@ -290,12 +290,22 @@ rule haplo_fasta_remove_stop:
 
 # ------------------------------------ post-processing rules ------------------------------------
 
+rule added_fasta_remove_stop:
+    input:
+        config['haplo_added_fasta']
+    output:
+        temp("results/haplo_added_clean.fa")
+    conda: "envs/prohap.yaml"
+    shell:
+        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 6 "
+
 rule mix_with_reference_proteome:
     input:
         in1="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa",
         in2="data/fasta/crap_tagged.fa",
         in3=expand('{proxy}', proxy=["results/variants_all_clean.fa"] if config["use_ProVar"] else []),
         in4=expand('{proxy}', proxy=["results/haplo_all_clean.fa"] if config["use_ProHap"] else []),
+        in5=expand('{proxy}', proxy=["results/haplo_added_clean.fa"] if config["add_existing_haplo"] else []),
     output:
         temp("results/ref_contam_vcf_haplo_all_clean.fa")		
     run:
@@ -304,6 +314,8 @@ rule mix_with_reference_proteome:
             shell("cat {input.in3} >> {output}")
         if config["use_ProHap"]:
             shell("cat {input.in4} >> {output}")
+        if config["add_existing_haplo"]:
+            shell("cat {input.in5} >> {output}")
 
 rule merge_duplicate_seq:
     input:

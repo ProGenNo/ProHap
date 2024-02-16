@@ -15,7 +15,7 @@ function setGeneralParams(ensemblRelease, custom_tr_list, transcript_biotypes, f
     return general_config_html
 }
 
-function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file, var_table_file) {
+function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_fasta) {
     let vcf_datasets = ""
 
     VCF_data.forEach(element => {
@@ -32,6 +32,9 @@ function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file
         "<br>" +
         "var_fasta_file: " + ((var_fasta_file.length == 0 && use_ProVar) ? "MISSING" :  "\"" + var_fasta_file + "\"") + "<br>" +
         "var_table_file: " + ((var_table_file.length == 0 && use_ProVar) ? "MISSING" :  "\"" + var_table_file + "\"") + "<br>" +
+        "<br>" +
+        "add_existing_haplo: " + (add_existing_haplo ? "True" : "False") + '<br>' +
+        "haplo_added_fasta: " + ((haplo_added_fasta.length == 0 && add_existing_haplo) ? "MISSING" :  "\"" + haplo_added_fasta + "\"") + "<br>" +
         "</p>"
 
     return provar_config_html
