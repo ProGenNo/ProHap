@@ -9,10 +9,10 @@ WORKING_DIR_NAME_VAR = config['working_dir_name_var']
 rule all:
     input:
         final_fasta=config['final_fasta_file'],
-        var_table=expand('{proxy}', proxy=[config['var_table_file']] if config["include_var"] else []),
-        haplo_table=expand('{proxy}', proxy=[config['haplo_table_file']] if config["include_haplo"] else []),
-        var_fasta=expand('{proxy}', proxy=[config['var_fasta_file']] if config["include_var"] else []),
-        haplo_fasta=expand('{proxy}', proxy=[config['haplo_fasta_file']] if config["include_haplo"] else []),
+        var_table=expand('{proxy}', proxy=[config['var_table_file']] if config["use_ProVar"] else []),
+        haplo_table=expand('{proxy}', proxy=[config['haplo_table_file']] if config["use_ProHap"] else []),
+        var_fasta=expand('{proxy}', proxy=[config['var_fasta_file']] if config["use_ProVar"] else []),
+        haplo_fasta=expand('{proxy}', proxy=[config['haplo_fasta_file']] if config["use_ProHap"] else []),
 
 rule download_vcf:
     output:
@@ -294,15 +294,15 @@ rule mix_with_reference_proteome:
     input:
         in1="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa",
         in2="data/fasta/crap_tagged.fa",
-        in3=expand('{proxy}', proxy=["results/variants_all_clean.fa"] if config["include_var"] else []),
-        in4=expand('{proxy}', proxy=["results/haplo_all_clean.fa"] if config["include_haplo"] else []),
+        in3=expand('{proxy}', proxy=["results/variants_all_clean.fa"] if config["use_ProVar"] else []),
+        in4=expand('{proxy}', proxy=["results/haplo_all_clean.fa"] if config["use_ProHap"] else []),
     output:
         temp("results/ref_contam_vcf_haplo_all_clean.fa")		
     run:
         shell("cat {input.in1} {input.in2} > {output}; ")
-        if config["include_var"]:
+        if config["use_ProVar"]:
             shell("cat {input.in3} >> {output}")
-        if config["include_haplo"]:
+        if config["use_ProHap"]:
             shell("cat {input.in4} >> {output}")
 
 rule merge_duplicate_seq:

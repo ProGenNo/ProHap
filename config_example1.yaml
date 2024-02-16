@@ -31,7 +31,7 @@ haplo_fasta_file: "results/example1_haplotype_translations.fa"
 haplo_table_file: "results/example1_haplotypes.tsv"
 
 # ---------------- ProVar parameters ----------------
-include_var: False
+use_ProVar: False
 variant_vcf: {}
 
 working_dir_name_var: variants_tmp
