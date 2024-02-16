@@ -115,6 +115,11 @@
                 </label>
                 <input type="text" class="form-control" name="phased-vcf-filename" value="ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf" id="phased-vcf-filename" required="required" aria-required="true">
                 <small class="form-text text-muted">VCFs are expected per chromosome, replace the chromosome number with "{chr}"</small>
+                <div class="mb-1"></div>
+                <label for="sample_metadata_file">Samples metadata file
+                </label>
+                <input type="text" class="form-control" name="sample_metadata_file" value="igsr_samples.tsv" id="sample_metadata_file" required="required" aria-required="true">
+                <small class="form-text text-muted">See the <a href="https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage#prohap">wiki page</a> for details</small>
                 
                 <hr class="mb-1">
                 <label for="phased-min-af">
@@ -225,7 +230,7 @@
                 </div>
                 <div class="mb-1"></div>
                 <label for="haplo_added_fasta">
-                    Path to additional haplotype FASTA tile (e.g., one of the F3 files in the <a href="https://doi.org/10.5281/zenodo.10149278">Zenodo repository</a>)
+                    Path to the additional haplotype FASTA file (e.g., one of the F3 files in the <a href="https://doi.org/10.5281/zenodo.10149278">Zenodo repository</a>)
                 </label>
                 <input type="text" class="form-control" name="haplo_added_fasta" value="" id="haplo_added_fasta" aria-required="false" placeholder="e.g. data/F3_231220_1kGP_GRCh38_haplo.fa">
             </form>
@@ -269,7 +274,7 @@
         true, 
         "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/", 
         "",
-        "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf", 
+        "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf", "igsr_samples.tsv",
         "-1", "0", "0.01", "AF", true, true, true, "", ""
     )
 
@@ -365,27 +370,28 @@
         } 
 
         const vcf_filename = evt.currentTarget[5].value
+        const samples_filename = evt.currentTarget[6].value
 
-        const MAF_threshold = evt.currentTarget[6].value
-        const MAF_field = evt.currentTarget[7].value
+        const MAF_threshold = evt.currentTarget[7].value
+        const MAF_field = evt.currentTarget[8].value
 
         let freq_threshold = "-1"
         let count_threshold = "0"
 
-        if (evt.currentTarget[8].checked) {
-            freq_threshold = evt.currentTarget[10].value
+        if (evt.currentTarget[9].checked) {
+            freq_threshold = evt.currentTarget[11].value
         } else {
-            count_threshold = evt.currentTarget[10].value
+            count_threshold = evt.currentTarget[11].value
         }
 
-        const haplo_require_start = evt.currentTarget[11].checked
-        const haplo_ignore_UTR = evt.currentTarget[12].checked
-        const haplo_skip_start_lost = evt.currentTarget[13].checked
+        const haplo_require_start = evt.currentTarget[12].checked
+        const haplo_ignore_UTR = evt.currentTarget[13].checked
+        const haplo_skip_start_lost = evt.currentTarget[14].checked
 
-        const haplo_fasta_file = evt.currentTarget[14].value
-        const haplo_table_file = evt.currentTarget[15].value
+        const haplo_fasta_file = evt.currentTarget[15].value
+        const haplo_table_file = evt.currentTarget[16].value
 
-        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, dataset_path, vcf_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
+        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, dataset_path, vcf_filename, samples_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
         update_config_text()
     })
 

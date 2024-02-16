@@ -14,6 +14,7 @@ use_ProHap: True
 phased_FTP_URL: ""
 phased_local_path: "sample_data/"
 phased_vcf_file_name: "sample_chr{chr}_1kGP_GRCh38_phased.vcf"
+sample_metadata_file: "igsr_samples.tsv" 
 
 working_dir_name_haplo: haplotypes_tmp
 
