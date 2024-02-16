@@ -136,7 +136,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             start_lost = False                      # have we lost the canonical start codon?
 
             # compute the location in the RNA sequence
-            # does any of the allele sequences intersect a splicing site? => truncate if so
+            # do any of the allele sequences intersect a splicing site? => truncate if so
             rna_location, ref_allele, ref_len, alt_allele, alt_len, spl_junction_affected = get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, current_transcript['exons'])
 
             # if we are on a reverse strand, we need to complement the reference and alternative sequence to match the cDNA
@@ -149,12 +149,10 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
             # check if what we expected to find is in fact in the cDNA
             if (str(ref_allele) != mutated_cdna[rna_location:rna_location+ref_len]):
 
-                # if mismatched, check if shifring one base to the right will help
+                # if mismatched, check if shifting one base to the right will help
                 dna_location += 1
                 rna_location, ref_allele, ref_len, alt_allele, alt_len, spl_junction_affected = get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, current_transcript['exons'])
                 if reverse_strand:
-                    ref_allele = ref_allele.reverse_complement()
-                    alt_allele = alt_allele.reverse_complement()
                     rna_location = len(cdna_sequence) - rna_location - ref_len
 
                 if (str(ref_allele) != mutated_cdna[rna_location:rna_location+ref_len]):
@@ -163,8 +161,6 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                     dna_location -= 2
                     rna_location, ref_allele, ref_len, alt_allele, alt_len, spl_junction_affected = get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, current_transcript['exons'])
                     if reverse_strand:
-                        ref_allele = ref_allele.reverse_complement()
-                        alt_allele = alt_allele.reverse_complement()
                         rna_location = len(cdna_sequence) - rna_location - ref_len
 
                     if (str(ref_allele) != mutated_cdna[rna_location:rna_location+ref_len]):
