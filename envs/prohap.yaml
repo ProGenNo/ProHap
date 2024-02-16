@@ -13,3 +13,4 @@ dependencies:
     - pandas
     - argparse
     - pyvcf3
+    - pyarrow
