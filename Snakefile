@@ -235,7 +235,7 @@ rule compute_haplotypes:
         tr=expand('{proxy}', proxy=[config['custom_transcript_list']] if len(config["custom_transcript_list"]) > 0 else ["data/included_transcripts.csv"]),
         vcf="data/vcf/phased/chr{chr}_phased_filtered.vcf",
         fasta="data/fasta/total_cdnas_" + str(config['ensembl_release']) + ".fa",
-        samples="igsr_samples.tsv"
+        samples=config['sample_metadata_file']
     output:
         csv=temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv"),
         fasta=temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa"),
