@@ -55,16 +55,6 @@ fasta_entries = read_fasta(args.fasta_file)
 print ("Reading", args.ref_fasta)
 ref_proteins = read_fasta(args.ref_fasta)
 
-prot_tr_ids = []
-for prot in ref_proteins.values():
-    trID = prot['description'].split('transcript:',1)[1].split('.',1)[0]
-    prot_tr_ids.append([trID, prot['accession'].split('.',1)[0]])
-
-tr_id_df = pd.DataFrame(data=prot_tr_ids, columns=['TranscriptID', 'ProteinID'])
-prot_id_df = tr_id_df.copy()
-prot_id_df.set_index('TranscriptID', inplace=True)
-tr_id_df.set_index('ProteinID', inplace=True)
-
 print ("Reading", args.input_file)
 pep_df = pd.read_csv(args.input_file, sep='\t', header=0)
 pep_count = len(pep_df)
@@ -226,16 +216,15 @@ def process_row(index):
 
         for j,prot_ids in enumerate(matching_seq_proteins):
             for k,prot_id in enumerate(prot_ids):         
-                if prot_id.startswith('ENSP'):
-                    prot_id = prot_id.split('_', 1)[0]
-                    #matching_transcripts.append(tr_id_df.loc[prot_id]['TranscriptID'])                  
+                if prot_id.startswith('ENST'):
+                    prot_id = prot_id.split('_', 1)[0]                 
 
                 matching_proteins.append(prot_id)                   # Store protein ID
                 reading_frames.append(prot_reading_frames[j][k])    # Corresponding RF
 
                 matching_protein_positions.append(matching_seq_positions[j] + fasta_peptide_starts[i])  # Store position of the peptide in the complete protein
 
-    # Sort everything by protein accession so that canonical matches are first (ENSP is first lexicographically)
+    # Sort everything by protein accession so that canonical matches are first (ENST is first lexicographically)
     zipped = list(zip(matching_proteins, matching_protein_positions, reading_frames))   
     zipped.sort(key=lambda x: x[0])
     matching_proteins, matching_protein_positions, reading_frames = zip(*zipped)
@@ -248,11 +237,11 @@ def process_row(index):
 
         # Forget matches to variant sequences as this is a canonical peptide
         # Store the ENST ID for matching transcripts
-        matching_protein_positions = [ matching_protein_positions[idx] for idx,prot_id in enumerate(matching_proteins) if prot_id.startswith('ENSP') ]
-        matching_proteins = [ prot_id for prot_id in matching_proteins if prot_id.startswith('ENSP') ]
-        matching_transcripts = [ tr_id_df.loc[prot_id.split('.',1)[0]]['TranscriptID'] for prot_id in matching_proteins ]
+        matching_protein_positions = [ matching_protein_positions[idx] for idx,prot_id in enumerate(matching_proteins) if prot_id.startswith('ENST') ]
+        matching_proteins = [ prot_id for prot_id in matching_proteins if prot_id.startswith('ENST') ]
+        matching_transcripts = matching_proteins 
 
-        # get gene IDs only for canonical matches (by ENSP -> ENST -> ENSG)
+        # get gene IDs only for canonical matches (by ENST -> ENSG)
         matching_genes = [ annotations_db[trID.split('.', 1)[0]].attributes['gene_id'][0] for trID in matching_transcripts ]
         matching_genes = list(dict.fromkeys(matching_genes))    # remove duplicates
         if (len(matching_proteins) == 1):
@@ -271,7 +260,7 @@ def process_row(index):
 
         return [row['ID'], row['Sequence'], 'canonical', pep_type2, '', '', '|'.join(dna_alleles), ';'.join(matching_proteins), ';'.join(matching_transcripts), ';'.join(matching_genes), ';'.join([str(pos) for pos in matching_protein_positions]), '-', '-']
 
-    # Here, the peptide doesn't match to any canonical (ENSP*) sequence -> annotate variation
+    # Here, the peptide doesn't match to any canonical (ENST*) sequence -> annotate variation
     matching_pep_changes = []           # all unique matching changes with coordinated mapped to this peptide
     matching_protein_changes = []       # all unique matching changes in the protein
     matching_DNA_alleles = []           # corresponding unique matches to changes in the DNA
@@ -412,7 +401,7 @@ def process_row(index):
                         chromosome = protID.split('chr',1)[1].split('_',1)[0]
                         local_matching_alleles_DNA.append(chromosome + ':' + all_DNA_changes[j])
 
-            haplo_has_canonical_alternative = check_canonical_peptide(row['Sequence'], haplo_matching_changes, prot_id_df.loc[parent_transcript]['ProteinID'])
+            haplo_has_canonical_alternative = check_canonical_peptide(row['Sequence'], haplo_matching_changes, parent_transcript)
             has_canonical_alternative = has_canonical_alternative or haplo_has_canonical_alternative
 
             # Update the minimal number of co-occurring changes found
