@@ -52,7 +52,7 @@ snakemake --cores 4 -p --use-conda ;
 ```
 
 ## Using the database for proteomic searches
-Once you obtain a list of peptide-spectrum matches (PSMs), you can use a pipeline provided in this repository \([peptide_annotation](https://github.com/ProGenNo/ProHap/tree/main/peptide_annotation)\) to map the peptides back to the respective protein haplotype / variant sequences, and map the identified variants back to their genetic origin. For the usage and details, please refer to the following [wiki page](https://github.com/ProGenNo/ProHap/wiki/Using-the-database-for-proteomic-searches).
+Once you obtain a list of peptide-spectrum matches (PSMs), you can use a pipeline provided in the \([PeptideAnnotator](https://github.com/ProGenNo/ProHap_PeptideAnnotator)\) repository to map the peptides back to the respective protein haplotype / variant sequences, and map the identified variants back to their genetic origin. For the usage and details, please refer to the following [wiki page](https://github.com/ProGenNo/ProHap/wiki/Using-the-database-for-proteomic-searches).
 
 ## Output
 The ProHap / ProVar pipeline produces three kinds of output files. Below is a brief description, please refer to the [wiki page](https://github.com/ProGenNo/ProHap/wiki/Output-files) for further details.
