@@ -25,6 +25,8 @@ def get_MAF(info):
         return info.split(';' + args.af_field + '=')[1].split(';')[0]
     elif '\t' + args.af_field + '=' in info:
         return info.split('\t' + args.af_field + '=')[1].split(';')[0]
+    elif info.startswith(args.af_field + '='):
+        return info.split(args.af_field + '=')[1].split(';')[0]
 
     return "-1"
 
