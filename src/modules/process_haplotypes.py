@@ -184,7 +184,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 else:
                     alt_allele = Seq(alt_allele)
 
-                dna_location = int(re.split('[a-zA-Z\*]+', change)[0][:-1])
+                dna_location = int(re.split('[\-a-zA-Z\*]+', change)[0][:-1])
                 
                 # compute the location in the RNA sequence
                 # does any of the allele sequences intersect a splicing site? => truncate if so
