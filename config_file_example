@@ -11,6 +11,7 @@ use_ProHap: True # boolean value - True or False - whether or not to compute hap
 use_ProVar: False  # boolean value - True or False - whether or not to compute individual variants (run ProVar). Default: False
 
 final_fasta_file: <resulting fasta filename>
+fasta_simplify_headers: False   # boolean value - extract information from the FASTA headers into a separate file. Default: False
 
 # ---------------- ProVar parameters ----------------
 

@@ -7,6 +7,7 @@ custom_transcript_list: "data/transcripts_reference_111.csv"
 included_transcript_biotypes: ""
 
 final_fasta_file: "results/example1_concatenated_database.fa"
+fasta_simplify_headers: True
 
 # ---------------- ProHap parameters ----------------
 use_ProHap: True

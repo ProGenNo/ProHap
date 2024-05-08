@@ -8,7 +8,7 @@ WORKING_DIR_NAME_VAR = config['working_dir_name_var']
 
 rule all:
     input:
-        final_fasta=config['final_fasta_file'],
+        final_fasta=expand('{proxy}', proxy=[config['final_fasta_file']] if config['fasta_simplify_headers'] else ['.'.join(config['final_fasta_file'].split('.')[:-1]) + '_simplified.fasta']),
         var_table=expand('{proxy}', proxy=[config['var_table_file']] if config["use_ProVar"] else []),
         haplo_table=expand('{proxy}', proxy=[config['haplo_table_file']] if config["use_ProHap"] else []),
         var_fasta=expand('{proxy}', proxy=[config['var_fasta_file']] if config["use_ProVar"] else []),
@@ -337,3 +337,11 @@ rule remove_UTR_seq:
     shell:
         "python src/remove_UTR_seq.py -i {input} -o {output}"
 
+rule simpify_fasta_headers:
+    input:
+        config['final_fasta_file']
+    output:
+        fasta='.'.join(config['final_fasta_file'].split('.')[:-1]) + '_simplified.fasta',
+        header='.'.join(config['final_fasta_file'].split('.')[:-1]) + '_header.tsv'
+    shell:
+        "python src/fasta_simplify_headers.py -i {input} -o {output.fasta} -h {output.header}"

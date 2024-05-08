@@ -78,6 +78,12 @@
                         </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="simplify-switch">
+                        <label class="form-check-label" for="simplify-switch">Simplify FASTA headers <span class="text-muted">(extract all information from the FASTA protein headers in to a tab-separated file)</span></label>
+                    </div>
+                </div>
                 <hr class="mb-1">
             </form>
         </div>
@@ -305,8 +311,9 @@
         }
 
         const final_fasta_path = evt.currentTarget[6].value
+        const simplify_headers = ect.currentTarget[7].checked
 
-        general_config_html = setGeneralParams(ensembl_release, custom_tr_list, transcript_biotypes, final_fasta_path)
+        general_config_html = setGeneralParams(ensembl_release, custom_tr_list, transcript_biotypes, final_fasta_path, simplify_headers)
         update_config_text()
     })
 
