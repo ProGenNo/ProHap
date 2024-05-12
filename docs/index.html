@@ -311,7 +311,7 @@
         }
 
         const final_fasta_path = evt.currentTarget[6].value
-        const simplify_headers = ect.currentTarget[7].checked
+        const simplify_headers = evt.currentTarget[7].checked
 
         general_config_html = setGeneralParams(ensembl_release, custom_tr_list, transcript_biotypes, final_fasta_path, simplify_headers)
         update_config_text()
