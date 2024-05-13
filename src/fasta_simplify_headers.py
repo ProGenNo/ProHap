@@ -10,7 +10,7 @@ parser.add_argument("-i", dest="input_file", required=True,
 parser.add_argument("-o", dest="output_file", required=True,
                     help="output FASTA file", metavar="FILE")
 
-parser.add_argument("-h", dest="output_file_header", required=True,
+parser.add_argument("-header", dest="output_file_header", required=True,
                     help="output header file (tab-separated)", metavar="FILE")
 
 args = parser.parse_args()

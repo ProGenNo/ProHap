@@ -147,6 +147,7 @@ def get_gene_haplotypes(all_transcripts, indiv_ids, tmp_dir, log_file, threads, 
                 changes_str = 'REF'
                 AFs_str = ""
                 combination = ""
+                vcf_IDs = []
                 #removed_str = ""
 
             else:
@@ -256,8 +257,13 @@ def get_gene_haplotypes(all_transcripts, indiv_ids, tmp_dir, log_file, threads, 
             pop_total_count = 0
             pop_freq = 0
 
-            if (is_X_chrom and (id not in x_autosomal_transcripts)):
-                pop_male_count = pop_counts_male.loc[pop_code]['Sample name']
+            if (is_X_chrom and (id not in x_autosomal_transcripts)):                
+                try:
+                    pop_male_count = pop_counts_male.loc[pop_code]['Sample name']
+                except:
+                    # in case there are no male individuals in the reference panel
+                    pop_male_count = 0
+
                 pop_total_count = pop_male_count + ((pop_indiv_count - pop_male_count) * 2)
             else:
                 pop_total_count = pop_indiv_count * 2
@@ -291,7 +297,11 @@ def get_gene_haplotypes(all_transcripts, indiv_ids, tmp_dir, log_file, threads, 
             pop_freq = 0
 
             if (is_X_chrom and (id not in x_autosomal_transcripts)):
-                pop_male_count = superpop_counts_male.loc[pop_code]['Sample name']
+                try:
+                    pop_male_count = superpop_counts_male.loc[pop_code]['Sample name']
+                except:
+                    pop_male_count = 0
+
                 pop_total_count = pop_male_count + ((pop_indiv_count - pop_male_count) * 2)
             else:
                 pop_total_count = pop_indiv_count * 2
