@@ -5,6 +5,7 @@ ensembl_release: 111
 
 custom_transcript_list: "data/transcripts_reference_111.csv"
 included_transcript_biotypes: ""
+only_MANE_select: True
 
 final_fasta_file: "results/example1_concatenated_database.fa"
 fasta_simplify_headers: True

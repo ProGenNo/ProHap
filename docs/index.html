@@ -22,7 +22,7 @@
                 <div class="row">
                     <div class="col-md-4">
                         <label for="ensembl-release">Ensembl release</label>
-                        <input type="text" class="form-control very-short-input" name="ensembl-release" value="110" id="ensembl-release" required="required" aria-required="true">
+                        <input type="text" class="form-control very-short-input" name="ensembl-release" value="112" id="ensembl-release" required="required" aria-required="true">
                     </div>
                 </div>
                 <div class="row">
@@ -35,12 +35,17 @@
                                 <label class="form-check-label" for="transcript-radio-1">Use the default set of transcripts</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-2" value="biotype">
-                                <label class="form-check-label" for="transcript-radio-2">Select transcripts by biotype (provide below)</label>
+                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-2" value="default" checked>
+                                <label class="form-check-label" for="transcript-radio-2">Use only <a href="https://www.ncbi.nlm.nih.gov/refseq/MANE/">MANE Select</a> transcripts</label>
+                                <span class="text-muted">Only available for Ensembl v.108 and above.</span>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-3" value="custom">
-                                <label class="form-check-label" for="transcript-radio-3">User-defined list of transcripts (provide below)</label>
+                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-3" value="biotype">
+                                <label class="form-check-label" for="transcript-radio-3">Select transcripts by biotype (provide below)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-4" value="custom">
+                                <label class="form-check-label" for="transcript-radio-4">User-defined list of transcripts (provide below)</label>
                             </div>
                         </div>
                     </div>
@@ -293,6 +298,7 @@
 
     d3.select('#form-general-params').on('change', (evt) => {
         const ensembl_release = evt.currentTarget[0].value
+        let only_MANE = false
 
         let custom_tr_list = ""
         let transcript_biotypes = ""
@@ -301,19 +307,24 @@
             d3.select('#transcript-biotypes').attr('disabled', true)
             d3.select('#transcript-file-path').attr('disabled', true)
         } else if (evt.currentTarget[2].checked) {
-            transcript_biotypes = evt.currentTarget[4].value
-            d3.select('#transcript-biotypes').attr('disabled', null)
+            custom_tr_list = "data/transcripts_reference_" + ensembl_release + ".csv"
+            only_MANE = true
+            d3.select('#transcript-biotypes').attr('disabled', true)
             d3.select('#transcript-file-path').attr('disabled', true)
         } else if (evt.currentTarget[3].checked) {
-            custom_tr_list = evt.currentTarget[5].value
+            transcript_biotypes = evt.currentTarget[5].value
+            d3.select('#transcript-biotypes').attr('disabled', null)
+            d3.select('#transcript-file-path').attr('disabled', true)
+        } else if (evt.currentTarget[4].checked) {
+            custom_tr_list = evt.currentTarget[6].value
             d3.select('#transcript-biotypes').attr('disabled', true)
             d3.select('#transcript-file-path').attr('disabled', null)
         }
 
-        const final_fasta_path = evt.currentTarget[6].value
-        const simplify_headers = evt.currentTarget[7].checked
+        const final_fasta_path = evt.currentTarget[7].value
+        const simplify_headers = evt.currentTarget[8].checked
 
-        general_config_html = setGeneralParams(ensembl_release, custom_tr_list, transcript_biotypes, final_fasta_path, simplify_headers)
+        general_config_html = setGeneralParams(ensembl_release, custom_tr_list, only_MANE, transcript_biotypes, final_fasta_path, simplify_headers)
         update_config_text()
     })
 

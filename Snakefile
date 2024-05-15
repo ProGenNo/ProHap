@@ -82,11 +82,14 @@ rule reference_fix_headers:
 
 rule default_transcript_list:
     input:
-        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"
+        ref_fasta="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa",
+        annot="data/gtf/" + config['annotationFilename'] + ".db"
     output:
         "data/transcripts_reference_" + str(config['ensembl_release']) + ".csv"
+    params:
+        MANE=int(config['only_MANE_select'])
     shell:
-        "python3 src/get_reference_ENST.py -i {input} -o {output}"
+        "python3 src/get_reference_ENST.py -i {input.ref_fasta} -annot {input.annot} -MANE {params.MANE} -o {output}"
 
 rule reference_remove_stop:
     input:

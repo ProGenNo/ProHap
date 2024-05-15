@@ -6,6 +6,7 @@ ensembl_release: 108
 
 custom_transcript_list: "data/transcripts_reference_108.csv"  # Path to the CSV file containing transcript IDs to be included in the datavase. Give an empty string ("") to ignore.
 included_transcript_biotypes: "protein_coding"                # Comma-separated list of transcript biotypes to be included (e.g. "protein_coding,retained_intron,protein_coding_LoF"). Ignored when custom_transcript_list is given. Default: "protein_coding". Refer to Gencode for biotype names: https://www.gencodegenes.org/pages/biotypes.html
+only_MANE_select: False                                       # boolean value - include only MANE Select transcripts? (This will exclude most biotypes other than protein coding transcripts.)
 
 use_ProHap: True # boolean value - True or False - whether or not to compute haplotypes (run ProHap). Default: True
 use_ProVar: False  # boolean value - True or False - whether or not to compute individual variants (run ProVar). Default: False

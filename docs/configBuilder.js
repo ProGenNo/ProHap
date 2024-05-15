@@ -1,5 +1,5 @@
 
-function setGeneralParams(ensemblRelease, custom_tr_list, transcript_biotypes, final_fasta_path, simplify_headers) {
+function setGeneralParams(ensemblRelease, custom_tr_list, only_MANE, transcript_biotypes, final_fasta_path, simplify_headers) {
     const general_config_html = "<p>\
         # ---------------- Global parameters ----------------<br>" +
         "Ensembl_FTP_URL: ftp.ensembl.org/pub/release-" + ensemblRelease + "/<br>" +
@@ -8,6 +8,7 @@ function setGeneralParams(ensemblRelease, custom_tr_list, transcript_biotypes, f
         "<br>" +
         "custom_transcript_list: \"" + custom_tr_list + "\"<br>"+
         "included_transcript_biotypes: \"" + transcript_biotypes + "\"<br>" +
+        "only_MANE_select: " + (only_MANE ? "True" :  "False") + "<br>" +
         "<br>" +
         "final_fasta_file: " + (final_fasta_path.length == 0 ? "MISSING" :  "\"" + final_fasta_path + "\"") + "<br>" +
         "fasta_simplify_headers: " + (simplify_headers ? "True" :  "False") + "<br>" +
