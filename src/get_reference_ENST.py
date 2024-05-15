@@ -36,7 +36,8 @@ for prot in ref_proteins.values():
     chr = prot['description'].split(':',3)[2]
 
     if chr in CHROMOSOMES:
-        if ('MANE_Select' in annotations_db[trID].attributes['tag']):
+        transcript_feature = annotations_db[trID]
+        if (('tag' in transcript_feature.attributes) and ('MANE_Select' in transcript_feature.attributes['tag'])):
                 result_data.append([chr,trID])
 
 result_df = pd.DataFrame(data=result_data, columns=['chromosome', 'transcriptID'])
