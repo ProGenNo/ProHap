@@ -35,9 +35,10 @@
                                 <label class="form-check-label" for="transcript-radio-1">Use the default set of transcripts</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-2" value="default" checked>
+                                <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-2" value="default">
                                 <label class="form-check-label" for="transcript-radio-2">Use only <a href="https://www.ncbi.nlm.nih.gov/refseq/MANE/">MANE Select</a> transcripts</label>
-                                <span class="text-muted">Only available for Ensembl v.108 and above.</span>
+                                <br>
+                                <span class="text-muted">Only available for Ensembl v.108 and above. For genes that do not include any MANE Select transcript in Ensembl, "Ensembl Canonical" transcripts will be selected.</span>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-3" value="biotype">
@@ -280,7 +281,7 @@
 <script src="configBuilder.js"></script>
 
 <script lang="ts">
-    let general_config_html = setGeneralParams("108", "data/transcripts_reference_108.csv", "", "")
+    let general_config_html = setGeneralParams("112", "data/transcripts_reference_112.csv", false, "", "", false)
     let provar_config_html = setProVarParams(false, [], true, '', '', false, '')
     let prohap_config_html = setProHapParams( 
         true, 
