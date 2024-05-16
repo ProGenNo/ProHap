@@ -71,21 +71,24 @@ rule download_reference_proteome:
         "mkdir -p data/fasta ; "
         "wget " + config['Ensembl_FTP_URL'] + "fasta/homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz -O {output}.gz && gunzip {output}.gz; "
 
-rule reference_fix_headers:
+rule reference_filter_format:
     input:
-        "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
+        fasta="data/fasta/Homo_sapiens.GRCh38.pep.all.fa",
+        tr=expand('{proxy}', proxy=["data/transcripts_reference_" + str(config['ensembl_release']) + '_MANE_Select.csv'] if config['only_MANE_select'] else [])
     output:
         "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"
     conda: "envs/prohap.yaml"
+    params:
+        tr_filter=('-tr data/transcripts_reference_' + str(config['ensembl_release']) + '_MANE_Select.csv') if config['only_MANE_select'] else ''
     shell:
-        "python3 src/fix_headers.py -i {input} -o {output} -t _ensref -use_ENST 1 "
+        "python3 src/fasta_format_headers.py -i {input} -o {output} -t _ensref -use_ENST 1 {params.tr_filter} "
 
 rule default_transcript_list:
     input:
         ref_fasta="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa",
         annot="data/gtf/" + config['annotationFilename'] + ".db"
     output:
-        "data/transcripts_reference_" + str(config['ensembl_release']) + ".csv"
+        "data/transcripts_reference_" + str(config['ensembl_release']) + ('_MANE_Select' if config['only_MANE_select'] else '') + ".csv"
     params:
         MANE=int(config['only_MANE_select'])
     shell:
@@ -107,7 +110,7 @@ rule contaminants_fix_headers:
         "data/fasta/crap_tagged.fa"
     conda: "envs/prohap.yaml"
     shell:
-        "python3 src/fix_headers.py -i {input} -o {output} -t _cont"
+        "python3 src/fasta_format_headers.py -i {input} -o {output} -t _cont"
 
 # filter the GTF so that only features on the desired chromosome are present
 rule split_gtf:

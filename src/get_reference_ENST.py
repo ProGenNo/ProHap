@@ -35,11 +35,29 @@ for prot in ref_proteins.values():
     trID = prot['description'].split('transcript:',1)[1].split('.',1)[0]
     chr = prot['description'].split(':',3)[2]
 
-    if chr in CHROMOSOMES:
-        transcript_feature = annotations_db[trID]
-        if (('tag' in transcript_feature.attributes) and ('MANE_Select' in transcript_feature.attributes['tag'])):
-                result_data.append([chr,trID])
+    result_data.append([chr,trID])
 
 result_df = pd.DataFrame(data=result_data, columns=['chromosome', 'transcriptID'])
+
+if (args.only_MANE):    
+        # check for which of the included genes there is a MANE Select transcript available
+        result_df['geneID'] = result_df['transcriptID'].apply(lambda trID: annotations_db[trID].attributes['gene_id'][0])
+        gene_data = [ [ geneID, any([(('tag' in tr.attributes) and ('MANE_Select' in tr.attributes['tag'])) for tr in annotations_db.children(annotations_db[geneID], featuretype='transcript')]) ] for geneID in result_df['geneID'].drop_duplicates().tolist() ]
+        genes_df = pd.DataFrame(data=gene_data, columns=['geneID', 'has_MANE']).set_index('geneID')
+
+        transcript_filter = []      # mask to filter out non-canonical transcripts - contains a boolean value for each row of result_df
+        
+        for i,row in result_df.iterrows():
+                tr_feature = annotations_db[row['transcriptID']]
+
+                # if there is a MANE select transcript for this gene, keep only that transcript, otherwise keep the Ensembl Canonical transcript
+                if (genes_df.loc[row['geneID']]['has_MANE']):
+                       transcript_filter.append(('tag' in tr_feature.attributes) and ('MANE_Select' in tr_feature.attributes['tag']))
+                else:
+                       transcript_filter.append(('tag' in tr_feature.attributes) and ('Ensembl_canonical' in tr_feature.attributes['tag'])) 
+
+        result_df.drop('geneID', axis=1, inplace=True)
+        result_df = result_df[transcript_filter]
+
 result_df.sort_values(by='chromosome', inplace=True)
 result_df.to_csv(args.output_file, index=False)
