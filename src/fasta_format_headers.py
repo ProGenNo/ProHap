@@ -1,6 +1,5 @@
 import argparse
 import os.path
-import pandas as pd
 
 parser = argparse.ArgumentParser(description='Format the protein headers as follows: >generic_[your tag]|[protein accession]|[protein description]. Creates a single-line fasta.')
 
@@ -24,18 +23,8 @@ parser.add_argument("-t", dest="tag", required=False, default="",
 parser.add_argument("-use_ENST", dest="use_ENST", required=False, default=0, type=int,
 		    help="optional: replace the current protein accession with the ENST identifier")
 
-parser.add_argument("-tr", dest="transcript_list", required=False,
-		    help="optional: list of sepected transcripts transcripts -- if provided, other transcripts will be omitted")
-
 args = parser.parse_args()
 
-# read the list of transcript IDs if provided
-transcript_list = []
-
-if (args.transcript_list):
-    print ('Reading', args.transcript_list)
-    transcript_df = pd.read_csv(args.transcript_list)
-    transcript_list = transcript_df['transcriptID'].tolist()
 
 print("Reading", args.input_file.name)
 print("Formatting protein headers.")
@@ -88,23 +77,20 @@ while metadata != "":
             if (args.use_ENST) and ('ENST' in description):
                 accession = 'ENST' + description.split('ENST',1)[1].split(maxsplit=1)[0].split('.',1)[0]
 
-    # check if transcript filter is applied - if so, keep only ENST proteins that are in the provided list
-    if ((len(transcript_list) == 0) or (('ENST' in accession) and (accession in transcript_list))):
+    if 'matching_proteins:' not in description:
+        description = description + ' matching_proteins:' + accession + '\n'
 
-        if 'matching_proteins:' not in description:
-            description = description + ' matching_proteins:' + accession + '\n'
+    if len(description) > 0:
+        new_header = '>' + '|'.join([tag, accession, description])
+    else:
+        new_header = '>' + '|'.join([tag, accession])
 
-        if len(description) > 0:
-            new_header = '>' + '|'.join([tag, accession, description])
-        else:
-            new_header = '>' + '|'.join([tag, accession])
+    args.output_file.write(new_header)
 
-        args.output_file.write(new_header)
-
-        if sequence.endswith('\n'): 
-            args.output_file.write(sequence)    
-        else:    
-            args.output_file.write(sequence + '\n')    
+    if sequence.endswith('\n'): 
+        args.output_file.write(sequence)    
+    else:    
+        args.output_file.write(sequence + '\n')    
 
     metadata = line
     sequence = ""

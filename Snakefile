@@ -73,15 +73,12 @@ rule download_reference_proteome:
 
 rule reference_filter_format:
     input:
-        fasta="data/fasta/Homo_sapiens.GRCh38.pep.all.fa",
-        tr=expand('{proxy}', proxy=["data/transcripts_reference_" + str(config['ensembl_release']) + '.csv'] if config['only_MANE_select'] else [])
+        "data/fasta/Homo_sapiens.GRCh38.pep.all.fa"
     output:
-        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged" + ('_MANE_Select' if config['only_MANE_select'] else '') + ".fa"
+        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"
     conda: "envs/prohap.yaml"
-    params:
-        tr_filter=('-tr data/transcripts_reference_' + str(config['ensembl_release']) + '_MANE_Select.csv') if config['only_MANE_select'] else ''
     shell:
-        "python3 src/fasta_format_headers.py -i {input} -o {output} -t _ensref -use_ENST 1 {params.tr_filter} "
+        "python3 src/fasta_format_headers.py -i {input} -o {output} -t _ensref -use_ENST 1 "
 
 rule default_transcript_list:
     input:
@@ -96,12 +93,15 @@ rule default_transcript_list:
 
 rule reference_remove_stop:
     input:
-        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged" + ('_MANE_Select' if config['only_MANE_select'] else '') + ".fa"
+        fasta="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa",
+        tr=expand('{proxy}', proxy=["data/transcripts_reference_" + str(config['ensembl_release']) + '.csv'] if config['only_MANE_select'] else [])
     output:
         temp("data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa")
+    params:
+        tr_filter=('-tr data/transcripts_reference_' + str(config['ensembl_release']) + '.csv') if config['only_MANE_select'] else ''
     conda: "envs/prohap.yaml"
     shell:
-        "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 6 "
+        "python3 src/remove_stop_codons.py -i {input.fasta} -o {output} -min_len 6 {params.tr_filter} "
 
 rule contaminants_fix_headers:
     input:
