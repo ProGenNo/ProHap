@@ -74,9 +74,9 @@ rule download_reference_proteome:
 rule reference_filter_format:
     input:
         fasta="data/fasta/Homo_sapiens.GRCh38.pep.all.fa",
-        tr=expand('{proxy}', proxy=["data/transcripts_reference_" + str(config['ensembl_release']) + '_MANE_Select.csv'] if config['only_MANE_select'] else [])
+        tr=expand('{proxy}', proxy=["data/transcripts_reference_" + str(config['ensembl_release']) + '.csv'] if config['only_MANE_select'] else [])
     output:
-        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"
+        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged" + ('_MANE_Select' if config['only_MANE_select'] else '') + ".fa"
     conda: "envs/prohap.yaml"
     params:
         tr_filter=('-tr data/transcripts_reference_' + str(config['ensembl_release']) + '_MANE_Select.csv') if config['only_MANE_select'] else ''
@@ -88,7 +88,7 @@ rule default_transcript_list:
         ref_fasta="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa",
         annot="data/gtf/" + config['annotationFilename'] + ".db"
     output:
-        "data/transcripts_reference_" + str(config['ensembl_release']) + ('_MANE_Select' if config['only_MANE_select'] else '') + ".csv"
+        temp("data/transcripts_reference_" + str(config['ensembl_release'])  + ".csv")
     params:
         MANE=int(config['only_MANE_select'])
     shell:
@@ -96,7 +96,7 @@ rule default_transcript_list:
 
 rule reference_remove_stop:
     input:
-        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa"
+        "data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged" + ('_MANE_Select' if config['only_MANE_select'] else '') + ".fa"
     output:
         temp("data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa")
     conda: "envs/prohap.yaml"
