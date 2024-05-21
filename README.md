@@ -19,16 +19,16 @@ Using ProHap with the full 1000 Genomes Project data set (as per default) requir
 
 Usage:
  1. Clone this repository: `git clone https://github.com/ProGenNo/ProHap.git; cd ProHap/;`
- 2. Create a configuration file called `config.yaml` based on the instructions in `config_file_example`, or using https://progenno.github.io/ProHap/
- 3. Test Snakemake with a dry-run: `snakemake -c<# provided cores> -n -q`
- 4. Run the Snakemake pipeline to create your protein database: `snakemake -c<# provided cores> -p --use-conda`
+ 2. Create a configuration file called `config.yaml` using https://progenno.github.io/ProHap/. Please refer to the [Wiki page](https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage) for details.
+ 3. Test Snakemake with a dry-run: `snakemake --ccores <# provided cores> -n -q`
+ 4. Run the Snakemake pipeline to create your protein database: `snakemake --ccores <# provided cores> -p --use-conda`
 
 ### Example: ProHap on 1000 Genomes
-In the first usage example, we provide a small example dataset taken from the 1000 Genomes Project on GRCh38. We will ProHap to create a database of protein haplotypes aligned with Ensembl v.111 (January 2024).
+In the first usage example, we provide a small example dataset taken from the 1000 Genomes Project on GRCh38. We will use ProHap to create a database of protein haplotypes aligned with Ensembl v.111 (January 2024) using only MANE Select transcripts.
 
-Expected runtime using 4 CPU cores: ~4 hours. Expected runtime using 23 CPU cores: ~1.5 hours.
+Expected runtime using 4 CPU cores: ~1 hour. Expected runtime using 23 CPU cores: ~30 minutes.
 
-Requirements: Install Conda / Mamba and Snakemake using [this guide](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba). Minimum hardware requirements: 4 CPU cores, ~5 GB disk space, 5 GB RAM.
+Requirements: Install Conda / Mamba and Snakemake using [this guide](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba). Minimum hardware requirements: 1 CPU core, ~5 GB disk space, 3 GB RAM.
   
 Use the following commands to run this example:
 
@@ -57,6 +57,6 @@ Once you obtain a list of peptide-spectrum matches (PSMs), you can use a pipelin
 ## Output
 The ProHap / ProVar pipeline produces three kinds of output files. Below is a brief description, please refer to the [wiki page](https://github.com/ProGenNo/ProHap/wiki/Output-files) for further details.
 
-1. *Concatenated FASTA file*: The main result of the pipeline is the concatenated FASTA file, consisting of the ProHap and/or ProVar output, reference sequences from Ensembl, and common contaminant sequences \([cRAP](https://www.thegpm.org/crap/)\). The file can be used with any search engine, but is optimized for compatibility with [SearchGUI](http://compomics.github.io/projects/searchgui) and [PeptideShaker](http://compomics.github.io/projects/peptide-shaker).
+1. *Concatenated FASTA file*: The main result of the pipeline is the concatenated FASTA file, consisting of the ProHap and/or ProVar output, reference sequences from Ensembl, and common contaminant sequences \([cRAP](https://www.thegpm.org/crap/)\). The file can be used with any search engine, but is optimized for compatibility with [SearchGUI](http://compomics.github.io/projects/searchgui) and [PeptideShaker](http://compomics.github.io/projects/peptide-shaker). Optionally, headers are extracted and provided in an attached tab-separated file.
 2. *Metadata table*: Additional information on the variant / haplotype sequences produced by the pipeline, such as genomic coordinates of the variants covered, variant consequence type, etc.
 3. *cDNA translations FASTA*: FASTA file contains the original translations of variant / haplotype cDNA sequences prior to any optimization, the removal of UTR sequences, and merging with canonical proteins and contaminants.
