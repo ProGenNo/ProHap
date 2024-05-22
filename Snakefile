@@ -253,6 +253,8 @@ rule compute_haplotypes:
         skip_start_lost=config['haplo_skip_start_lost'],
         freq_threshold=config['haplo_min_freq'],
         count_threshold=config['haplo_min_count'],
+        x_par1_to=config['x_par1_to'],
+        x_par2_from=config['x_par2_from'],
         max_cores=config['max_cores']
     threads: config['max_cores']
     conda: "envs/prohap.yaml"
@@ -262,7 +264,7 @@ rule compute_haplotypes:
         "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
         "-chr {wildcards.chr} -min_hap_foo {params.freq_threshold} -min_hap_count {params.count_threshold} "
         "-acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} -require_start {params.require_start} -ignore_UTR {params.ignore_UTR} -skip_start_lost {params.skip_start_lost} "
-        "-threads {params.max_cores} -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
+        "-x_par1_to {params.x_par1_to} -x_par2_from {params.x_par2_from} -threads {params.max_cores} -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
 
 rule merge_haplo_tables:
     input:

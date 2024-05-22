@@ -163,6 +163,25 @@
                 <input type="text" class="form-control very-short-input" name="haplo-threshold" value="0" id="haplo-threshold" required="required" aria-required="true">
                 <small class="form-text text-muted">Specify 0 to skip haplotype thresholding</small>
                 <hr class="mb-1">
+                <div class="row">
+                    <legend class="col-form-label pt-0">Pseudo-autosomal regions (PAR) on the X chromosome</legend>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="x_par1_to">
+                            End of PAR1:
+                        </label>
+                        <input type="text" class="form-control" name="x_par1_to" value="2781479" id="x_par1_to" required="required" aria-required="true">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="x_par2_from">
+                            Start of PAR2:
+                        </label>
+                        <input type="text" class="form-control" name="x_par2_from" value="155701383" id="x_par2_from" required="required" aria-required="true">
+                    </div>
+                </div>
+                <small class="form-text text-muted">The default values correspond to the GRCh38 human genome.</small>
+                <hr class="mb-1">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="haplo_require_start" checked>
                     <label class="form-check-label" for="haplo_require_start">Require annotation of the start codon in transcripts</label>
@@ -288,7 +307,7 @@
         "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/", 
         "",
         "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf", "igsr_samples.tsv",
-        "-1", "0", "0.01", "AF", true, true, true, "", ""
+        "-1", "0", "0.01", "AF", "2781479", "155701383", true, true, true, "", ""
     )
 
     function update_config_text() {
@@ -404,14 +423,17 @@
             count_threshold = evt.currentTarget[11].value
         }
 
-        const haplo_require_start = evt.currentTarget[12].checked
-        const haplo_ignore_UTR = evt.currentTarget[13].checked
-        const haplo_skip_start_lost = evt.currentTarget[14].checked
+        const x_par1_to = evt.currentTarget[12].value
+        const x_par2_from = evt.currentTarget[13].value
 
-        const haplo_fasta_file = evt.currentTarget[15].value
-        const haplo_table_file = evt.currentTarget[16].value
+        const haplo_require_start = evt.currentTarget[14].checked
+        const haplo_ignore_UTR = evt.currentTarget[15].checked
+        const haplo_skip_start_lost = evt.currentTarget[16].checked
 
-        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, dataset_path, vcf_filename, samples_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
+        const haplo_fasta_file = evt.currentTarget[17].value
+        const haplo_table_file = evt.currentTarget[18].value
+
+        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, dataset_path, vcf_filename, samples_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, x_par1_to, x_par2_from, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
         update_config_text()
     })
 

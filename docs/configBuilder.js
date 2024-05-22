@@ -42,7 +42,7 @@ function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file
     return provar_config_html
 }
 
-function setProHapParams(use_ProHap, dataset_url, dataset_path, vcf_filename, samples_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file) {
+function setProHapParams(use_ProHap, dataset_url, dataset_path, vcf_filename, samples_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, x_par1_to, x_par2_from, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file) {
     if ((dataset_path.length > 0) && !dataset_path.endsWith('/')) {
         dataset_path = dataset_path + '/'
     }
@@ -61,6 +61,9 @@ function setProHapParams(use_ProHap, dataset_url, dataset_path, vcf_filename, sa
     "phased_af_field: " + MAF_field + "<br>" +
     "haplo_min_freq: " + freq_threshold + "<br>" +
     "haplo_min_count: " + count_threshold + "<br>" +
+    "<br>" +    
+    "x_par1_to: " + x_par1_to + "<br>" +
+    "x_par2_from: " + x_par2_from + "<br>" +
     "<br>" +
     "haplo_require_start: " + (haplo_require_start ? "1" : "0") + "<br>" +
     "haplo_ignore_UTR: " + (haplo_ignore_UTR ? "1" : "0") + "<br>" +

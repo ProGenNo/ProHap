@@ -56,6 +56,9 @@ haplo_min_count: 10     # minimal accepted count of occurrences for haplotypes (
 phased_min_af: 0.01       # minimal minor allele frequency (AF) threshold for 1000 Genomes Project variants. Default: 0.01
 phased_af_field: "AF"     # allele frequency field for thresholding - change if you want to use the frequency in a specific population within 1000 Genomes, or according to your own file
 
+x_par1_to: 2781479        # End position of the first pseudo-autosomal region (PAR) on the X chromosome
+x_par2_from: 155701383    # Start position of the second pseudo-autosomal region on the X chromosome
+
 # parameters
 haplo_require_start: 1    # Require annotation of canonical start codon for ProHap? 0 or 1 - default: 1
 haplo_ignore_UTR: 1       # Ignore variation in UTRs in ProHap? 0 or 1. If 0, UTR sequences are still removed in the final optimized database, but retained in the haplotypes FASTA. - default: 1
