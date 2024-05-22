@@ -33,6 +33,7 @@ rule parse_gtf_whole:
         "data/gtf/" + config['annotationFilename'] + ".gtf"
     output:
         temp("data/gtf/" + config['annotationFilename'] + ".db")
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/parse_gtf.py -i {input} -o {output}"
 
@@ -88,6 +89,7 @@ rule default_transcript_list:
         temp("data/transcripts_reference_" + str(config['ensembl_release'])  + ".csv")
     params:
         MANE=int(config['only_MANE_select'])
+    conda: "envs/prohap.yaml"
     shell:
         "python3 src/get_reference_ENST.py -i {input.ref_fasta} -annot {input.annot} -MANE {params.MANE} -o {output}"
 

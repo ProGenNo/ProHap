@@ -33,7 +33,7 @@ result_data = []
 
 for prot in ref_proteins.values():
     trID = prot['description'].split('transcript:',1)[1].split('.',1)[0]
-    chr = prot['description'].split(':',3)[2]
+    chr = prot['description'].split('chromosome:')[1].split(':',2)[1]
 
     result_data.append([chr,trID])
 
