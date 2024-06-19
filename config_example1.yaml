@@ -25,6 +25,9 @@ phased_af_field: AF
 haplo_min_freq: 0
 haplo_min_count: 0
 
+x_par1_to: 2781479        # End position of the first pseudo-autosomal region (PAR) on the X chromosome
+x_par2_from: 155701383    # Start position of the second pseudo-autosomal region on the X chromosome
+
 haplo_require_start: 1
 haplo_ignore_UTR: 1
 haplo_skip_start_lost: 1
