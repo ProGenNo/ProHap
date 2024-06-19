@@ -349,9 +349,15 @@ rule remove_UTR_seq:
 
 rule simpify_fasta_headers:
     input:
-        config['final_fasta_file']
+        fasta=config['final_fasta_file'],
+        # var_table=expand('{proxy}', proxy=[config['var_table_file']] if config["use_ProVar"] else []), ENST identifiers included in the protein IDs for ProVar - no need to search for them in the TSV
+        haplo_table=expand('{proxy}', proxy=[config['haplo_table_file']] if config["use_ProHap"] else []),
+        annot="data/gtf/" + config['annotationFilename'] + ".db"
     output:
         fasta='.'.join(config['final_fasta_file'].split('.')[:-1]) + '_simplified.fasta',
         header='.'.join(config['final_fasta_file'].split('.')[:-1]) + '_header.tsv'
+    conda: "envs/prohap.yaml"
     shell:
-        "python src/fasta_simplify_headers.py -i {input} -o {output.fasta} -header {output.header}"
+        "python src/fasta_simplify_headers.py -i {input.fasta} " +
+        ("-hap_tsv {input.haplo_table} " if config["use_ProHap"] else "") +
+        "-db {input.annot} -o {output.fasta} -header {output.header}"
