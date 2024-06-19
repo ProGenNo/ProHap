@@ -28,7 +28,7 @@ result_columns = [
     'frequency',                # frequency of occurrence among all samples present in the VCF
     'frequency_population',     # frequency of occurrence among the populations in the data set
     'frequency_superpopulation',# frequency of occurrence among the superpopulations in the data set
-#    'samples'                   # samples containing this haplotype (in the format SAMPLE_ID:1 for maternal copy, SAMPLE_ID:2 for paternal copy) - not used currently, too large
+    'samples'                   # samples containing this haplotype (in the format SAMPLE_ID:1 for maternal copy, SAMPLE_ID:2 for paternal copy)
 ]
 
 # create dummy empty files in case of empty input
@@ -155,7 +155,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
             all_changes = row['Changes'].split(';')
             all_AFs = row['AlleleFrequencies'].split(';')
             all_vcf_IDs = row['VCF_IDs'].split(';')
-            if (reverse_strand):                        # revert the order of mutations in the reverse strand, so that we add them from start to end and account for preceding indels
+            if (reverse_strand):                        # revert the order of variations in the reverse strand, so that we add them from start to end and account for preceding indels
                 all_AFs.reverse()
                 all_changes.reverse()
                 all_vcf_IDs.reverse()
@@ -166,10 +166,16 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
             start_lost = False
             validity_check = True
 
+            # During a liftover, some alternative alleles may have become the reference. 
+            # Remove those from the list of included variants to prevent errors.
+            tmp_changes = []
+            tmp_AFs = []
+            tmp_VCF_IDs = []
+
             # iterate through changes first time, check if start codon is lost, 
             # adjust the position of the start codon if shifted (i.e. inframe indel in 5' UTR)
             # remember alleles, locations on DNA and RNA
-            for change in all_changes:
+            for ch_idx,change in enumerate(all_changes):
                 ref_allele = re.split('\d+', change)[1].split('>')[0][1:]
                 alt_allele = re.split('\d+', change)[1].split('>')[1]
 
@@ -189,6 +195,21 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 # compute the location in the RNA sequence
                 # does any of the allele sequences intersect a splicing site? => truncate if so
                 rna_location, ref_allele, ref_len, alt_allele, alt_len, mutation_intersects_intron = get_rna_position(transcript_id, dna_location, ref_allele, alt_allele, current_transcript['exons'])
+                
+                # if we are on a reverse strand, we need to complement the reference and alternative sequence to match the cDNA
+                # we also need to count the position from the end
+                if reverse_strand:
+                    ref_allele = ref_allele.reverse_complement()
+                    alt_allele = alt_allele.reverse_complement()
+                    rna_location = len(cdna_sequence) - rna_location - ref_len
+
+                # check if the alternative allele isn't the reference (error in liftover from older build)
+                if (str(alt_allele) != cdna_sequence[rna_location:rna_location+alt_len]):
+                    tmp_changes.append(all_changes[ch_idx])
+                    tmp_AFs.append(all_AFs[ch_idx])
+                    tmp_VCF_IDs.append(all_vcf_IDs[ch_idx])
+                else:
+                    continue
 
                 # is a splice junction affected? -> remember if so 
                 if (mutation_intersects_intron is not None) and (mutation_intersects_intron not in spl_junctions_affected):
@@ -204,13 +225,6 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     dna_var_types.append('SNP')
                 else:
                     dna_var_types.append('indel')                
-
-                # if we are on a reverse strand, we need to complement the reference and alternative sequence to match the cDNA
-                # we also need to count the position from the end
-                if reverse_strand:
-                    ref_allele = ref_allele.reverse_complement()
-                    alt_allele = alt_allele.reverse_complement()
-                    rna_location = len(cdna_sequence) - rna_location - ref_len
 
                 # check if the start codon gets shifted
                 if (current_transcript['start_codon'] is not None) and (reading_frame > -1):
@@ -234,8 +248,12 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                 rna_locations.append(rna_location)
                 ref_alleles.append(ref_allele)
                 alt_alleles.append(alt_allele)
+
+            all_changes = tmp_changes
+            all_AFs = tmp_AFs
+            all_vcf_IDs = tmp_VCF_IDs
             
-            if (not validity_check):
+            if ((not validity_check) or (len(all_changes) == 0)):
                 continue
 
             # iterate through mutations second time, construct mutated cdna
@@ -408,6 +426,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                         row['Frequency'],
                         row['Frequency_population'],
                         row['Frequency_superpopulation'],
+                        row['Samples'],
                     ]
 
                     # compute the sequence hash -> check if it already is in the list
@@ -459,15 +478,16 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     row['Frequency'],
                     row['Frequency_population'],
                     row['Frequency_superpopulation'],
+                    row['Samples'],
                 ]
                 
         # filter haplotypes by frequency
         # filtering is done at the and since some haplotypes could have been merged
         result_table = []
         if (min_foo != -1):
-            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-3] >= min_foo) ]
+            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-4] >= min_foo) ]
         else:
-            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-4] >= min_count) ]
+            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-5] >= min_count) ]
 
         included_haplotype_ids = [ haplotype[3] for haplotype in result_table ]
 
