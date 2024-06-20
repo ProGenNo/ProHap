@@ -272,12 +272,23 @@ rule merge_haplo_tables:
     input:
         expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv", chr=CHROMOSOMES)
     output:
-        config['haplo_table_file']
+        #config['haplo_table_file']
+        temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.tsv")
     params:
         input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv", chr=CHROMOSOMES))
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/merge_tables.py -i {params.input_file_list} -o {output}"
+
+rule extract_sample_names:
+    input:
+        "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.tsv"
+    output:
+        haplo_tsv=config['haplo_table_file'],
+        samples='.'.join(config['haplo_table_file'].split('.')[:-1]) + '_sampleIDs.tsv'
+    conda: "envs/prohap.yaml"
+    shell:
+        "python3 src/haplo_extract_sample_names.py -hap_tsv {input} -o {output.haplo_tsv} -samples {output.samples} "    
 
 rule merge_fasta:
     input:
