@@ -7,18 +7,19 @@ import re
 def check_vcf_line_validity(line, min_af, REF, ALT):
     # check the allele frequency
     AF_pass = min_af <= 0
-    if ';AF=' in line:
-        AF = float(line.split(';AF=')[1].split(';')[0].split(maxsplit=1)[0])
-        AF_pass = AF >= min_af
-    elif ';MAF=' in line:
-        AF = float(line.split(';MAF=')[1].split(';')[0].split(maxsplit=1)[0])
-        AF_pass = AF >= min_af
-    elif '\tAF=' in line:
-        AF = float(line.split('\tAF=')[1].split(';')[0].split(maxsplit=1)[0])
-        AF_pass = AF >= min_af
-    elif '\tMAF=' in line:
-        AF = float(line.split('\tMAF=')[1].split(';')[0].split(maxsplit=1)[0])
-        AF_pass = AF >= min_af
+    if not AF_pass:     # Ignore if the threshold is 0
+        if ';AF=' in line:
+            AF = float(line.split(';AF=')[1].split(';')[0].split(maxsplit=1)[0])
+            AF_pass = AF >= min_af
+        elif ';MAF=' in line:
+            AF = float(line.split(';MAF=')[1].split(';')[0].split(maxsplit=1)[0])
+            AF_pass = AF >= min_af
+        elif '\tAF=' in line:
+            AF = float(line.split('\tAF=')[1].split(';')[0].split(maxsplit=1)[0])
+            AF_pass = AF >= min_af
+        elif '\tMAF=' in line:
+            AF = float(line.split('\tMAF=')[1].split(';')[0].split(maxsplit=1)[0])
+            AF_pass = AF >= min_af
 
     # check validity of alleles
     val_pass = True
