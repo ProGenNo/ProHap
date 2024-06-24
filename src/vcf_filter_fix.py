@@ -58,13 +58,21 @@ valid_VCF_entries = 0
 while (line != ""):
     ALT = line.split(maxsplit=5)[4]
     INFO = line.split(maxsplit=8)[7]
-    MAF = get_MAF(INFO)
+    
+    # If not thresholding by MAF, ignore any possible formatting errors
+    MAF = "0"
+    if (args.min_af > 0):
+        MAF = get_MAF(INFO)
+
     total_VCF_entries += 1
 
     # ProHap does not work with multi-allelic variants -> make a separate line in the output VCF for each allele
     if (',' in ALT):
         for i,allele in enumerate(ALT.split(',')):
-            allele_maf = float(MAF.split(',')[i])
+            if (args.min_af > 0):
+                allele_maf = float(MAF.split(',')[i])
+            else:
+                allele_maf = 0
 
             # keep only the i-th allele as the alternatvie (1), mark all the other alleles in the genotypes as 0
             if (allele_maf >= args.min_af):
@@ -92,7 +100,7 @@ while (line != ""):
         allele_maf = float(MAF)
         if (allele_maf >= args.min_af):
             # on sex chromosomes for male individuals, there might be just a single allele and the genotype won't be formated as "x|x" -> keep the valid allele as the first, and add a 0 to the genotype for consistency
-            GTs = '\t'.join([ ((GT + '|0') if ('|' not in GT) else GT) for GT in line.split()[9:] ])
+            GTs = '\t'.join([ ((GT + '|0') if ('|' not in GT) else GT) for GT in line.split()[9:] ]) if (args.chromosome == 'X') else line.split(maxsplit=9)[-1][:-1]
 
             outfile.write('\t'.join(line.split(maxsplit=9)[:-1]) + '\t' + GTs + '\n')
             valid_VCF_entries +=1
