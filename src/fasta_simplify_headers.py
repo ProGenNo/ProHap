@@ -53,6 +53,7 @@ for protein in all_proteins.values():
         contIDs = [ protID for protID in re.split(r'[;,]', proteinIDs) if not (protID.startswith('ENST') or protID.startswith(args.haplo_prefix) or protID.startswith(args.var_prefix)) ]        
         outfile.write('>' + protein['accession'] + ' CONTAMINANT GN=' + ';'.join(contIDs) + '\n')
         outfile.write(protein['sequence'] + '\n')
+        header_data.append([protein['accession'] + '.' + str(i), protein['tag'], proteinIDs, proteinPos, proteinStart, proteinRF])
         continue
 
     # aggregate all the matching transcripts for this protein
