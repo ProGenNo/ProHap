@@ -77,6 +77,16 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="d-block my-1">
+                            <label for="contam-fasta-path">
+                                Path to the contaminant FASTA file
+                            </label>
+                            <input type="text" class="form-control" name="contam-fasta-path" value="crap.fasta" id="contam-fasta-path" required="required" aria-required="true">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="d-block my-1">
                             <label for="final-fasta-path">
                                 Path to the final FASTA file
                             </label>
@@ -180,7 +190,7 @@
                         <input type="text" class="form-control" name="x_par2_from" value="155701383" id="x_par2_from" required="required" aria-required="true">
                     </div>
                 </div>
-                <small class="form-text text-muted">The default values correspond to the GRCh38 human genome.</small>
+                <small class="form-text text-muted">The default values for the GRCh38 human genome are 2781479 and 155701383. For GRCh37, use 2699520 and 154931044 respectively.</small>
                 <hr class="mb-1">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="haplo_require_start" checked>
@@ -300,7 +310,7 @@
 <script src="configBuilder.js"></script>
 
 <script lang="ts">
-    let general_config_html = setGeneralParams("112", "data/transcripts_reference_112.csv", false, "", "", false)
+    let general_config_html = setGeneralParams("112", "data/transcripts_reference_112.csv", false, "", "crap.fasta", "", false)
     let provar_config_html = setProVarParams(false, [], true, '', '', false, '')
     let prohap_config_html = setProHapParams( 
         true, 
@@ -341,10 +351,11 @@
             d3.select('#transcript-file-path').attr('disabled', null)
         }
 
-        const final_fasta_path = evt.currentTarget[7].value
-        const simplify_headers = evt.currentTarget[8].checked
+        const contam_fasta_path = evt.currentTarget[7].value
+        const final_fasta_path = evt.currentTarget[8].value
+        const simplify_headers = evt.currentTarget[9].checked
 
-        general_config_html = setGeneralParams(ensembl_release, custom_tr_list, only_MANE, transcript_biotypes, final_fasta_path, simplify_headers)
+        general_config_html = setGeneralParams(ensembl_release, custom_tr_list, only_MANE, transcript_biotypes, contam_fasta_path, final_fasta_path, simplify_headers)
         update_config_text()
     })
 

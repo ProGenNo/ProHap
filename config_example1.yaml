@@ -3,6 +3,8 @@ Ensembl_FTP_URL: ftp.ensembl.org/pub/release-111/
 annotationFilename: Homo_sapiens.GRCh38.111.chr_patch_hapl_scaff
 ensembl_release: 111
 
+contaminants_fasta: "crap.fasta"      # Path to the FASTA file with contaminant sequences
+
 custom_transcript_list: "data/transcripts_reference_111.csv"
 included_transcript_biotypes: ""
 only_MANE_select: True

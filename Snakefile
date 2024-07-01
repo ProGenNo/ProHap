@@ -107,7 +107,7 @@ rule reference_remove_stop:
 
 rule contaminants_fix_headers:
     input:
-        "crap.fasta"
+        config['contaminants_fasta']
     output:
         "data/fasta/crap_tagged.fa"
     conda: "envs/prohap.yaml"

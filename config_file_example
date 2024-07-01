@@ -4,6 +4,8 @@ Ensembl_FTP_URL: ftp.ensembl.org/pub/release-108/
 annotationFilename: Homo_sapiens.GRCh38.108.chr_patch_hapl_scaff
 ensembl_release: 108
 
+contaminants_fasta: "crap.fasta"      # Path to the FASTA file with contaminant sequences
+
 custom_transcript_list: "data/transcripts_reference_108.csv"  # Path to the CSV file containing transcript IDs to be included in the datavase. Give an empty string ("") to ignore.
 included_transcript_biotypes: "protein_coding"                # Comma-separated list of transcript biotypes to be included (e.g. "protein_coding,retained_intron,protein_coding_LoF"). Ignored when custom_transcript_list is given. Default: "protein_coding". Refer to Gencode for biotype names: https://www.gencodegenes.org/pages/biotypes.html
 only_MANE_select: False                                       # boolean value - include only MANE Select transcripts? (This will exclude most biotypes other than protein coding transcripts.)
