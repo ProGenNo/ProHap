@@ -9,6 +9,7 @@ Below is a brief overview, for details on input file format and configuration, p
 Required input:
  - For ProHap: VCF with phased genotypes, one file per chromosome \(such as [1000 Genomes Project](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/) - downloaded automatically by Snakemake if URL is provided\)
  - For ProVar: VCF, single file per dataset. Multiple VCF files can be processed by ProVar in the same run.
+ - FASTA file of contaminant sequences. These will then be added to the final FASTA, and tagged as contaminants. The default contaminant database is created by the [cRAP](https://www.thegpm.org/crap/) project, provided in this repository.
  - GTF annotation file (Ensembl - downloaded automatically by Snakemake)
  - cDNA FASTA file (Ensembl - downloaded automatically by Snakemake)
  - (optional) ncRNA FASTA file (Ensembl - downloaded automatically by Snakemake)
@@ -57,6 +58,7 @@ Once you obtain a list of peptide-spectrum matches (PSMs), you can use a pipelin
 ## Output
 The ProHap / ProVar pipeline produces three kinds of output files. Below is a brief description, please refer to the [wiki page](https://github.com/ProGenNo/ProHap/wiki/Output-files) for further details.
 
-1. *Concatenated FASTA file*: The main result of the pipeline is the concatenated FASTA file, consisting of the ProHap and/or ProVar output, reference sequences from Ensembl, and common contaminant sequences \([cRAP](https://www.thegpm.org/crap/)\). The file can be used with any search engine, but is optimized for compatibility with [SearchGUI](http://compomics.github.io/projects/searchgui) and [PeptideShaker](http://compomics.github.io/projects/peptide-shaker). Optionally, headers are extracted and provided in an attached tab-separated file.
-2. *Metadata table*: Additional information on the variant / haplotype sequences produced by the pipeline, such as genomic coordinates of the variants covered, variant consequence type, etc.
-3. *cDNA translations FASTA*: FASTA file contains the original translations of variant / haplotype cDNA sequences prior to any optimization, the removal of UTR sequences, and merging with canonical proteins and contaminants.
+1. *Concatenated FASTA file*: The main result of the pipeline is the concatenated FASTA file, consisting of the ProHap and/or ProVar output, reference sequences from Ensembl, and provided contaminant sequences. The file can be used with any search engine.
+    * Optionally, headers are extracted and provided in an attached tab-separated file, and a gene name is added to each protein entry. 
+3. *Metadata table*: Additional information on the variant / haplotype sequences produced by the pipeline, such as genomic coordinates of the variants covered, variant consequence type, etc.
+4. *cDNA translations FASTA*: FASTA file contains the original translations of variant / haplotype cDNA sequences prior to any optimization, the removal of UTR sequences, and merging with canonical proteins and contaminants.
