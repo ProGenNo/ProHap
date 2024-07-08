@@ -6,12 +6,12 @@ A database created using ProHap on the 1000 Genomes Project data set can be foun
 ## Input & Usage
 Below is a brief overview, for details on input file format and configuration, please refer to the [Wiki page](https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage).
 
-Required ingredients:
+Required input:
+ - For ProHap: VCF with phased genotypes, one file per chromosome \(such as [1000 Genomes Project](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/) - downloaded automatically by Snakemake if URL is provided\)
+ - For ProVar: VCF, single file per dataset. Multiple VCF files can be processed by ProVar in the same run.
  - GTF annotation file (Ensembl - downloaded automatically by Snakemake)
  - cDNA FASTA file (Ensembl - downloaded automatically by Snakemake)
  - (optional) ncRNA FASTA file (Ensembl - downloaded automatically by Snakemake)
- - For ProHap: VCF with phased genotypes, one file per chromosome \(such as [1000 Genomes Project](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/) - downloaded automatically by Snakemake\)
- - For ProVar: VCF, single file per dataset
 
 Required software: [Snakemake](https://snakemake.readthedocs.io/en/stable/) & [Conda](https://docs.conda.io/en/latest/). ProHap was tested with Ubuntu 22.04.3 LTS. Windows users are encouraged to use the [Windows Subsystem for Linux](https://ubuntu.com/desktop/wsl).
 
@@ -20,7 +20,7 @@ Using ProHap with the full 1000 Genomes Project data set (as per default) requir
 Usage:
  1. Clone this repository: `git clone https://github.com/ProGenNo/ProHap.git; cd ProHap/;`
  2. Create a configuration file called `config.yaml` using https://progenno.github.io/ProHap/. Please refer to the [Wiki page](https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage) for details.
- 3. Test Snakemake with a dry-run: `snakemake --ccores <# provided cores> -n -q`
+ 3. Test Snakemake with a dry-run: `snakemake --cores <# provided cores> -n -q`
  4. Run the Snakemake pipeline to create your protein database: `snakemake --ccores <# provided cores> -p --use-conda`
 
 ### Example: ProHap on 1000 Genomes
