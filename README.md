@@ -1,5 +1,5 @@
 # ProHap & ProVar
-Proteogenomics database-generation tool for protein haplotypes and variants. Preprint describing the tool: [doi.org/10.1101/2023.12.24.572591](https://doi.org/10.1101/2023.12.24.572591). 
+Proteogenomics database-generation tool for protein haplotypes and variants. Preprint describing the tool: [![DOI](https://zenodo.org/badge/DOI/10.1101/2023.12.24.572591.svg)](https://doi.org/10.1101/2023.12.24.572591).
 
 ## Databases generated using ProHap
 - Databases obtained from the common haplotypes of the 1000 Genomes Project along with metadata set can be found at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10149277.svg)](https://doi.org/10.5281/zenodo.10149277).
@@ -67,3 +67,14 @@ The ProHap / ProVar pipeline produces three kinds of output files. Below is a br
     * Optionally, headers are extracted and provided in an attached tab-separated file, and a gene name is added to each protein entry. 
 3. *Metadata table*: Additional information on the variant / haplotype sequences produced by the pipeline, such as genomic coordinates of the variants covered, variant consequence type, etc.
 4. *cDNA translations FASTA*: FASTA file contains the original translations of variant / haplotype cDNA sequences prior to any optimization, the removal of UTR sequences, and merging with canonical proteins and contaminants.
+
+## Bug report and contribution
+We welcome bug reports, suggestions of improvements, and contributions. Please do not hesitate to [open an issue](https://github.com/ProGenNo/ProHap/issues) or a [pull request](https://github.com/ProGenNo/ProHap/pulls).
+
+## Code of Conduct
+As part of our efforts toward delivering open and inclusive science, we follow the [Contributor Convenant](https://www.contributor-covenant.org/) [Code of Conduct for Open Source Projects](docs/CODE_OF_CONDUCT.md).
+
+## Citation
+When using ProHap and databases generated using ProHap, please cite the accompanying scientific publication [![DOI](https://zenodo.org/badge/DOI/10.1101/2023.12.24.572591.svg)](https://doi.org/10.1101/2023.12.24.572591).
+
+
