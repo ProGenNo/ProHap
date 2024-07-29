@@ -1,7 +1,12 @@
 # ProHap & ProVar
 Proteogenomics database-generation tool for protein haplotypes and variants. Preprint describing the tool: [doi.org/10.1101/2023.12.24.572591](https://doi.org/10.1101/2023.12.24.572591). 
 
-A database created using ProHap on the 1000 Genomes Project data set can be found at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10149278.svg)](https://doi.org/10.5281/zenodo.10149278).
+## Databases generated using ProHap
+- Databases obtained from the common haplotypes of the 1000 Genomes Project along with metadata set can be found at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10149277.svg)](https://doi.org/10.5281/zenodo.10149277).
+- Databases obtained from the common haplotypes of the Release 1.1 of the Haplotype Reference Consortium (HRC) along with metadata set can be found at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.12671301.svg)](https://doi.org/10.5281/zenodo.12671301).
+- Databases obtained from the preliminary release of the Human Pangenome Reference Consortium (HPRC) along with metadata set can be found at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.12686818.svg)](https://doi.org/10.5281/zenodo.12686818).
+
+> Note: The databases contain only common haplotypes (maf > 1 %), no individual-level data is available from the databases. For individual-level sequences, please run ProHap on the individual-level data.
 
 ## Input & Usage
 Below is a brief overview, for details on input file format and configuration, please refer to the [Wiki page](https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage).
