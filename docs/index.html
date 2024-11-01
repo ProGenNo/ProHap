@@ -270,6 +270,12 @@
                     <label class="form-check-label" for="add_existing_haplo">Merge with an existing protein haplotype database</label>
                 </div>
                 <div class="mb-1"></div>
+                <label for="haplo_added_table">
+                    Path to the additional haplotype table file
+                </label>
+                <input type="text" class="form-control" name="haplo_added_table" value="" id="haplo_added_table" aria-required="false" placeholder="e.g. data/F2_231220_1kGP_GRCh38_haplo.tsv">
+                <small class="form-text text-muted">(e.g., one of the F2 files in the <a href="https://doi.org/10.5281/zenodo.10149278">Zenodo repository</a>)</small>
+                <div class="mb-1"></div>
                 <label for="haplo_added_fasta">
                     Path to the additional haplotype FASTA file
                 </label>
@@ -397,9 +403,10 @@
         const var_table_file = evt.currentTarget[4 + vcf_form_elements].value
 
         const add_existing_haplo = evt.currentTarget[5 + vcf_form_elements].checked
-        const haplo_added_fasta = evt.currentTarget[6 + vcf_form_elements].value
+        const haplo_added_table = evt.currentTarget[6 + vcf_form_elements].value
+        const haplo_added_fasta = evt.currentTarget[7 + vcf_form_elements].value
 
-        provar_config_html = setProVarParams(include_variants, VCF_data, var_require_start, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_fasta)
+        provar_config_html = setProVarParams(include_variants, VCF_data, var_require_start, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_table, haplo_added_fasta)
         update_config_text()
     })
 

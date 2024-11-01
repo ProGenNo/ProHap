@@ -19,7 +19,7 @@ function setGeneralParams(ensemblRelease, custom_tr_list, only_MANE, transcript_
     return general_config_html
 }
 
-function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_fasta) {
+function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_table, haplo_added_fasta) {
     let vcf_datasets = ""
 
     VCF_data.forEach(element => {
@@ -38,6 +38,7 @@ function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file
         "var_table_file: " + ((var_table_file.length == 0 && use_ProVar) ? "MISSING" :  "\"" + var_table_file + "\"") + "<br>" +
         "<br>" +
         "add_existing_haplo: " + (add_existing_haplo ? "True" : "False") + '<br>' +
+        "haplo_added_table: " + ((haplo_added_table.length == 0 && add_existing_haplo) ? "MISSING" :  "\"" + haplo_added_table + "\"") + "<br>" +
         "haplo_added_fasta: " + ((haplo_added_fasta.length == 0 && add_existing_haplo) ? "MISSING" :  "\"" + haplo_added_fasta + "\"") + "<br>" +
         "</p>"
 

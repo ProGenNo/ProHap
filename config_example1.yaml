@@ -50,4 +50,5 @@ var_fasta_file: ""
 var_table_file: ""
 
 add_existing_haplo: False
+haplo_added_table: ""
 haplo_added_fasta: ""
