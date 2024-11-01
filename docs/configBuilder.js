@@ -23,7 +23,7 @@ function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file
     let vcf_datasets = ""
 
     VCF_data.forEach(element => {
-        vcf_datasets += '&nbsp;&nbsp;' + element[0].replace(' ', '_') + ': { file: \"' + element[1] + "\", fasta_accession_prefix: " + element[0].replace(' ', '_') + '_' + ", min_af: " + element[2] + " }<br>"
+        vcf_datasets += '&nbsp;&nbsp;' + element[0].replace(' ', '_') + ': { file: \"' + element[1] + "\", fasta_accession_prefix: " + element[0].replace(' ', '_') + ", min_af: " + element[2] + " }<br>"
     });
 
     const provar_config_html = "<p>\
