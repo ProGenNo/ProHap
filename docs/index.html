@@ -285,15 +285,18 @@
         </div>
     </div>
     <hr class="mb-3">
-    <h5 class="mb-3">Copy the content below to your config.yaml file:</h5>
-    <div class="row">
+    <div clacc="row mb-3">
+        <button onclick="download('config.yaml')">Download</button>
+        <span>or copy the content below to your config.yaml file:</span>
+    </div>
+    <div class="row mt-3">
         <div class="col" id="config-content">            
         </div>
     </div>
 </div>
 
 <footer class="my-5 pt-5 text-muted text-center">
-    <p class="mb-1">2023 University of Bergen</p>
+    <p class="mb-1">2024 University of Bergen</p>
 </footer>
 
 <style>
@@ -328,6 +331,21 @@
 
     function update_config_text() {
         d3.select('#config-content').html(general_config_html + prohap_config_html + provar_config_html)
+    }
+
+    function download(filename) {
+        text = (general_config_html + prohap_config_html + provar_config_html).replaceAll('<p>', '').replaceAll('</p>', '\n').replaceAll('<br>', '\n')
+
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
     }
 
     update_config_text()
