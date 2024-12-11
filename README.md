@@ -1,5 +1,7 @@
 # ProHap & ProVar
-Proteogenomics database-generation tool for protein haplotypes and variants. Preprint describing the tool: [![DOI](https://zenodo.org/badge/DOI/10.1101/2023.12.24.572591.svg)](https://doi.org/10.1101/2023.12.24.572591).
+Proteogenomics database-generation tool for protein haplotypes and variants. Paper describing the tool: [![DOI](https://zenodo.org/badge/DOI/10.1038/s41592-024-02506-0.svg)](https://doi.org/10.1038/s41592-024-02506-0).
+
+When yousing ProHap or ProVar in your publication, please cite: Vašíček, J., Kuznetsova, K.G., Skiadopoulou, D. et al. ProHap enables human proteomic database generation accounting for population diversity. _Nature Methods_ (2024). [https://doi.org/10.1038/s41592-024-02506-0](https://doi.org/10.1038/s41592-024-02506-0)
 
 ## Databases generated using ProHap
 - Databases obtained from the common haplotypes of the 1000 Genomes Project along with metadata set can be found at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10149277.svg)](https://doi.org/10.5281/zenodo.10149277).
