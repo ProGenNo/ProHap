@@ -29,7 +29,7 @@ Usage:
  1. Clone this repository: `git clone https://github.com/ProGenNo/ProHap.git; cd ProHap/;`
  2. Create a configuration file called `config.yaml` using https://progenno.github.io/ProHap/. Please refer to the [Wiki page](https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage) for details.
  3. Test Snakemake with a dry-run: `snakemake --cores <# provided cores> -n -q`
- 4. Run the Snakemake pipeline to create your protein database: `snakemake --ccores <# provided cores> -p --use-conda`
+ 4. Run the Snakemake pipeline to create your protein database: `snakemake --cores <# provided cores> -p --use-conda`
 
 ### Example: ProHap on 1000 Genomes
 In the first usage example, we provide a small example dataset taken from the 1000 Genomes Project on GRCh38. We will use ProHap to create a database of protein haplotypes aligned with Ensembl v.111 (January 2024) using only MANE Select transcripts.
