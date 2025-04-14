@@ -22,7 +22,7 @@
                 <div class="row">
                     <div class="col-md-4">
                         <label for="ensembl-release">Ensembl release</label>
-                        <input type="text" class="form-control very-short-input" name="ensembl-release" value="112" id="ensembl-release" required="required" aria-required="true">
+                        <input type="text" class="form-control very-short-input" name="ensembl-release" value="113" id="ensembl-release" required="required" aria-required="true">
                     </div>
                 </div>
                 <div class="row">
@@ -81,6 +81,7 @@
                                 Path to the contaminant FASTA file
                             </label>
                             <input type="text" class="form-control" name="contam-fasta-path" value="crap.fasta" id="contam-fasta-path" required="required" aria-required="true">
+                            <span class="text-muted">The <a href="https://www.thegpm.org/crap/" target="_blank">default contaminant database</a> is provided in the crap.fasta file in this repository.</span>
                         </div>
                     </div>
                 </div>
@@ -194,7 +195,8 @@
                 <hr class="mb-1">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="haplo_require_start" checked>
-                    <label class="form-check-label" for="haplo_require_start">Require annotation of the start codon in transcripts</label>
+                    <label class="form-check-label" for="haplo_require_start">Require annotation of the start codon in transcripts</label><br>
+                    <small class="form-text text-muted">Transcripts that do not have an annotated canonical start codon will not be used.</small>
                 </div>
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="haplo_ignore_UTR" checked>
@@ -206,11 +208,23 @@
                     <label class="form-check-label" for="haplo_skip_start_lost">Skip haplotypes where the start codon is lost</label><br>
                     <small class="form-text text-muted">If disabled, these haplotype cDNA sequences are translated in 3 reading frames, including UTR sequences.</small>
                 </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="haplo_output_cdnas">
+                    <label class="form-check-label" for="haplo_output_cdnas">Output haplotype cDNA sequences</label><br>
+                    <small class="form-text text-muted">Create a separate file containing all the haplotype cDNA sequences before translation. If skipping UTR variation as above, the cDNA haplotypes will begin with the canonical start codon.</small>
+                </div>
                 <hr class="mb-1">
+                
+                <label for="haplo_cdna_file">
+                    Path to the cDNA haplotype FASTA file
+                </label>
+                <input type="text" class="form-control" name="haplo_cdna_file" value="" id="haplo_cdna_file" required="required" aria-required="true" placeholder="e.g. results/haplotypes_cdna.fa" disabled>
+                
                 <label for="haplo_fasta_file">
-                    Path to the haplotype FASTA file
+                    Path to the protein haplotype FASTA file
                 </label>
                 <input type="text" class="form-control" name="haplo_fasta_file" value="" id="haplo_fasta_file" required="required" aria-required="true" placeholder="e.g. results/haplotypes.fa">
+                
                 <div class="mb-1"></div>
                 <label for="haplo_table_file">
                     Path to the haplotype metadata table
@@ -252,18 +266,32 @@
                 <hr class="mb-1">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="var_require_start" checked>
-                    <label class="form-check-label" for="var_require_start">Require annotation of the start codon in transcripts</label>
+                    <label class="form-check-label" for="var_require_start">Require annotation of the start codon in transcripts</label><br>
+                    <small class="form-text text-muted">Transcripts that do not have an annotated canonical start codon will not be used.</small>
+                </div>                
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="var_output_cdnas">
+                    <label class="form-check-label" for="var_output_cdnas">Output variant cDNA sequences</label><br>
+                    <small class="form-text text-muted">Create a separate file containing all the variant cDNA sequences before translation.</small>
                 </div>
                 <hr class="mb-1">
+                <label for="var_cdna_file">
+                    Path to the variant cDNA FASTA file
+                </label>
+                <input type="text" class="form-control" name="var_cdna_file" value="" id="var_cdna_file" required="required" aria-required="true" placeholder="e.g. results/variants_cdna.fa" disabled>
+              
+                <div class="mb-1"></div>
                 <label for="var_fasta_file">
                     Path to the variant FASTA file
                 </label>
                 <input type="text" class="form-control" name="var_fasta_file" value="" id="var_fasta_file" required="required" aria-required="true" placeholder="e.g. results/variants.fa">
+                
                 <div class="mb-1"></div>
                 <label for="var_table_file">
                     Path to the variant metadata table
                 </label>
                 <input type="text" class="form-control" name="var_table_file" value="" id="var_table_file" required="required" aria-required="true" placeholder="e.g. results/variants.tsv">
+                
                 <hr class="mb-1">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="add_existing_haplo">
@@ -296,7 +324,7 @@
 </div>
 
 <footer class="my-5 pt-5 text-muted text-center">
-    <p class="mb-1">2024 University of Bergen</p>
+    <p class="mb-1">2025 University of Bergen</p>
 </footer>
 
 <style>
@@ -320,13 +348,13 @@
 
 <script lang="ts">
     let general_config_html = setGeneralParams("112", "data/transcripts_reference_112.csv", false, "", "crap.fasta", "", false)
-    let provar_config_html = setProVarParams(false, [], true, '', '', false, '', '')
+    let provar_config_html = setProVarParams(false, [], true, false, '', '', '', false, '', '')
     let prohap_config_html = setProHapParams( 
         true, 
         "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/", 
         "",
         "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf", "igsr_samples.tsv",
-        "-1", "0", "0.01", "AF", "2781479", "155701383", true, true, true, "", ""
+        "-1", "0", "0.01", "AF", "2781479", "155701383", true, true, true, false, "", "", ""
     )
 
     function update_config_text() {
@@ -415,16 +443,26 @@
             }
         }
 
-        const var_require_start = evt.currentTarget[2 + vcf_form_elements].checked
+        const var_require_start = evt.currentTarget[2 + vcf_form_elements].checked        
+        const var_output_cdna = evt.currentTarget[3 + vcf_form_elements].checked
 
-        const var_fasta_file = evt.currentTarget[3 + vcf_form_elements].value
-        const var_table_file = evt.currentTarget[4 + vcf_form_elements].value
+        let var_cdna_file = ""
 
-        const add_existing_haplo = evt.currentTarget[5 + vcf_form_elements].checked
-        const haplo_added_table = evt.currentTarget[6 + vcf_form_elements].value
-        const haplo_added_fasta = evt.currentTarget[7 + vcf_form_elements].value
+        if (var_output_cdna) {
+            d3.select('#var_cdna_file').attr('disabled', null)
+            var_cdna_file = evt.currentTarget[4 + vcf_form_elements].value
+        } else {
+            d3.select('#var_cdna_file').attr('disabled', true)
+        }
 
-        provar_config_html = setProVarParams(include_variants, VCF_data, var_require_start, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_table, haplo_added_fasta)
+        const var_fasta_file = evt.currentTarget[5 + vcf_form_elements].value
+        const var_table_file = evt.currentTarget[6 + vcf_form_elements].value
+
+        const add_existing_haplo = evt.currentTarget[7 + vcf_form_elements].checked
+        const haplo_added_table = evt.currentTarget[8 + vcf_form_elements].value
+        const haplo_added_fasta = evt.currentTarget[9 + vcf_form_elements].value
+
+        provar_config_html = setProVarParams(include_variants, VCF_data, var_require_start, var_output_cdna, var_cdna_file, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_table, haplo_added_fasta)
         update_config_text()
     })
 
@@ -465,11 +503,21 @@
         const haplo_require_start = evt.currentTarget[14].checked
         const haplo_ignore_UTR = evt.currentTarget[15].checked
         const haplo_skip_start_lost = evt.currentTarget[16].checked
+        const haplo_output_cdnas = evt.currentTarget[17].checked
 
-        const haplo_fasta_file = evt.currentTarget[17].value
-        const haplo_table_file = evt.currentTarget[18].value
+        let haplo_cdna_file = ""
 
-        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, dataset_path, vcf_filename, samples_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, x_par1_to, x_par2_from, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file)
+        if (haplo_output_cdnas) {
+            d3.select('#haplo_cdna_file').attr('disabled', null)
+            haplo_cdna_file = evt.currentTarget[18].value
+        } else {
+            d3.select('#haplo_cdna_file').attr('disabled', true)
+        }
+
+        const haplo_fasta_file = evt.currentTarget[19].value
+        const haplo_table_file = evt.currentTarget[20].value
+
+        prohap_config_html = setProHapParams(include_haplotypes, dataset_url, dataset_path, vcf_filename, samples_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, x_par1_to, x_par2_from, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_output_cdnas, haplo_cdna_file, haplo_fasta_file, haplo_table_file)
         update_config_text()
     })
 

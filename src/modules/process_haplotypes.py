@@ -69,7 +69,7 @@ def add_population_freqs(left, right):
 
     return ';'.join(result)
 
-def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_db, chromosome, id_prefix, force_rf, threads, min_foo = -1, min_count = 0, ignore_UTR = True, skip_start_loss = True):
+def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_db, chromosome, id_prefix, force_rf, threads, min_freq = -1, min_count = 0, ignore_UTR = True, skip_start_loss = True, output_cdnas = False):
     result_data = []
     
     global process_transcript_haplotypes
@@ -103,7 +103,8 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
         transcript_haplotypes = genes_haplo_df[genes_haplo_df['TranscriptID'] == transcript_id]
 
         local_result_data = {}
-        local_result_sequences = []      # way to avoid duplicate sequences -> access sequences by hash, aggregate haplotype IDs that correspond
+        local_result_protein_sequences = []      # way to avoid duplicate sequences -> access sequences by hash, aggregate haplotype IDs that correspond
+        local_result_cdna_sequences = []         # way to avoid duplicate sequences -> access sequences by hash, aggregate haplotype IDs that correspond
 
         for index, row in transcript_haplotypes.iterrows():
             transcript_id = row['TranscriptID'].split('.')[0]
@@ -366,12 +367,14 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
             # check the reading frame, if possible, and translate
             if (reading_frame > -1):
                 protein_seq = mutated_cdna[reading_frame:].transcribe().translate()
+                cdna_start = reading_frame + protein_start * 3
 
                 # since the reading frame is available, we know where the start codon is and it hasn't been lost by a mutation -> we can get rid of the UTRs
                 # we don't filter UTR variants earlier, since changes in the start or stop codon redefine UTR regions in the transcript
                 if (ignore_UTR):
                     # find the first stop codon after the start
                     first_stop = str(protein_seq).find('*', protein_start)
+                    cdna_stop = reading_frame + first_stop * 3
 
                     if (first_stop == -1):
                         first_stop = len(protein_seq)
@@ -393,7 +396,9 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
 
                     # cut away the 5' and 3' UTR sequences
                     protein_seq = protein_seq[protein_start:first_stop]
+                    mutated_cdna = mutated_cdna[cdna_start:cdna_stop]
                     protein_start = 0
+                    cdna_start = 0
 
                 # check if this haplotype is already in the results
                 haplo_hash = str(hash(';'.join(all_vcf_IDs)))
@@ -432,12 +437,21 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     # compute the sequence hash -> check if it already is in the list
                     # only store the sequence of the haplotype is not already stored
                     seq_hash = hash(str(protein_seq))
-                    nearest_idx = bisect.bisect_left(KeyWrapper(local_result_sequences, key=lambda x: x['hash']), seq_hash)
-                    if (len(local_result_sequences) > nearest_idx and local_result_sequences[nearest_idx]['hash'] == seq_hash):
-                        local_result_sequences[nearest_idx]['haplotypes'].append(haplotypeID)
-                        local_result_sequences[nearest_idx]['rfs'].append(str(reading_frame))
+                    nearest_idx = bisect.bisect_left(KeyWrapper(local_result_protein_sequences, key=lambda x: x['hash']), seq_hash)
+                    if (len(local_result_protein_sequences) > nearest_idx and local_result_protein_sequences[nearest_idx]['hash'] == seq_hash):
+                        local_result_protein_sequences[nearest_idx]['haplotypes'].append(haplotypeID)
+                        local_result_protein_sequences[nearest_idx]['rfs'].append(str(reading_frame))
                     else:
-                        local_result_sequences.insert(nearest_idx, {'hash': seq_hash, 'haplotypes': [haplotypeID], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(reading_frame)]})
+                        local_result_protein_sequences.insert(nearest_idx, {'hash': seq_hash, 'haplotypes': [haplotypeID], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(reading_frame)]})
+
+                    # Remember the cDNA sequence only if requested - don't waste the memory otherwise
+                    if (output_cdnas):
+                        cdna_hash = hash(str(mutated_cdna))
+                        nearest_idx = bisect.bisect_left(KeyWrapper(local_result_cdna_sequences, key=lambda x: x['hash']), cdna_hash)
+                        if (len(local_result_cdna_sequences) > nearest_idx and local_result_cdna_sequences[nearest_idx]['hash'] == cdna_hash):
+                            local_result_cdna_sequences[nearest_idx]['haplotypes'].append(haplotypeID)
+                        else:
+                            local_result_cdna_sequences.insert(nearest_idx, {'hash': cdna_hash, 'haplotypes': [haplotypeID], 'sequence': mutated_cdna, 'start': cdna_start})
 
             # unknown reading frame -> translate in all 3 reading frames
             # not possible to annotate UTRs -> keep everything
@@ -447,12 +461,21 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
 
                     # compute the hash -> check if it already is in the list
                     seq_hash = hash(str(protein_seq))
-                    nearest_idx = bisect.bisect_left(KeyWrapper(local_result_sequences, key=lambda x: x['hash']), seq_hash)
-                    if (len(local_result_sequences) > nearest_idx and local_result_sequences[nearest_idx]['hash'] == seq_hash):
-                        local_result_sequences[nearest_idx]['haplotypes'].append(haplotypeID)
-                        local_result_sequences[nearest_idx]['rfs'].append(str(rf))
+                    nearest_idx = bisect.bisect_left(KeyWrapper(local_result_protein_sequences, key=lambda x: x['hash']), seq_hash)
+                    if (len(local_result_protein_sequences) > nearest_idx and local_result_protein_sequences[nearest_idx]['hash'] == seq_hash):
+                        local_result_protein_sequences[nearest_idx]['haplotypes'].append(haplotypeID)
+                        local_result_protein_sequences[nearest_idx]['rfs'].append(str(rf))
                     else:
-                        local_result_sequences.insert(nearest_idx, {'hash': seq_hash, 'haplotypes': [haplotypeID], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(rf)]})
+                        local_result_protein_sequences.insert(nearest_idx, {'hash': seq_hash, 'haplotypes': [haplotypeID], 'sequence': protein_seq, 'start': protein_start, 'rfs': [str(rf)]})
+
+                # Remember the cDNA sequence only if requested - don't waste the memory otherwise
+                if (output_cdnas):
+                    cdna_hash = hash(str(mutated_cdna))
+                    nearest_idx = bisect.bisect_left(KeyWrapper(local_result_cdna_sequences, key=lambda x: x['hash']), cdna_hash)
+                    if (len(local_result_cdna_sequences) > nearest_idx and local_result_cdna_sequences[nearest_idx]['hash'] == cdna_hash):
+                        local_result_cdna_sequences[nearest_idx]['haplotypes'].append(haplotypeID)
+                    else:
+                        local_result_cdna_sequences.insert(nearest_idx, {'hash': cdna_hash, 'haplotypes': [haplotypeID], 'sequence': mutated_cdna, 'start': cdna_start})
 
                 # store result
                 haplo_hash = hash(';'.join(all_vcf_IDs))
@@ -484,36 +507,46 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
         # filter haplotypes by frequency
         # filtering is done at the and since some haplotypes could have been merged
         result_table = []
-        if (min_foo != -1):
-            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-4] >= min_foo) ]
+        if (min_freq != -1):
+            result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-4] >= min_freq) ]
         else:
             result_table = [ haplotype for haplotype in local_result_data.values() if (haplotype[-5] >= min_count) ]
 
         included_haplotype_ids = [ haplotype[3] for haplotype in result_table ]
 
         # remove haplotypes below threshold from the FASTA header data 
-        for seq in local_result_sequences:
+        for seq in local_result_protein_sequences:
             haplotypes_filter = [ (hap in included_haplotype_ids) for hap in seq['haplotypes'] ]    # list of booleans - are these haplotypes in the list after thresholding?
             seq['haplotypes'] = [ hap for hap_idx,hap in enumerate(seq['haplotypes']) if haplotypes_filter[hap_idx] ]
             seq['rfs'] = [ rf for hap_idx,rf in enumerate(seq['rfs']) if haplotypes_filter[hap_idx] ]
 
         # remove sequences where all matching haplotypes were filtered out
-        local_result_sequences = [ seq for seq in local_result_sequences if len(seq['haplotypes']) > 0 ]
+        local_result_protein_sequences = [ seq for seq in local_result_protein_sequences if len(seq['haplotypes']) > 0 ]
 
-        return [result_table, local_result_sequences]
+        # do the same for cDNA sequences if using those
+        if (output_cdnas):
+            for seq in local_result_cdna_sequences:
+                seq['haplotypes'] = [ hap for hap in seq['haplotypes'] if (hap in included_haplotype_ids) ] 
+
+            local_result_cdna_sequences = [ seq for seq in local_result_cdna_sequences if len(seq['haplotypes']) > 0 ]
+
+        # return all three lists - if not using cDNA sequences, the third list will be empty
+        return [result_table, local_result_protein_sequences, local_result_cdna_sequences]
 
     #aggregated_results = list(map(process_transcript_haplotypes, all_transcripts))
     with Pool(threads) as p:
         aggregated_results = p.map(process_transcript_haplotypes, all_transcripts)
 
         result_data = []
-        result_sequences = []
+        result_protein_sequences = []
+        result_cdna_sequences = []
 
         for result_point in aggregated_results:
-            if (len(result_point) == 2):
+            if (len(result_point) == 3):
                 result_data = result_data + list(result_point[0])
-                result_sequences = result_sequences + result_point[1]
+                result_protein_sequences = result_protein_sequences + result_point[1]
+                result_cdna_sequences = result_cdna_sequences + result_point[2]
 
         result_df = pd.DataFrame(columns=result_columns, data=result_data)
         
-        return [result_df, result_sequences]
+        return [result_df, result_protein_sequences, result_cdna_sequences]

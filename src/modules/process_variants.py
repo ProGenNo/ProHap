@@ -45,10 +45,11 @@ def check_start_gain(mutated_cdna, rna_location, alt_len):
 
     return -1
 
-def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annotations_db, chromosome, fasta_tag, accession_prefix, force_rf, output_file, output_fasta):
+def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annotations_db, chromosome, fasta_tag, accession_prefix, force_rf, output_file, output_fasta, output_cdna_fasta):
     current_transcript = None
     result_data = []
-    protein_sequence_list = []      # way to avoid duplicate sequences -> access sequences by hash, aggregate variant IDs that correspond
+    protein_sequence_list = []      # way to avoid duplicate sequences -> sort sequences by hash, aggregate variant IDs that correspond
+    cdna_sequence_list = []      # way to avoid duplicate sequences -> sort sequences by hash, aggregate variant IDs that correspond
 
     for transcript in all_transcripts:
         transcript_id = transcript.id
@@ -254,6 +255,16 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
                     else:
                         protein_sequence_list.insert(nearest_idx, {'hash': seq_hash, 'variants': [var_ID], 'sequence': protein_seq, 'start': protein_start_variant, 'rfs': [str(rf)]})
 
+            # If requested, store the cDNA sequence in the same way
+            # compute the hash -> check if it already is in the list
+            if (len(output_cdna_fasta) > 0):
+                cdna_seq_hash = hash(str(mutated_cdna))
+                nearest_idx = bisect.bisect_left(KeyWrapper(cdna_sequence_list, key=lambda x: x['hash']), cdna_seq_hash)
+                if (len(cdna_sequence_list) > nearest_idx and cdna_sequence_list[nearest_idx]['hash'] == cdna_seq_hash):
+                    cdna_sequence_list[nearest_idx]['variants'].append(var_ID)
+                else:
+                    cdna_sequence_list.insert(nearest_idx, {'hash': cdna_seq_hash, 'variants': [var_ID], 'sequence': mutated_cdna, 'start': max((reading_frame_variant + protein_start_variant * 3), -1)})
+
     # write the result table
     print ('Storing the result metadata:', output_file)
     result_df = pd.DataFrame(columns=result_columns, data=result_data)
@@ -271,3 +282,12 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
         output_fasta_file.write(str(seq['sequence']) + '\n')
 
     output_fasta_file.close()
+    
+    if (len(output_cdna_fasta) > 0):
+        outfile = open(output_cdna_fasta, 'w')
+
+        for seq in cdna_sequence_list:
+            outfile.write('>' + ';'.join(seq['variants']) + ' start:' + str(seq['start']) + '\n')
+            outfile.write(str(seq['sequence']) + '\n')
+
+        outfile.close()

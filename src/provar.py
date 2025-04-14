@@ -60,6 +60,9 @@ parser.add_argument("-output_csv", dest="output_file", required=True,
 parser.add_argument("-output_fasta", dest="output_fasta", required=True,
                     help="output FASTA file")
 
+parser.add_argument("-output_cdna_fasta", dest="output_cdna_fasta", required=False, default="",
+                    help="output cDNA FASTA file (optional; default: none)")
+
 args = parser.parse_args()
 
 print('[ProVar] Generating protein variants from', args.input_vcf.name)
@@ -109,7 +112,7 @@ else:
 
         print (('Chr ' + args.chromosome + ':'), 'Creating variant database.')
         # align the variant coordinates to transcript, translate into the protein database
-        process_store_variants(all_transcripts, args.tmp_dir, log_file, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.accession_prefix, args.force_rf, args.output_file, args.output_fasta)
+        process_store_variants(all_transcripts, args.tmp_dir, log_file, all_cds, annotations_db, args.chromosome, args.fasta_tag, args.accession_prefix, args.force_rf, args.output_file, args.output_fasta, args.output_cdna_fasta)
 
         log_file.close()
 

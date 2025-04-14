@@ -19,7 +19,7 @@ function setGeneralParams(ensemblRelease, custom_tr_list, only_MANE, transcript_
     return general_config_html
 }
 
-function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_table, haplo_added_fasta) {
+function setProVarParams(use_ProVar, VCF_data, var_require_start, var_output_cdnas, var_cdna_file, var_fasta_file, var_table_file, add_existing_haplo, haplo_added_table, haplo_added_fasta) {
     let vcf_datasets = ""
 
     VCF_data.forEach(element => {
@@ -34,6 +34,7 @@ function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file
         "working_dir_name_var: variants_tmp<br><br>" +
         "var_require_start: " + (var_require_start ? "1" : "0") + '<br>' +
         "<br>" +
+        "var_cdna_file: " + (((var_cdna_file.length === 0) && use_ProVar && var_output_cdnas) ? "MISSING" :  (use_ProVar ? "\"" + var_cdna_file + "\"" : "\"\"")) + "<br>" +
         "var_fasta_file: " + ((var_fasta_file.length == 0 && use_ProVar) ? "MISSING" :  "\"" + var_fasta_file + "\"") + "<br>" +
         "var_table_file: " + ((var_table_file.length == 0 && use_ProVar) ? "MISSING" :  "\"" + var_table_file + "\"") + "<br>" +
         "<br>" +
@@ -45,7 +46,7 @@ function setProVarParams(use_ProVar, VCF_data, var_require_start, var_fasta_file
     return provar_config_html
 }
 
-function setProHapParams(use_ProHap, dataset_url, dataset_path, vcf_filename, samples_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, x_par1_to, x_par2_from, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_fasta_file, haplo_table_file) {
+function setProHapParams(use_ProHap, dataset_url, dataset_path, vcf_filename, samples_filename, freq_threshold, count_threshold, MAF_threshold, MAF_field, x_par1_to, x_par2_from, haplo_require_start, haplo_ignore_UTR, haplo_skip_start_lost, haplo_output_cdnas, haplo_cdna_file, haplo_fasta_file, haplo_table_file) {
     if ((dataset_path.length > 0) && !dataset_path.endsWith('/')) {
         dataset_path = dataset_path + '/'
     }
@@ -73,8 +74,9 @@ function setProHapParams(use_ProHap, dataset_url, dataset_path, vcf_filename, sa
     "haplo_skip_start_lost: " + (haplo_skip_start_lost ? "1" : "0") + "<br>" +
     "max_cores: 3<br>" +
     "<br>" +
-    "haplo_fasta_file: " + ((haplo_fasta_file.length == 0 && use_ProHap) ? "MISSING" :  "\"" + haplo_fasta_file + "\"") + "<br>" +
-    "haplo_table_file: " + ((haplo_table_file.length == 0 && use_ProHap) ? "MISSING" :  "\"" + haplo_table_file + "\"") + "<br>" +
+    "haplo_cdna_file: " + (((haplo_cdna_file.length === 0) && use_ProHap && haplo_output_cdnas) ? "MISSING" :  (use_ProHap ? "\"" + haplo_cdna_file + "\"" : "\"\"")) + "<br>" +
+    "haplo_fasta_file: " + (((haplo_fasta_file.length === 0) && use_ProHap) ? "MISSING" :  "\"" + haplo_fasta_file + "\"") + "<br>" +
+    "haplo_table_file: " + (((haplo_table_file.length === 0) && use_ProHap) ? "MISSING" :  "\"" + haplo_table_file + "\"") + "<br>" +
     "</p>"
 
     return prohap_config_html

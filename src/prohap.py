@@ -67,7 +67,7 @@ parser.add_argument("-chr", dest="chromosome", required=True,
 parser.add_argument("-threads", dest="threads", required=False, type=int,
                     help="number of threads to use; default: 4", default=4)
 
-parser.add_argument("-min_hap_foo", dest="min_foo", required=False, type=float,
+parser.add_argument("-min_hap_freq", dest="min_freq", required=False, type=float,
                     help="Minimum frequency of a haplotype to be reported in the result (specify -1 to use count threshold instead); default: -1", default=-1)
 
 parser.add_argument("-min_hap_count", dest="min_hap_count", required=False, type=int,
@@ -93,6 +93,9 @@ parser.add_argument("-output_csv", dest="output_file", required=True,
 
 parser.add_argument("-output_fasta", dest="output_fasta", required=True,
                     help="output FASTA file")
+
+parser.add_argument("-output_cdna_fasta", dest="output_cdna_fasta", required=False, default="",
+                    help="output cDNA FASTA file (optional; default: none)")
 
 args = parser.parse_args()
 
@@ -151,8 +154,8 @@ else:
         for transcript_id in transcript_list:
                 os.remove(args.tmp_dir + '/' + transcript_id + '.tsv')
 
-        # filter the haplotypes by FoO -> CHANGE: filter only after processing, some haplotypes can be merged
-        #gene_haplo_df = gene_haplo_df[gene_haplo_df['Frequency'] >= args.min_foo]
+        # filter the haplotypes by frequency -> CHANGE: filter only after processing, some haplotypes can be merged
+        #gene_haplo_df = gene_haplo_df[gene_haplo_df['Frequency'] >= args.min_freq]
 
         # read the CDS sequence file
         print (('Chr ' + args.chromosome + ':'), "Reading", args.cdnas_fasta)
@@ -160,9 +163,10 @@ else:
 
         # align the variant coordinates to transcript, translate into the protein database
         print (('Chr ' + args.chromosome + ':'), 'Creating haplotype database.')
-        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, args.min_foo, args.min_hap_count, args.ignore_UTR, args.skip_start_lost)
+        haplo_results = process_haplotypes(all_transcripts, gene_haplo_df, all_cds, annotations_db, args.chromosome, args.haplo_id_prefix, args.force_rf, args.threads, args.min_freq, args.min_hap_count, args.ignore_UTR, args.skip_start_lost, (len(args.output_cdna_fasta) > 0))
         result_data = haplo_results[0]
         result_sequences = haplo_results[1]
+        result_cdna = haplo_results[2]
 
         # store the result metadata        
         print (('Chr ' + args.chromosome + ':'), 'Storing the result metadata:', args.output_file)
@@ -180,5 +184,17 @@ else:
                 output_fasta_file.write(str(seq['sequence']) + '\n')
 
         output_fasta_file.close()
+
+        # if requested, write the cDNA sequences into another fasta file
+        if (len(args.output_cdna_fasta) > 0):
+                output_cdna_fasta = open(args.output_cdna_fasta, 'w')
+                print (('Chr ' + args.chromosome + ':'), 'Writing cDNA FASTA file:', args.output_cdna_fasta)
+
+                for i,seq in enumerate(result_cdna):
+                       description = ';'.join(seq['haplotypes'])+ ' start:' + str(seq['start'])
+                       output_cdna_fasta.write('>' + description + '\n')
+                       output_cdna_fasta.write(str(seq['sequence']) + '\n')
+
+                output_cdna_fasta.close()
 
         print (('Chr ' + args.chromosome + ':'), "Done.")

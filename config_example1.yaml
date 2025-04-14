@@ -36,6 +36,7 @@ haplo_skip_start_lost: 1
 max_cores: 1
 
 haplo_fasta_file: "results/example1_haplotype_translations.fa"
+haplo_cdna_file: "results/example1_haplotype_cdnas.fa"
 haplo_table_file: "results/example1_haplotypes.tsv"
 
 # ---------------- ProVar parameters ----------------
@@ -47,6 +48,7 @@ working_dir_name_var: variants_tmp
 var_require_start: 1
 
 var_fasta_file: ""
+var_cdna_file: ""
 var_table_file: ""
 
 add_existing_haplo: False

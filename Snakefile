@@ -158,6 +158,7 @@ rule compute_variants:
         fasta=temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.fa")
     params:
         input_vcf="tmp/variants_{vcf}/variants_chr{chr}.vcf",
+        output_cdna_file="results/" + WORKING_DIR_NAME_VAR + "variants_cdna_chr{chr}.fa" if (len(config['var_cdna_file']) > 0) else "",
         acc_prefix=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['fasta_accession_prefix'],
         min_af=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['min_af'],
         log_file="log/{vcf}_chr{chr}.log",
@@ -188,10 +189,12 @@ rule merge_var_fasta_vcf:
         expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.fa", chr=CHROMOSOMES)
     output:
         temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa")
-    params:
-        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.fa", chr=CHROMOSOMES))
+    params:   
+        input_file_list_cdna = expand("results/" + WORKING_DIR_NAME_VAR + "/variants_cdna_chr{chr}.fa", chr=CHROMOSOMES),
+        output_cdna_file = "results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_cdna_all.fa"
     shell:
-        "cat {input} > {output}"
+        "cat {input} > {output}" + 
+        ("cat {params.input_file_list_cdna} > {params.output_cdna_file} ; rm {params.input_file_list_cdna}" if (len(config['haplo_cdna_file']) > 0) else "")
 
 rule merge_var_tables:
     input:
@@ -210,9 +213,11 @@ rule merge_var_fasta:
     output:
         config['var_fasta_file']
     params:
-        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa", vcf=VARIANT_VCF_FILES.keys()))
+        input_file_list_cdna = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_cdna_all.fa", vcf=VARIANT_VCF_FILES.keys())),
+        output_cdna_file = config['var_cdna_file']
     shell:
-        "cat {input} > {output}"
+        "cat {input} > {output}" + 
+        ("cat {params.input_file_list_cdna} > {params.output_cdna_file} ; rm {params.input_file_list_cdna}" if (len(config['haplo_cdna_file']) > 0) else "")
 
 rule var_fasta_remove_stop:
     input:
@@ -250,6 +255,7 @@ rule compute_haplotypes:
     params:
         log_file="log/prohap_chr{chr}.log",
         tmp_dir="tmp/transcript_vcf_haplo",
+        output_cdna_file="results/" + WORKING_DIR_NAME_HAPLO + "/haplo_cdna_chr{chr}.fa" if (len(config['haplo_cdna_file']) > 0) else "",
         require_start=config['haplo_require_start'],
         ignore_UTR=config['haplo_ignore_UTR'],
         skip_start_lost=config['haplo_skip_start_lost'],
@@ -263,10 +269,11 @@ rule compute_haplotypes:
     shell:
         "mkdir -p {params.tmp_dir}; mkdir -p log; mkdir -p results; "
         "python3 src/prohap.py "
-        "-i {input.vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} -s {input.samples} "
-        "-chr {wildcards.chr} -min_hap_foo {params.freq_threshold} -min_hap_count {params.count_threshold} "
+        "-i \"{input.vcf}\" -db \"{input.db}\" -transcripts \"{input.tr}\" -cdna \"{input.fasta}\" -s \"{input.samples}\" "
+        "-chr {wildcards.chr} -min_hap_freq {params.freq_threshold} -min_hap_count {params.count_threshold} "
         "-acc_prefix enshap_{wildcards.chr} -id_prefix haplo_chr{wildcards.chr} -require_start {params.require_start} -ignore_UTR {params.ignore_UTR} -skip_start_lost {params.skip_start_lost} "
-        "-x_par1_to {params.x_par1_to} -x_par2_from {params.x_par2_from} -threads {params.max_cores} -log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.csv} -output_fasta {output.fasta} "
+        "-x_par1_to {params.x_par1_to} -x_par2_from {params.x_par2_from} -threads {params.max_cores} -log \"{params.log_file}\" -tmp_dir \"{params.tmp_dir}\" -output_csv \"{output.csv}\" -output_fasta \"{output.fasta}\" " + 
+        ("-output_cdna_fasta \"{params.output_cdna_file}\" " if (len(config['haplo_cdna_file']) > 0) else "")
 
 rule merge_haplo_tables:
     input:
@@ -296,9 +303,11 @@ rule merge_fasta:
     output:
         config['haplo_fasta_file']
     params:
-        input_file_list = ' '.join(expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa", chr=CHROMOSOMES))
+        input_file_list_cdna = expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_cdna_chr{chr}.fa", chr=CHROMOSOMES),
+        output_cdna_file = config['haplo_cdna_file']
     shell:
-        "cat {input} > {output}"
+        "cat {input} > {output} ; " + 
+        ("cat {params.input_file_list_cdna} > {params.output_cdna_file} ; rm {params.input_file_list_cdna}" if (len(config['haplo_cdna_file']) > 0) else "")
 
 rule haplo_fasta_remove_stop:
     input:

@@ -38,6 +38,7 @@ working_dir_name_var: variants_tmp      # directory for temp. files where indivi
 var_require_start: 1      # Require annotation of canonical start codon for ProVar? 0 or 1 - default: 1
 
 var_fasta_file: <filename - fasta with variant sequences, before any downstream optimization>
+var_cdna_file: <filename - fasta with all variant cDNA sequences before translation (optional, give empty string ("") to skip)
 var_table_file: <filename - supplementary table for variants>
 
 # Option to add existing haplotype database to the output of ProVar
@@ -70,4 +71,5 @@ max_cores: 3              # Maximum number of cores used per chromosome, default
 
 # output files
 haplo_fasta_file: <filename - fasta with haplotype sequences, before any downstream optimization>
+haplo_cdna_file: <filename - fasta with all haplotype cDNA sequences before translation (optional, give empty string ("") to skip)
 haplo_table_file: <filename - supplementary table for haplotypes>
