@@ -171,7 +171,8 @@ rule compute_variants:
         "python3 src/provar.py "
         "-i {params.input_vcf} -db {input.db} -transcripts {input.tr} -cdna {input.fasta} "
         "-chr {wildcards.chr} -acc_prefix {params.acc_prefix} -af {params.min_af} -require_start {params.require_start} "
-        "-log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.tsv} -output_fasta {output.fasta} ;"
+        "-log {params.log_file} -tmp_dir {params.tmp_dir} -output_csv {output.tsv} -output_fasta {output.fasta} ;" + 
+        ("-output_cdna_fasta \"{params.output_cdna_file}\" " if (len(config['var_cdna_file']) > 0) else "")
 
 rule merge_var_tables_vcf:
     input:
