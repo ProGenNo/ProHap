@@ -63,13 +63,13 @@ snakemake --cores 4 -p --use-conda ;
 Once you obtain a list of peptide-spectrum matches (PSMs), you can use a pipeline provided in the [PeptideAnnotator](https://github.com/ProGenNo/ProHap_PeptideAnnotator) repository to map the peptides back to the respective protein haplotype / variant sequences, and map the identified variants back to their genetic origin. For the usage and details, please refer to the following [wiki page](https://github.com/ProGenNo/ProHap/wiki/Using-the-database-for-proteomic-searches).
 
 ## Output
-The ProHap / ProVar pipeline produces three kinds of output files. Below is a brief description, please refer to the [wiki page](https://github.com/ProGenNo/ProHap/wiki/Output-files) for further details.
+The ProHap / ProVar pipeline produces four kinds of output files. Below is a brief description, please refer to the [wiki page](https://github.com/ProGenNo/ProHap/wiki/Output-files) for further details.
 
 1. *Concatenated FASTA file*: The main result of the pipeline is the concatenated FASTA file, consisting of the ProHap and/or ProVar output, reference sequences from Ensembl, and provided contaminant sequences. The file can be used with any search engine.
     * Optionally, headers are extracted and provided in an attached tab-separated file, and a gene name is added to each protein entry. 
 2. *Metadata table*: Additional information on the variant / haplotype sequences produced by the pipeline, such as genomic coordinates of the variants covered, variant consequence type, etc.
-3a. *cDNA translations FASTA*: FASTA file contains the original translations of variant / haplotype cDNA sequences prior to any optimization, and merging with canonical proteins and contaminants. Note that if ignoring variation in UTRs (default configuration of ProHap), UTR sequences are not included here. Otherwise, they are kept in this file. 
-3b. *cDNA sequences FASTA*: Optional: FASTA file contains the variant / haplotype cDNA sequences prior to any optimization, the removal of UTR sequences, and merging with canonical proteins and contaminants. Note that if ignoring variation in UTRs (default configuration of ProHap), UTR sequences are not included here. Otherwise, they are kept in this file. 
+3. *cDNA translations FASTA*: FASTA file contains the original translations of variant / haplotype cDNA sequences prior to any optimization, and merging with canonical proteins and contaminants. Note that if ignoring variation in UTRs (default configuration of ProHap), UTR sequences are not included here. Otherwise, they are kept in this file. 
+4. *cDNA sequences FASTA*: Optional: FASTA file contains the variant / haplotype cDNA sequences prior to any optimization, the removal of UTR sequences, and merging with canonical proteins and contaminants. Note that if ignoring variation in UTRs (default configuration of ProHap), UTR sequences are not included here. Otherwise, they are kept in this file. 
 
 ## Bug report and contribution
 We welcome bug reports, suggestions of improvements, and contributions. Please do not hesitate to [open an issue](https://github.com/ProGenNo/ProHap/issues) or a [pull request](https://github.com/ProGenNo/ProHap/pulls).
