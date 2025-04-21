@@ -1,4 +1,5 @@
 import argparse
+import gzip
 
 parser = argparse.ArgumentParser(
         description='Reads the VCF file, parses multi-allelic variants into multiple lines, and filters out variants under the MAF threshold.')
@@ -34,7 +35,11 @@ def get_MAF(info):
 # read the header of the VCF - keep only the last line of the header
 VCF_header = ""
 
-vcf_file = open(args.input_file, 'r')
+if args.input_file.endswith('.gz'):
+    vcf_file = gzip.open(args.input_file, 'rt')
+else:
+    vcf_file = open(args.input_file, 'r')
+
 outfile = open(args.output_file, 'w')
 
 line = vcf_file.readline()
