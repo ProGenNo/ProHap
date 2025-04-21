@@ -475,7 +475,7 @@ def process_haplotypes(all_transcripts, genes_haplo_df, all_cdnas, annotations_d
                     if (len(local_result_cdna_sequences) > nearest_idx and local_result_cdna_sequences[nearest_idx]['hash'] == cdna_hash):
                         local_result_cdna_sequences[nearest_idx]['haplotypes'].append(haplotypeID)
                     else:
-                        local_result_cdna_sequences.insert(nearest_idx, {'hash': cdna_hash, 'haplotypes': [haplotypeID], 'sequence': mutated_cdna, 'start': cdna_start})
+                        local_result_cdna_sequences.insert(nearest_idx, {'hash': cdna_hash, 'haplotypes': [haplotypeID], 'sequence': mutated_cdna, 'start': -1})
 
                 # store result
                 haplo_hash = hash(';'.join(all_vcf_IDs))
