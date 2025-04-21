@@ -69,7 +69,7 @@ The ProHap / ProVar pipeline produces four kinds of output files. Below is a bri
     * Optionally, headers are extracted and provided in an attached tab-separated file, and a gene name is added to each protein entry. 
 2. *Metadata table*: Additional information on the variant / haplotype sequences produced by the pipeline, such as genomic coordinates of the variants covered, variant consequence type, etc.
 3. *cDNA translations FASTA*: FASTA file contains the original translations of variant / haplotype cDNA sequences prior to any optimization, and merging with canonical proteins and contaminants. Note that if ignoring variation in UTRs (default configuration of ProHap), UTR sequences are not included here. Otherwise, they are kept in this file. 
-4. *cDNA sequences FASTA*: Optional: FASTA file contains the variant / haplotype cDNA sequences prior to any optimization, the removal of UTR sequences, and merging with canonical proteins and contaminants. Note that if ignoring variation in UTRs (default configuration of ProHap), UTR sequences are not included here. Otherwise, they are kept in this file. 
+4. *cDNA sequences FASTA*: Optional: FASTA file contains the variant / haplotype cDNA sequences prior to any optimization, and merging with canonical proteins and contaminants. Note that if ignoring variation in UTRs (default configuration of ProHap), UTR sequences are not included here. Otherwise, they are kept in this file. 
 
 ## Bug report and contribution
 We welcome bug reports, suggestions of improvements, and contributions. Please do not hesitate to [open an issue](https://github.com/ProGenNo/ProHap/issues) or a [pull request](https://github.com/ProGenNo/ProHap/pulls).
