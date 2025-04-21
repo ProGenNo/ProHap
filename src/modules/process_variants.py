@@ -1,4 +1,5 @@
 from datetime import datetime
+import gzip
 from numpy import ceil, floor
 import pandas as pd
 import bisect
@@ -268,10 +269,10 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
     # write the result table
     print ('Storing the result metadata:', output_file)
     result_df = pd.DataFrame(columns=result_columns, data=result_data)
-    result_df.to_csv(output_file, sep='\t', header=True, index=False)
+    result_df.to_csv(output_file, sep='\t', header=True, index=False, compression='infer')
 
     # write the unique protein sequences into the fasta file
-    output_fasta_file = open(output_fasta, 'w')
+    output_fasta_file = gzip.open(output_fasta, 'wt') if (output_fasta.endswith('.gz')) else open(output_fasta, 'w')
     print ('Writing FASTA file:', output_fasta)
 
     for i,seq in enumerate(protein_sequence_list):
@@ -284,7 +285,7 @@ def process_store_variants(all_transcripts, tmp_dir, log_file, all_cdnas, annota
     output_fasta_file.close()
     
     if (len(output_cdna_fasta) > 0):
-        outfile = open(output_cdna_fasta, 'w')
+        outfile = gzip.open(output_cdna_fasta, 'wt') if (output_cdna_fasta.endswith('.gz')) else open(output_cdna_fasta, 'w')
 
         for seq in cdna_sequence_list:
             outfile.write('>' + ';'.join(seq['variants']) + ' start:' + str(seq['start']) + '\n')

@@ -2,6 +2,7 @@ import argparse
 import pandas as pd
 import re
 import vcf
+import gzip
 
 parser = argparse.ArgumentParser(description="Splits a VCF into separate files for each chromosome, fills in missing values by '-'.")
 
@@ -15,7 +16,7 @@ args = parser.parse_args()
 
 # if (not re.match(r'[CGTA]', str(ALT)))
 
-infile = open(args.input_file, 'r')
+infile = gzip.open(args.input_file, 'rt') if (args.input_file.endswith('.gz')) else open(args.input_file, 'r')
 vcf_reader = vcf.Reader(infile)
 vcf_data = []
 
@@ -54,6 +55,6 @@ CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X', 'Y']
 for chr in CHROMOSOMES:
 	df_chrom = df[df['#CHROM'] == chr]
 	df_chrom = df_chrom.sort_values(by='POS')
-	df_chrom.to_csv(args.output_file_prefix + '_chr' + chr + '.vcf', sep='\t', index=False, header=True)
+	df_chrom.to_csv(args.output_file_prefix + '_chr' + chr + '.vcf.gz', sep='\t', index=False, header=True, compression='gzip')
 
 infile.close()

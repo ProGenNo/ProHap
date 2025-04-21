@@ -19,7 +19,7 @@ rule download_vcf:
         temp("data/vcf/phased/" + config['phased_vcf_file_name'])
     shell:
         "mkdir -p data/vcf/phased ; "
-        "wget " + config['phased_FTP_URL'] + config['phased_vcf_file_name'].replace('{chr}', '{wildcards.chr}') + ".gz -O {output}.gz  && gunzip {output}.gz"
+        "wget " + config['phased_FTP_URL'] + config['phased_vcf_file_name'].replace('{chr}', '{wildcards.chr}') + " -O {output}"
 
 rule download_gtf:
     output:
@@ -98,7 +98,7 @@ rule reference_remove_stop:
         fasta="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_tagged.fa",
         tr=expand('{proxy}', proxy=["data/transcripts_reference_" + str(config['ensembl_release']) + '.csv'] if config['only_MANE_select'] else [])
     output:
-        temp("data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa")
+        temp("data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa.gz")
     params:
         tr_filter=('-tr data/transcripts_reference_' + str(config['ensembl_release']) + '.csv') if config['only_MANE_select'] else ''
     conda: "envs/prohap.yaml"
@@ -109,7 +109,7 @@ rule contaminants_fix_headers:
     input:
         config['contaminants_fasta']
     output:
-        "data/fasta/crap_tagged.fa"
+        "data/fasta/crap_tagged.fa.gz"
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/fasta_format_headers.py -i {input} -o {output} -t _cont"
@@ -154,11 +154,11 @@ rule compute_variants:
         fasta="data/fasta/total_cdnas_" + str(config['ensembl_release']) + ".fa",
         flag="tmp/variants_{vcf}/ready",
     output:
-        tsv=temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.tsv"),
-        fasta=temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.fa")
+        tsv=temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.tsv.gz"),
+        fasta=temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_chr{chr}.fa" + ('.gz' if config['var_fasta_file'].endswith('.gz') else ""))
     params:
-        input_vcf="tmp/variants_{vcf}/variants_chr{chr}.vcf",
-        output_cdna_file="results/" + WORKING_DIR_NAME_VAR + "variants_cdna_chr{chr}.fa" if (len(config['var_cdna_file']) > 0) else "",
+        input_vcf="tmp/variants_{vcf}/variants_chr{chr}.vcf.gz",
+        output_cdna_file=("results/" + WORKING_DIR_NAME_VAR + "variants_cdna_chr{chr}.fa" + ('.gz' if config['var_cdna_file'].endswith('.gz') else "")) if (len(config['var_cdna_file']) > 0) else "",
         acc_prefix=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['fasta_accession_prefix'],
         min_af=lambda wildcards: VARIANT_VCF_FILES[f"{wildcards.vcf}"]['min_af'],
         log_file="log/{vcf}_chr{chr}.log",
@@ -176,55 +176,55 @@ rule compute_variants:
 
 rule merge_var_tables_vcf:
     input:
-        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.tsv", chr=CHROMOSOMES)
+        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.tsv.gz", chr=CHROMOSOMES)
     output:
-        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv")
+        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv.gz")
     params:
-        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.tsv", chr=CHROMOSOMES))
+        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.tsv.gz", chr=CHROMOSOMES))
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/merge_tables.py -i {params.input_file_list} -o {output}"
 
 rule merge_var_fasta_vcf:
     input:
-        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.fa", chr=CHROMOSOMES)
+        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{{vcf}}/variants_chr{chr}.fa" + ('.gz' if config['var_fasta_file'].endswith('.gz') else ""), chr=CHROMOSOMES)
     output:
-        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa")
+        temp("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa" + ('.gz' if config['var_fasta_file'].endswith('.gz') else ""))
     params:   
-        input_file_list_cdna = expand("results/" + WORKING_DIR_NAME_VAR + "/variants_cdna_chr{chr}.fa", chr=CHROMOSOMES),
-        output_cdna_file = "results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_cdna_all.fa"
+        input_file_list_cdna = expand("results/" + WORKING_DIR_NAME_VAR + "/variants_cdna_chr{chr}.fa" + ('.gz' if config['var_cdna_file'].endswith('.gz') else ""), chr=CHROMOSOMES),
+        output_cdna_file = "results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_cdna_all.fa" + ('.gz' if config['var_cdna_file'].endswith('.gz') else "")
     shell:
         "cat {input} > {output}" + 
-        ("cat {params.input_file_list_cdna} > {params.output_cdna_file} ; rm {params.input_file_list_cdna}" if (len(config['haplo_cdna_file']) > 0) else "")
+        ("cat {params.input_file_list_cdna} > {params.output_cdna_file} ; rm {params.input_file_list_cdna}" if (len(config['var_cdna_file']) > 0) else "")
 
 rule merge_var_tables:
     input:
-        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv", vcf=VARIANT_VCF_FILES.keys())
+        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv.gz", vcf=VARIANT_VCF_FILES.keys())
     output:
         config['var_table_file']
     params:
-        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv", vcf=VARIANT_VCF_FILES.keys()))
+        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.tsv.gz", vcf=VARIANT_VCF_FILES.keys()))
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/merge_tables.py -i {params.input_file_list} -o {output}"
 
 rule merge_var_fasta:
     input:
-        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa", vcf=VARIANT_VCF_FILES.keys())
+        expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_all.fa" + ('.gz' if config['var_fasta_file'].endswith('.gz') else ""), vcf=VARIANT_VCF_FILES.keys())
     output:
         config['var_fasta_file']
     params:
-        input_file_list_cdna = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_cdna_all.fa", vcf=VARIANT_VCF_FILES.keys())),
+        input_file_list_cdna = ','.join(expand("results/" + WORKING_DIR_NAME_VAR + "/variants_{vcf}/variants_cdna_all.fa" + ('.gz' if config['var_cdna_file'].endswith('.gz') else ""), vcf=VARIANT_VCF_FILES.keys())),
         output_cdna_file = config['var_cdna_file']
     shell:
         "cat {input} > {output}" + 
-        ("cat {params.input_file_list_cdna} > {params.output_cdna_file} ; rm {params.input_file_list_cdna}" if (len(config['haplo_cdna_file']) > 0) else "")
+        ("cat {params.input_file_list_cdna} > {params.output_cdna_file} ; rm {params.input_file_list_cdna}" if (len(config['var_cdna_file']) > 0) else "")
 
 rule var_fasta_remove_stop:
     input:
         config['var_fasta_file']
     output:
-        temp("results/variants_all_clean.fa")
+        temp("results/variants_all_clean.fa.gz")
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 6 "
@@ -235,7 +235,7 @@ rule filter_phased_vcf:
     input:
         vcf=expand('{proxy}', proxy=[config['phased_local_path'] + config['phased_vcf_file_name']] if len(config["phased_local_path"]) > 0 else ["data/vcf/phased/" + config['phased_vcf_file_name']])
     output:
-        temp("data/vcf/phased/chr{chr}_phased_filtered.vcf")
+        temp("data/vcf/phased/chr{chr}_phased_filtered.vcf.gz")
     params:
         AF_threshold=config['phased_min_af'],
         AF_field=config['phased_af_field']
@@ -247,16 +247,16 @@ rule compute_haplotypes:
     input:
         db="data/gtf/" + config['annotationFilename'] + "_chr{chr}.db",
         tr=expand('{proxy}', proxy=[config['custom_transcript_list']] if len(config["custom_transcript_list"]) > 0 else ["data/included_transcripts.csv"]),
-        vcf="data/vcf/phased/chr{chr}_phased_filtered.vcf",
+        vcf="data/vcf/phased/chr{chr}_phased_filtered.vcf.gz",
         fasta="data/fasta/total_cdnas_" + str(config['ensembl_release']) + ".fa",
         samples=config['sample_metadata_file']
     output:
-        csv=temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv"),
-        fasta=temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa"),
+        csv=temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv.gz"),
+        fasta=temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa" + ('.gz' if config['haplo_fasta_file'].endswith('.gz') else "")),
     params:
         log_file="log/prohap_chr{chr}.log",
         tmp_dir="tmp/transcript_vcf_haplo",
-        output_cdna_file="results/" + WORKING_DIR_NAME_HAPLO + "/haplo_cdna_chr{chr}.fa" if (len(config['haplo_cdna_file']) > 0) else "",
+        output_cdna_file=("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_cdna_chr{chr}.fa" + ('.gz' if config['haplo_cdna_file'].endswith('.gz') else "")) if (len(config['haplo_cdna_file']) > 0) else "",
         require_start=config['haplo_require_start'],
         ignore_UTR=config['haplo_ignore_UTR'],
         skip_start_lost=config['haplo_skip_start_lost'],
@@ -278,33 +278,33 @@ rule compute_haplotypes:
 
 rule merge_haplo_tables:
     input:
-        expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv", chr=CHROMOSOMES)
+        expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv.gz", chr=CHROMOSOMES)
     output:
         #config['haplo_table_file']
-        temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.tsv")
+        temp("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.tsv.gz")
     params:
-        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv", chr=CHROMOSOMES))
+        input_file_list = ','.join(expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.tsv.gz", chr=CHROMOSOMES))
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/merge_tables.py -i {params.input_file_list} -o {output}"
 
 rule extract_sample_names:
     input:
-        "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.tsv"
+        "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.tsv.gz"
     output:
         haplo_tsv=config['haplo_table_file'],
-        samples='.'.join(config['haplo_table_file'].split('.')[:-1]) + '_sampleIDs.tsv'
+        samples='.'.join(config['haplo_table_file'].split('.')[:-1]) + '_sampleIDs.tsv' + ('.gz' if config['haplo_table_file'].endswith('.gz') else "")
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/haplo_extract_sample_names.py -hap_tsv {input} -o {output.haplo_tsv} -samples {output.samples} "    
 
 rule merge_fasta:
     input:
-        expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa", chr=CHROMOSOMES)
+        expand(("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_chr{chr}.fa" + ('.gz' if config['haplo_fasta_file'].endswith('.gz') else "")), chr=CHROMOSOMES)
     output:
         config['haplo_fasta_file']
     params:
-        input_file_list_cdna = expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_cdna_chr{chr}.fa", chr=CHROMOSOMES),
+        input_file_list_cdna = expand("results/" + WORKING_DIR_NAME_HAPLO + "/haplo_cdna_chr{chr}.fa" + ('.gz' if config['haplo_cdna_file'].endswith('.gz') else ""), chr=CHROMOSOMES),
         output_cdna_file = config['haplo_cdna_file']
     shell:
         "cat {input} > {output} ; " + 
@@ -314,7 +314,7 @@ rule haplo_fasta_remove_stop:
     input:
         config['haplo_fasta_file']
     output:
-        temp("results/haplo_all_clean.fa")
+        temp("results/haplo_all_clean.fa.gz")
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 6 "
@@ -325,20 +325,20 @@ rule added_fasta_remove_stop:
     input:
         config['haplo_added_fasta']
     output:
-        temp("results/haplo_added_clean.fa")
+        temp("results/haplo_added_clean.fa.gz")
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/remove_stop_codons.py -i {input} -o {output} -min_len 6 "
 
 rule mix_with_reference_proteome:
     input:
-        in1="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa",
-        in2="data/fasta/crap_tagged.fa",
-        in3=expand('{proxy}', proxy=["results/variants_all_clean.fa"] if config["use_ProVar"] else []),
-        in4=expand('{proxy}', proxy=["results/haplo_all_clean.fa"] if config["use_ProHap"] else []),
-        in5=expand('{proxy}', proxy=["results/haplo_added_clean.fa"] if config["add_existing_haplo"] else []),
+        in1="data/fasta/ensembl_reference_proteinDB_" + str(config['ensembl_release']) + "_clean.fa.gz",
+        in2="data/fasta/crap_tagged.fa.gz",
+        in3=expand('{proxy}', proxy=["results/variants_all_clean.fa.gz"] if config["use_ProVar"] else []),
+        in4=expand('{proxy}', proxy=["results/haplo_all_clean.fa.gz"] if config["use_ProHap"] else []),
+        in5=expand('{proxy}', proxy=["results/haplo_added_clean.fa.gz"] if config["add_existing_haplo"] else []),
     output:
-        temp("results/ref_contam_vcf_haplo_all_clean.fa")		
+        temp("results/ref_contam_vcf_haplo_all_clean.fa.gz")		
     run:
         shell("cat {input.in1} {input.in2} > {output}; ")
         if config["use_ProVar"]:
@@ -350,9 +350,9 @@ rule mix_with_reference_proteome:
 
 rule merge_duplicate_seq:
     input:
-        "results/ref_contam_vcf_haplo_all_clean.fa"
+        "results/ref_contam_vcf_haplo_all_clean.fa.gz"
     output:
-        temp("results/ref_contam_vcf_haplo_all_nodupl.fa")
+        temp("results/ref_contam_vcf_haplo_all_nodupl.fa.gz")
         #config['final_fasta_file']                         
     conda: "envs/prohap.yaml"
     shell:
@@ -361,7 +361,7 @@ rule merge_duplicate_seq:
 # UTRs in ProHap are removed by default (can be changed), but not in ProVar -> make sure all UTRs are removed
 rule remove_UTR_seq:
     input:
-        "results/ref_contam_vcf_haplo_all_nodupl.fa"
+        "results/ref_contam_vcf_haplo_all_nodupl.fa.gz"
     output:
         config['final_fasta_file']
     conda: "envs/prohap.yaml"
@@ -375,8 +375,8 @@ rule simpify_fasta_headers:
         haplo_table=expand('{proxy}', proxy=[config['haplo_table_file']] if config["use_ProHap"] else ([config['haplo_added_table']] if (config['use_ProVar'] and config['add_existing_haplo']) else [])),
         annot="data/gtf/" + config['annotationFilename'] + ".db"
     output:
-        fasta='.'.join(config['final_fasta_file'].split('.')[:-1]) + '_simplified.fasta',
-        header='.'.join(config['final_fasta_file'].split('.')[:-1]) + '_header.tsv'
+        fasta=('.'.join(config['final_fasta_file'].split('.')[:-2]) + '_simplified.fasta.gz') if config['final_fasta_file'].endswith('.gz') else ('.'.join(config['final_fasta_file'].split('.')[:-1]) + '_simplified.fasta'),
+        header=('.'.join(config['final_fasta_file'].split('.')[:-2]) + '_header.tsv.gz') if config['final_fasta_file'].endswith('.gz') else ('.'.join(config['final_fasta_file'].split('.')[:-1]) + '_header.tsv')
     conda: "envs/prohap.yaml"
     shell:
         "python src/fasta_simplify_headers.py -i {input.fasta} " +

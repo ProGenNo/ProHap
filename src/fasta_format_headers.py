@@ -1,21 +1,16 @@
 import argparse
-import os.path
+import gzip
+from modules.common import check_open_file
 
 parser = argparse.ArgumentParser(description='Format the protein headers as follows: >generic_[your tag]|[protein accession]|[protein description]. Creates a single-line fasta.')
 
-def is_valid_file(parser, arg):
-    if not os.path.exists(arg):
-        parser.error("The file %s does not exist!" % arg)
-    else:
-        return open(arg, 'r')  # return an open file handle
-
 parser.add_argument("-i", dest="input_file", required=True,
                     help="input FASTA file", metavar="FILE",
-                    type=lambda x: is_valid_file(parser, x))
+                    type=lambda x: check_open_file(parser, x))
 
 parser.add_argument("-o", dest="output_file", required=True,
                     help="output FASTA file", metavar="FILE",
-                    type=lambda x: open(x, 'w'))
+                    type=lambda x: gzip.open(x, 'wt') if x.endswith('.gz') else open(x, 'w'))
 
 parser.add_argument("-t", dest="tag", required=False, default="",
 		    help="custom tag for protein identification")

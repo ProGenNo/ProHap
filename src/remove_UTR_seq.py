@@ -1,5 +1,6 @@
 from modules.common import read_fasta
 import argparse
+import gzip
 
 parser = argparse.ArgumentParser(description='Reads a FASTA file, removes entries only matching to UTR regions.')
 
@@ -13,7 +14,7 @@ args = parser.parse_args()
 
 all_proteins = read_fasta(args.input_file)
 
-outfile = open(args.output_file, 'w')
+outfile = gzip.open(args.output_file, 'wt') if (args.output_file.endswith('.gz')) else open(args.output_file, 'w')
 
 for protein in all_proteins.values():
 	splitIDs = protein['description'].split('split_sequences:', 1)[1].split(maxsplit=1)[0].split(';')

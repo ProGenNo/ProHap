@@ -1,5 +1,6 @@
 from modules.common import read_fasta
 import pandas as pd
+import gzip
 import re
 import argparse
 import gffutils
@@ -38,7 +39,7 @@ if (args.haplo_table):
 
 annot = gffutils.FeatureDB(args.annotation_db)
 
-outfile = open(args.output_file, 'w')
+outfile = gzip.open(args.output_file, 'wt') if args.output_file.endswith('.gz') else open(args.output_file, 'w')
 header_data = []
 
 for protein in all_proteins.values():
@@ -96,4 +97,4 @@ for protein in all_proteins.values():
 outfile.close()
 
 header_df = pd.DataFrame(data=header_data, columns=['accession', 'tag', 'matching_proteins', 'position_within_protein', 'start', 'reading_frame'])
-header_df.to_csv(args.output_file_header, sep='\t', index=False)
+header_df.to_csv(args.output_file_header, sep='\t', index=False, compression='infer')

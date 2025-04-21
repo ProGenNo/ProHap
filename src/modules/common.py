@@ -1,11 +1,21 @@
 import pandas as pd
+import os
+import gzip
+
+def check_open_file(parser, arg):
+        if not os.path.exists(arg):
+                parser.error("The file %s does not exist!" % arg)
+        elif arg.endswith('.gz'):
+                return gzip.open(arg, 'rt')  # return an open file handle
+        else:
+               return open(arg, 'r')
 
 # returns an object containing all the sequences + metadata in the fasta file,  
 # accessed by the stable element ID or accession in case of artificial identifier
 # all_elements[elementID] = {'tag': tag, 'accession': accession, 'description': description, 'sequence': sequence}
 def read_fasta(filename, truncate_accession = False):
 
-    fasta_file = open(filename, 'r')
+    fasta_file = gzip.open(filename, 'rt') if (filename.endswith('.gz')) else open(filename, 'r')
 
     metadata = fasta_file.readline()    # line starting with '>'
     sequence = ""                       # all the other lines are considered sequences (considering also a multi-line format)

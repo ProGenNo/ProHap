@@ -7,26 +7,21 @@ Creates a database of CDS + protein haplotypes, and a fasta file of protein hapl
 import gffutils
 import argparse
 import os
+import gzip
 from numpy import int64
 import pandas as pd
 
 from modules.vcf_reader import parse_vcf
-from modules.common import read_fasta
+from modules.common import check_open_file, read_fasta
 from modules.get_haplotypes import get_gene_haplotypes
 from modules.process_haplotypes import process_haplotypes, empty_output
 
 parser = argparse.ArgumentParser(
         description='Creates a database of CDS + protein haplotypes, and a fasta file of protein haplotype sequences.')
 
-def is_valid_file(parser, arg):
-        if not os.path.exists(arg):
-                parser.error("The file %s does not exist!" % arg)
-        else:
-                return open(arg, 'r')  # return an open file handle
-
 parser.add_argument("-i", dest="input_vcf", required=True,
                     help="input VCF file", metavar="FILE",
-                    type=lambda x: is_valid_file(parser, x))
+                    type=lambda x: check_open_file(parser, x))
 
 parser.add_argument("-db", dest="annotation_db", required=True,
                     help="DB file created by gffutils from GTF")
@@ -170,10 +165,10 @@ else:
 
         # store the result metadata        
         print (('Chr ' + args.chromosome + ':'), 'Storing the result metadata:', args.output_file)
-        result_data.to_csv(args.output_file, sep='\t', header=True, index=False)
+        result_data.to_csv(args.output_file, sep='\t', header=True, index=False, compression='infer')
     
         # write the protein sequences into the fasta file
-        output_fasta_file = open(args.output_fasta, 'w')
+        output_fasta_file = gzip.open(args.output_fasta, 'wt') if args.output_fasta.endswith('.gz') else open(args.output_fasta, 'w')
         print (('Chr ' + args.chromosome + ':'), 'Writing FASTA file:', args.output_fasta)
 
         for i,seq in enumerate(result_sequences):
@@ -187,7 +182,7 @@ else:
 
         # if requested, write the cDNA sequences into another fasta file
         if (len(args.output_cdna_fasta) > 0):
-                output_cdna_fasta = open(args.output_cdna_fasta, 'w')
+                output_cdna_fasta = gzip.open(args.output_cdna_fasta, 'wt') if args.output_cdna_fasta.endswith('.gz') else open(args.output_cdna_fasta, 'w')
                 print (('Chr ' + args.chromosome + ':'), 'Writing cDNA FASTA file:', args.output_cdna_fasta)
 
                 for i,seq in enumerate(result_cdna):

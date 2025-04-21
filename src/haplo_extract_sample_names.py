@@ -14,7 +14,7 @@ parser.add_argument("-samples", dest="output_file_samples", required=True,
 
 args = parser.parse_args()
 
-haplo_df = pd.read_table(args.haplo_table)
+haplo_df = pd.read_table(args.haplo_table, compression='infer')
 
-haplo_df.drop('samples', axis=1).to_csv(args.output_file, sep='\t', index=False)
-haplo_df[['HaplotypeID', 'samples']].to_csv(args.output_file_samples, sep='\t', index=False)
+haplo_df.drop('samples', axis=1).to_csv(args.output_file, sep='\t', index=False, compression='infer')
+haplo_df[['HaplotypeID', 'samples']].to_csv(args.output_file_samples, sep='\t', index=False, compression='infer')

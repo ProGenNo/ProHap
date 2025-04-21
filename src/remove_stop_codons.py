@@ -1,26 +1,21 @@
 import argparse
-import os.path
+import gzip
 import re
 import pandas as pd
+from modules.common import check_open_file
 
 parser = argparse.ArgumentParser(description='Reads a FASTA file, removes stop codons (*) and writes relative positions of the stop codons into the peptide header. E.g., if the sequence is PE*TI, it becomes PETI, and position 2 of a stop codon is written in the header.')
 
-def is_valid_file(parser, arg):
-    if not os.path.exists(arg):
-        parser.error("The file %s does not exist!" % arg)
-    else:
-        return open(arg, 'r')  # return an open file handle
-
 parser.add_argument("-i", dest="input_file", required=True,
                     help="input FASTA file", metavar="FILE",
-                    type=lambda x: is_valid_file(parser, x))
+                    type=lambda x: check_open_file(parser, x))
 
 parser.add_argument("-min_len", dest="min_len", required=False, type=int,
                     help="minimal length of a protein sequence; default: 1", default=1)
 
 parser.add_argument("-o", dest="output_file", required=True,
                     help="output FASTA file", metavar="FILE",
-                    type=lambda x: open(x, 'w'))
+                    type=lambda x: gzip.open(x, 'wt') if x.endswith('.gz') else open(x, 'w'))
 
 parser.add_argument("-tr", dest="transcript_list", required=False,
 		    help="optional: list of sepected transcripts transcripts -- if provided, other transcripts will be omitted")

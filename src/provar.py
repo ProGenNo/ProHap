@@ -5,21 +5,15 @@ import pandas as pd
 from datetime import datetime
 
 from modules.vcf_reader import parse_vcf
-from modules.common import read_fasta
+from modules.common import check_open_file, read_fasta
 from modules.process_variants import process_store_variants, empty_output
 
 parser = argparse.ArgumentParser(
         description='Creates a database and a FASTA file of variant protein sequences given a VCF file')
 
-def is_valid_file(parser, arg):
-        if not os.path.exists(arg):
-                parser.error("The file %s does not exist!" % arg)
-        else:
-                return open(arg, 'r')  # return an open file handle
-
 parser.add_argument("-i", dest="input_vcf", required=True,
                     help="input VCF file", metavar="FILE",
-                    type=lambda x: is_valid_file(parser, x))
+                    type=lambda x: check_open_file(parser, x))
 
 parser.add_argument("-db", dest="annotation_db", required=True,
                     help="DB file created by gffutils from GTF")

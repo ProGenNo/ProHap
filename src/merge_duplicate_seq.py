@@ -1,6 +1,7 @@
 from modules.common import read_fasta, KeyWrapper
 import bisect
 import argparse
+import gzip
 
 parser = argparse.ArgumentParser(description='Reads a FASTA file, aggregated all the duplicate sequences into one entry.')
 
@@ -53,7 +54,7 @@ for protein in all_proteins.values():
 	else:
 		result_proteins.insert(nearest_idx, {'hash': seq_hash, 'matching_proteins': [matching_proteins], 'split_sequences': [protein['accession']], 'tags': [protein['tag']], 'sequence': seq, 'start': [protein_start], 'seq_position': [seq_position], 'rfs': [rfs]})
 
-outfile = open(args.output_file, 'w')
+outfile = gzip.open(args.output_file, 'wt') if args.output_file.endswith('.gz') else open(args.output_file, 'w')
 
 for i,protein in enumerate(result_proteins):
 	matching_proteins = [ ','.join(plist) for plist in protein['matching_proteins'] ]

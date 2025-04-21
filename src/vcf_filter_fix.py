@@ -40,7 +40,7 @@ if args.input_file.endswith('.gz'):
 else:
     vcf_file = open(args.input_file, 'r')
 
-outfile = open(args.output_file, 'w')
+outfile = gzip.open(args.output_file, 'wt')
 
 line = vcf_file.readline()
 
