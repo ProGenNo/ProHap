@@ -86,10 +86,10 @@ while (line != ""):
                 invalid_gts.remove(i+1)
 
                 # format the string containing all the genotypes
-                GTs = [ GT.split(':')[GT_IDX].replace('/', '|') for GT in line.split()[9:] ]
+                GTs = [ GT.split(':')[GT_IDX] for GT in line.split()[9:] ]
 
                 # on sex chromosomes for male individuals, there might be just a single allele and the genotype won't be formated as "x|x" -> keep the valid allele as the first, and add a 0 to the genotype for consistency
-                GTs_str = '\t'.join([ ((GT + '|0') if ('|' not in GT) else GT) for GT in GTs ])
+                GTs_str = '\t'.join([ ((GT + '|0') if (('|' not in GT) and ('/' not in GT)) else GT) for GT in GTs ])
 
                 # mark all the other alleles as 0
                 for gt_id in invalid_gts:
@@ -108,11 +108,11 @@ while (line != ""):
         allele_maf = float(MAF)
         if (allele_maf >= args.min_af):
             # format the string containing all the genotypes
-            GTs = [ GT.split(':')[GT_IDX].replace('/', '|') for GT in line.split()[9:] ]
+            GTs = [ GT.split(':')[GT_IDX] for GT in line.split()[9:] ]
 
             # on sex chromosomes for male individuals, there might be just a single allele and the genotype won't be formated as "x|x" 
             # -> keep the valid allele as the first, and add a 0 to the genotype for consistency
-            GTs_str = '\t'.join([ ((GT + '|0') if ('|' not in GT) else GT) for GT in GTs ])
+            GTs_str = '\t'.join([ ((GT + '|0') if (('|' not in GT) and ('/' not in GT)) else GT) for GT in GTs ])
 
             outfile.write('\t'.join(line.split(maxsplit=8)[:-1]) + '\tGT\t' + GTs_str + '\n')
             valid_VCF_entries +=1
