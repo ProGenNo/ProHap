@@ -232,16 +232,18 @@ rule var_fasta_remove_stop:
 # ------------------------------------ ProHap rules ------------------------------------
 
 rule filter_phased_vcf:
-    input:
-        vcf=expand('{proxy}', proxy=[config['phased_local_path'] + config['phased_vcf_file_name']] if len(config["phased_local_path"]) > 0 else ["data/vcf/phased/" + config['phased_vcf_file_name']])
+    # Skip the input as it will be inferred by the script from the glob pattern
+    #input:
+    #    vcf=expand('{proxy}', proxy=[config['phased_local_path'] + config['phased_vcf_file_name']] if len(config["phased_local_path"]) > 0 else ["data/vcf/phased/" + config['phased_vcf_file_name']])
     output:
         temp("data/vcf/phased/chr{chr}_phased_filtered.vcf.gz")
     params:
+        input_file_glob=(config['phased_local_path'] + config['phased_vcf_file_name']) if len(config["phased_local_path"]) > 0 else ("data/vcf/phased/" + config['phased_vcf_file_name']),
         AF_threshold=config['phased_min_af'],
         AF_field=config['phased_af_field']
     shell:
         "mkdir -p data/vcf/phased ; "
-        "python3 src/vcf_filter_fix.py -i {input} -chr {wildcards.chr} -af {params.AF_threshold} -af_field {params.AF_field} -o {output} "
+        "python3 src/vcf_filter_fix.py -i \'{params.input_file_glob}\' -chr {wildcards.chr} -af {params.AF_threshold} -af_field {params.AF_field} -o {output} "
 
 rule compute_haplotypes:
     input:
@@ -293,7 +295,7 @@ rule extract_sample_names:
         "results/" + WORKING_DIR_NAME_HAPLO + "/haplo_all.tsv.gz"
     output:
         haplo_tsv=config['haplo_table_file'],
-        samples='.'.join(config['haplo_table_file'].split('.')[:-1]) + '_sampleIDs.tsv' + ('.gz' if config['haplo_table_file'].endswith('.gz') else "")
+        samples=('.'.join(config['haplo_table_file'].split('.')[:-2]) + '_sampleIDs.tsv.gz') if config['haplo_table_file'].endswith('.gz') else ('.'.join(config['haplo_table_file'].split('.')[:-1]) + '_sampleIDs.tsv')
     conda: "envs/prohap.yaml"
     shell:
         "python3 src/haplo_extract_sample_names.py -hap_tsv {input} -o {output.haplo_tsv} -samples {output.samples} "    
