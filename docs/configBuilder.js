@@ -1,10 +1,11 @@
 
-function setGeneralParams(ensemblRelease, custom_tr_list, only_MANE, transcript_biotypes, contam_fasta_path, final_fasta_path, simplify_headers) {
+function setGeneralParams(ensemblRelease, chr_list, custom_tr_list, only_MANE, transcript_biotypes, contam_fasta_path, final_fasta_path, simplify_headers) {    
     const general_config_html = "<p>\
         # ---------------- Global parameters ----------------<br>" +
         "Ensembl_FTP_URL: ftp.ensembl.org/pub/release-" + ensemblRelease + "/<br>" +
         "annotationFilename: Homo_sapiens.GRCh38." + ensemblRelease + ".chr_patch_hapl_scaff<br>" +
         "ensembl_release: " + ensemblRelease + "<br>" +
+        "chromosomes: " + ((chr_list.length > 0) ? ('[ ' + chr_list.map(elem => '"' + elem + '"').join(', ') + ' ]') : 'MISSING') + "<br>" +
         "<br>" +
         "custom_transcript_list: \"" + custom_tr_list + "\"<br>"+
         "included_transcript_biotypes: \"" + transcript_biotypes + "\"<br>" +

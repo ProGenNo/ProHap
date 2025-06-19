@@ -19,10 +19,16 @@
             <form id="form-general-params">
                 <h3 class="mb-4">General parameters</h3>                
                 <hr class="mb-1">
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-md-4">
                         <label for="ensembl-release">Ensembl release</label>
-                        <input type="text" class="form-control very-short-input" name="ensembl-release" value="113" id="ensembl-release" required="required" aria-required="true">
+                        <input type="text" class="form-control very-short-input" name="ensembl-release" value="114" id="ensembl-release" required="required" aria-required="true">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <label for="ensembl-release">Included chromosomes</label>
+                        <input type="text" class="form-control" name="included-chrom" value="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, X" id="included-chrom" required="required" aria-required="true">
                     </div>
                 </div>
                 <div class="row">
@@ -36,7 +42,7 @@
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="transcript-radio" id="transcript-radio-2" value="default">
-                                <label class="form-check-label" for="transcript-radio-2">Use only <a href="https://www.ncbi.nlm.nih.gov/refseq/MANE/">MANE Select</a> transcripts</label>
+                                <label class="form-check-label" for="transcript-radio-2">Use only <a href="https://www.ncbi.nlm.nih.gov/refseq/MANE/" target="_blank">MANE Select</a> transcripts</label>
                                 <br>
                                 <span class="text-muted">Only available for Ensembl v.108 and above. For genes that do not include any MANE Select transcript in Ensembl, "Ensembl Canonical" transcripts will be selected.</span>
                             </div>
@@ -56,7 +62,7 @@
                         <div class="d-block my-1">
                             <label for="transcript-biptypes">
                                 Transcript biotypes to be included
-                                <span class="text-muted">(Comma-separated list, use biotypes from <a href="https://www.gencodegenes.org/pages/biotypes.html">Gencode</a>)</span>
+                                <span class="text-muted">(Comma-separated list, use biotypes from <a href="https://www.gencodegenes.org/pages/biotypes.html" target="_blank">Gencode</a>)</span>
                             </label>
                             <input type="text" class="form-control" name="transcript-biotypes" placeholder="e.g. protein_coding,retained_intron" id="transcript-biotypes" disabled>
                         </div>
@@ -67,7 +73,7 @@
                         <div class="d-block my-1">
                             <label for="transcript-file-path">
                                 Path to the custom transcript list
-                                <span class="text-muted">(CSV file, see example <a href="https://github.com/ProGenNo/ProHap/blob/main/data/transcripts_reference_108.csv">data/transcripts_reference_108.csv</a>)</span>
+                                <span class="text-muted">(CSV file, see example <a href="https://github.com/ProGenNo/ProHap/blob/main/data/transcripts_reference_108.csv" target="_blank">data/transcripts_reference_108.csv</a>)</span>
                             </label>
                             <input type="text" class="form-control" name="transcript-file-path" value="" id="transcript-file-path" disabled>
                         </div>
@@ -142,7 +148,7 @@
                 <label for="sample_metadata_file">Samples metadata file
                 </label>
                 <input type="text" class="form-control" name="sample_metadata_file" value="igsr_samples.tsv" id="sample_metadata_file" required="required" aria-required="true">
-                <small class="form-text text-muted">See the <a href="https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage#prohap">wiki page</a> for details</small>
+                <small class="form-text text-muted">See the <a href="https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage#prohap" target="_blank">wiki page</a> for details</small>
                 
                 <hr class="mb-1">
                 <label for="phased-min-af">
@@ -314,8 +320,9 @@
     </div>
     <hr class="mb-3">
     <div class="mb-3">
+        <span>Check that no fields below are labbeled as MISSING and </span>
         <button onclick="download('config.yaml')">Download</button>
-        <span>or copy the content below to your config.yaml file:</span>
+        <span> or copy the content below to your config.yaml file:</span>
     </div>
     <div class="row">
         <div class="col" id="config-content">            
@@ -347,7 +354,7 @@
 <script src="configBuilder.js"></script>
 
 <script lang="ts">
-    let general_config_html = setGeneralParams("112", "data/transcripts_reference_112.csv", false, "", "crap.fasta", "", false)
+    let general_config_html = setGeneralParams("114", [...Array.from({length: 22}, (_, index) => (index + 1).toString()), 'X'], "data/transcripts_reference_114.csv", false, "", "crap.fasta", "", false)
     let provar_config_html = setProVarParams(false, [], true, false, '', '', '', false, '', '')
     let prohap_config_html = setProHapParams( 
         true, 
@@ -380,34 +387,35 @@
 
     d3.select('#form-general-params').on('change', (evt) => {
         const ensembl_release = evt.currentTarget[0].value
+        const chromosomes = evt.currentTarget[1].value.split(',').map(elem => elem.trim()).filter(elem => elem.length > 0)
         let only_MANE = false
 
         let custom_tr_list = ""
         let transcript_biotypes = ""
-        if (evt.currentTarget[1].checked) {
+        if (evt.currentTarget[2].checked) {
             custom_tr_list = "data/transcripts_reference_" + ensembl_release + ".csv"
             d3.select('#transcript-biotypes').attr('disabled', true)
             d3.select('#transcript-file-path').attr('disabled', true)
-        } else if (evt.currentTarget[2].checked) {
+        } else if (evt.currentTarget[3].checked) {
             custom_tr_list = "data/transcripts_reference_" + ensembl_release + ".csv"
             only_MANE = true
             d3.select('#transcript-biotypes').attr('disabled', true)
             d3.select('#transcript-file-path').attr('disabled', true)
-        } else if (evt.currentTarget[3].checked) {
-            transcript_biotypes = evt.currentTarget[5].value
+        } else if (evt.currentTarget[4].checked) {
+            transcript_biotypes = evt.currentTarget[6].value
             d3.select('#transcript-biotypes').attr('disabled', null)
             d3.select('#transcript-file-path').attr('disabled', true)
-        } else if (evt.currentTarget[4].checked) {
-            custom_tr_list = evt.currentTarget[6].value
+        } else if (evt.currentTarget[5].checked) {
+            custom_tr_list = evt.currentTarget[7].value
             d3.select('#transcript-biotypes').attr('disabled', true)
             d3.select('#transcript-file-path').attr('disabled', null)
         }
 
-        const contam_fasta_path = evt.currentTarget[7].value
-        const final_fasta_path = evt.currentTarget[8].value
-        const simplify_headers = evt.currentTarget[9].checked
+        const contam_fasta_path = evt.currentTarget[8].value
+        const final_fasta_path = evt.currentTarget[9].value
+        const simplify_headers = evt.currentTarget[10].checked
 
-        general_config_html = setGeneralParams(ensembl_release, custom_tr_list, only_MANE, transcript_biotypes, contam_fasta_path, final_fasta_path, simplify_headers)
+        general_config_html = setGeneralParams(ensembl_release, chromosomes, custom_tr_list, only_MANE, transcript_biotypes, contam_fasta_path, final_fasta_path, simplify_headers)
         update_config_text()
     })
 

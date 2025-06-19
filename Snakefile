@@ -1,7 +1,7 @@
 configfile: "config.yaml"
 
 VARIANT_VCF_FILES = config['variant_vcf']
-CHROMOSOMES = [str(x) for x in list(range(1, 23))] + ['X']
+CHROMOSOMES = config['chromosomes']
 
 WORKING_DIR_NAME_HAPLO = config['working_dir_name_haplo']
 WORKING_DIR_NAME_VAR = config['working_dir_name_var']

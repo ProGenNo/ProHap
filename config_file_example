@@ -4,6 +4,8 @@ Ensembl_FTP_URL: ftp.ensembl.org/pub/release-108/
 annotationFilename: Homo_sapiens.GRCh38.108.chr_patch_hapl_scaff
 ensembl_release: 108
 
+chromosomes: [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X" ]
+
 contaminants_fasta: "crap.fasta"      # Path to the FASTA file with contaminant sequences
 
 custom_transcript_list: "data/transcripts_reference_108.csv"  # Path to the CSV file containing transcript IDs to be included in the datavase. Give an empty string ("") to ignore.
@@ -50,7 +52,7 @@ haplo_added_fasta: <path to the fasta file (one of the F3 files in the Zenodo re
 
 phased_FTP_URL: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/
 phased_local_path: "" # if not usinga data set available online, give the path to the directory containing all the VCF files here (otherwise give empty string: "")
-phased_vcf_file_name: "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"
+phased_vcf_file_name: "ALL.chr{chr}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf"   # It is allowed to use globbing (i.e., * or ? for substituting patterns)
 sample_metadata_file: "igsr_samples.tsv"  # samples metadata (see https://github.com/ProGenNo/ProHap/wiki/Input-&-Usage#prohap for details)
 
 working_dir_name_haplo: haplotypes_tmp  # directory for temp. files where haplotypes will be processed - default: haplotypes_tmp

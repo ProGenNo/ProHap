@@ -1,11 +1,13 @@
  # ---------------- Global parameters ----------------
-Ensembl_FTP_URL: ftp.ensembl.org/pub/release-111/
-annotationFilename: Homo_sapiens.GRCh38.111.chr_patch_hapl_scaff
-ensembl_release: 111
+Ensembl_FTP_URL: ftp.ensembl.org/pub/release-114/
+annotationFilename: Homo_sapiens.GRCh38.114.chr_patch_hapl_scaff
+ensembl_release: 114
+
+chromosomes: [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X" ]
 
 contaminants_fasta: "crap.fasta"      # Path to the FASTA file with contaminant sequences
 
-custom_transcript_list: "data/transcripts_reference_111.csv"
+custom_transcript_list: "data/transcripts_reference_114.csv"
 included_transcript_biotypes: ""
 only_MANE_select: True
 

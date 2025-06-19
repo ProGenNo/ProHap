@@ -32,7 +32,7 @@ Usage:
  4. Run the Snakemake pipeline to create your protein database: `snakemake --cores <# provided cores> -p --use-conda`
 
 ### Example: ProHap on 1000 Genomes
-In the first usage example, we provide a small example dataset taken from the 1000 Genomes Project on GRCh38. We will use ProHap to create a database of protein haplotypes aligned with Ensembl v.111 (January 2024) using only MANE Select transcripts.
+In the first usage example, we provide a small example dataset taken from the 1000 Genomes Project on GRCh38. We will use ProHap to create a database of protein haplotypes aligned with Ensembl v.115 (May 2025) using only MANE Select transcripts.
 
 Expected runtime using 4 CPU cores: ~1 hour. Expected runtime using 23 CPU cores: ~30 minutes.
 
